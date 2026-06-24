@@ -343,6 +343,36 @@ app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
     res.redirect("/admin");
 });
 
+// ==========================================
+// DEVELOPER TESTING BACKDOOR (Delete before going live!)
+// ==========================================
+app.get("/dev/generate-key", async (req, res) => {
+    try {
+        // First, clear any old test accounts to prevent duplicates
+        await User.deleteOne({ username: "DevTester" });
+
+        const testUser = new User({
+            username: "DevTester",
+            email: "dev@protrading.com",
+            licenseKey: "TEST-KEY-2026", // <--- Here is your permanent test key
+            licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days
+            currentTier: "Topaz", // Testing with the $200-$1000 tier
+            isSuspended: false,
+            mt5AccountNumber: null, // Leaves it open to attach to whatever MT5 account you use
+            startingBalance: 0,
+            targetBalance: 0,
+            accountLocked: false
+        });
+
+        await testUser.save();
+        res.send("<h1 style='color: green; font-family: sans-serif;'>Success! Your Test Key is: TEST-KEY-2026</h1>");
+    } catch (err) {
+        res.send("Error: " + err.message);
+    }
+});
+
+
+
 // --- START SERVER ---
 const port = process.env.PORT || 80;
 app.listen(port, () => console.log(`ProTrading API running on port ${port}`));
