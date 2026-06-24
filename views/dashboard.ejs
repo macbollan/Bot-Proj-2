@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Portal | ProTrading Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass-nav { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; backdrop-filter: blur(10px); }
+        .glass-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 25px; height: 100%; }
+        .text-accent { color: #38bdf8; }
+        
+        /* Premium Plan Gradient Backgrounds */
+        .plan-card { position: relative; overflow: hidden; border: none; }
+        .plan-bg-blur { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: #38bdf8; filter: blur(80px); opacity: 0.2; border-radius: 50%; z-index: 0; }
+        .plan-content { position: relative; z-index: 1; }
+        
+        /* Secure Key Box */
+        .key-box { background: #020617; border: 1px dashed #475569; border-radius: 8px; font-family: 'Courier New', monospace; letter-spacing: 2px; transition: all 0.3s; cursor: pointer; }
+        .key-box:hover { border-color: #38bdf8; background: #082f49; }
+        .key-hidden { filter: blur(4px); user-select: none; }
+        
+        /* Chart specific */
+        canvas { max-height: 250px; width: 100%; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark glass-nav py-3 mb-4 sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-cpu text-accent me-2"></i>ProTrading Portal</a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary d-none d-md-block">Terminal ID: <strong class="text-white"><%= currentUser.username.toUpperCase() %></strong></span>
+                <a href="/logout" class="btn btn-sm btn-outline-danger px-3"><i class="bi bi-power"></i> Disconnect</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 pb-5">
+        
+        <% if(success && success.length > 0) { %> <div class="alert alert-success bg-success bg-opacity-10 border-success text-success fw-bold"><i class="bi bi-check-circle me-2"></i><%= success %></div> <% } %>
+        <% if(error && error.length > 0) { %> <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger fw-bold"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> <% } %>
+
+        <div class="row g-4">
+            
+            <div class="col-xl-4 col-lg-5">
+                
+                <div class="glass-card plan-card mb-4">
+                    <div class="plan-bg-blur"></div>
+                    <div class="plan-content">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-secondary fw-bold text-uppercase m-0">Current Subscription</h6>
+                            <% if(currentUser.isSuspended) { %> <span class="badge bg-danger">SUSPENDED</span>
+                            <% } else if(currentUser.licenseKey && new Date() < new Date(currentUser.licenseExpiry)) { %> <span class="badge bg-success">ACTIVE</span>
+                            <% } else { %> <span class="badge bg-warning text-dark">INACTIVE</span> <% } %>
+                        </div>
+                        
+                        <h2 class="fw-bold mb-1"><%= currentUser.currentTier %> Grade</h2>
+                        <p class="text-secondary small mb-4">Institutional Trade Copier Network</p>
+
+                        <div class="bg-dark p-3 rounded border border-secondary mb-3">
+                            <div class="d-flex justify-content-between text-secondary small text-uppercase fw-bold mb-1">
+                                <span>Time Remaining</span>
+                                <% 
+                                    let daysLeft = 0;
+                                    if(currentUser.licenseExpiry) {
+                                        daysLeft = Math.ceil((new Date(currentUser.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+                                        if(daysLeft < 0) daysLeft = 0;
+                                    }
+                                %>
+                                <span><%= daysLeft %> Days</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background-color: #1e293b;">
+                                <div class="progress-bar bg-info" style="width: <%= daysLeft > 0 ? '75%' : '0%' %>"></div>
+                            </div>
+                            <div class="text-end text-muted mt-1" style="font-size: 0.7rem;">Expires: <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString() : 'N/A' %></div>
+                        </div>
+
+                        <a href="/pricing" class="btn btn-outline-light w-100 btn-sm"><i class="bi bi-arrow-up-circle me-2"></i>Upgrade / Extend Plan</a>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-key text-accent me-2"></i>Terminal License Key</h5>
+                    
+                    <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
+                        <p class="text-secondary small">Click to reveal and copy your key. Paste this into the Dummy EA inputs on MetaTrader 5.</p>
+                        
+                        <div class="key-box p-3 text-center text-accent fs-5 fw-bold mb-4 key-hidden" id="licenseKeyBox" onclick="copyKey()">
+                            <%= currentUser.licenseKey %>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-secondary text-uppercase fw-bold d-block">MT5 Account Lock</small>
+                                <% if(currentUser.mt5AccountNumber) { %>
+                                    <span class="fs-5 fw-bold text-success"><i class="bi bi-lock-fill me-1"></i><%= currentUser.mt5AccountNumber %></span>
+                                <% } else { %>
+                                    <span class="badge bg-secondary">Pending Connection</span>
+                                <% } %>
+                            </div>
+                            <div class="col-6 text-end">
+                                <small class="text-secondary text-uppercase fw-bold d-block">Download</small>
+                                <a href="/dummy-ea.zip" class="btn btn-primary btn-sm mt-1"><i class="bi bi-download me-1"></i> Client EA</a>
+                            </div>
+                        </div>
+
+                    <% } else { %>
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>You do not have an active key. Please subscribe to a tier to generate one.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="col-xl-8 col-lg-7">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                        <h5 class="fw-bold m-0"><i class="bi bi-activity text-success me-2"></i>Master AI Feed</h5>
+                        <span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3 py-2"><span class="spinner-grow spinner-grow-sm me-2" style="width: 0.5rem; height: 0.5rem;"></span>Live Sync</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
+                                <small class="text-secondary text-uppercase fw-bold">Active Asset</small>
+                                <h5 id="ea-symbol" class="fw-bold text-white mt-2 mb-0">--</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
+                                <small class="text-secondary text-uppercase fw-bold">Live Price</small>
+                                <h5 id="ea-price" class="text-accent fw-bold mt-2 mb-0">0.00</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
+                                <small class="text-secondary text-uppercase fw-bold">A.I. Trend</small>
+                                <h5 id="ea-trend" class="text-info fw-bold mt-2 mb-0">--</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
+                                <small class="text-secondary text-uppercase fw-bold">Open Trades</small>
+                                <h5 id="ea-trades" class="text-warning fw-bold mt-2 mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-secondary text-uppercase fw-bold">Live Equity Curve (Master Account)</small>
+                            <span id="ea-action" class="text-success fw-bold small">Executing...</span>
+                        </div>
+                        <div class="bg-dark p-3 rounded border border-secondary">
+                            <canvas id="equityChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 1. Copy Key Logic
+        function copyKey() {
+            const box = document.getElementById('licenseKeyBox');
+            if(box.classList.contains('key-hidden')) {
+                box.classList.remove('key-hidden'); // Reveal it
+            } else {
+                navigator.clipboard.writeText(box.innerText.trim());
+                const originalText = box.innerText;
+                box.innerText = "COPIED TO CLIPBOARD!";
+                box.classList.add('text-success');
+                setTimeout(() => {
+                    box.innerText = originalText;
+                    box.classList.remove('text-success');
+                    box.classList.add('key-hidden'); // Hide it again
+                }, 2000);
+            }
+        }
+
+        // 2. Chart.js Initialization
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        const equityChart = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels: Array(50).fill(''), 
+                datasets: [{ 
+                    label: 'Master Equity', 
+                    data: [], 
+                    borderColor: '#38bdf8', 
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)', 
+                    borderWidth: 2, 
+                    fill: true, 
+                    tension: 0.3,
+                    pointRadius: 0 
+                }] 
+            },
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } 
+                }, 
+                plugins: { legend: { display: false } }, 
+                animation: { duration: 0 } 
+            }
+        });
+
+        // 3. Fetch Live EA Data
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch('/api/public/ea-state');
+                const data = await res.json();
+                
+                document.getElementById('ea-symbol').innerText = data.symbol;
+                document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : "0.00";
+                document.getElementById('ea-trend').innerText = data.trend;
+                document.getElementById('ea-trades').innerText = data.openTrades || 0;
+                document.getElementById('ea-action').innerText = data.action;
+
+                // Color code the action text
+                const actionEl = document.getElementById('ea-action');
+                if(data.action.includes("Buy")) actionEl.className = "text-success fw-bold small";
+                else if(data.action.includes("Sell")) actionEl.className = "text-danger fw-bold small";
+                else actionEl.className = "text-warning fw-bold small";
+                
+                // Update Chart
+                if(data.equityHistory && data.equityHistory.length > 0) {
+                    equityChart.data.datasets[0].data = data.equityHistory;
+                    equityChart.update();
+                }
+            } catch (e) { console.error("Error fetching EA Data"); }
+        }
+
+        // Poll every 2.5 seconds
+        setInterval(fetchDashboardData, 2500);
+    </script>
+</body>
+</html>

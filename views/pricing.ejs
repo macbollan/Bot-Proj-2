@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Tiers | ProTrading EA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; }
+        .tier-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; }
+        .tier-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(56, 189, 248, 0.1); border-color: #38bdf8; }
+        .modal-content { background-color: #0f172a; border: 1px solid #334155; }
+        .modal-header { border-bottom: 1px solid #334155; }
+        .modal-footer { border-top: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark glass-nav py-3 mb-5">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-cpu text-primary me-2"></i>ProTrading Portal</a>
+            <div>
+                <% if(currentUser) { %>
+                    <a href="/dashboard" class="btn btn-outline-light btn-sm">Client Portal</a>
+                <% } else { %>
+                    <a href="/login" class="btn btn-outline-light btn-sm me-2">Login</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold">"Tha System That Buys Money"</h1>
+            <p class="lead text-secondary">Select your float size to determine your subscription tier.</p>
+        </div>
+
+        <% if(error && error.length > 0) { %> 
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger text-center mb-4 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> 
+        <% } %>
+        <% if(success && success.length > 0) { %> 
+            <div class="alert alert-success bg-success bg-opacity-10 border-success text-success text-center mb-4 fw-bold"><i class="bi bi-check-circle me-2"></i><%= success %></div> 
+        <% } %>
+
+        <div class="row g-4">
+            <% tiers.forEach(tier => { %>
+                <div class="col-lg-4 col-md-6">
+                    <div class="tier-card p-4 h-100 d-flex flex-column">
+                        <h4 class="fw-bold <%= tier.color %> mb-1"><%= tier.name %> Grade</h4>
+                        <div class="text-secondary small fw-semibold mb-3">FLOAT: <%= tier.range %></div>
+                        
+                        <h2 class="fw-bold mb-3"><%= tier.amount %><span class="fs-6 text-secondary fw-normal"> due</span></h2>
+                        <div class="bg-dark p-2 rounded mb-4 text-center border border-secondary">
+                            <small class="text-uppercase text-secondary fw-bold" style="font-size: 0.75rem;">Rate</small>
+                            <div class="fw-semibold"><%= tier.rate %></div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <% if(tier.name === 'Amber') { %>
+                                <button class="btn btn-outline-secondary w-100" disabled>No Trading Available</button>
+                            <% } else { %>
+                                <button class="btn btn-primary w-100 fw-bold" onclick="openCheckoutModal('<%= tier.name %>')">Subscribe</button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Mandatory Terms & Conditions</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-secondary" style="font-size: 0.9rem;">
+                    <h5 class="text-white mb-3" id="modalTierName">Subscribe to [Tier]</h5>
+                    
+                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning p-3 mb-4">
+                        <strong>⚠️ 100% Gain Logout Protocol:</strong> When the float size doubles (100% increase) using the D.E.T System, you will be automatically logged out regardless of remaining time. Zero-Hedging will be applied to close open trades at break-even or minimal loss.
+                    </div>
+
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-3"><strong class="text-white">NO Top-up option:</strong> Mid-cycle top-ups are not permitted.</li>
+                        <li class="mb-3"><strong class="text-white">Withdrawal Penalty:</strong> Any withdrawals made from your account will be deducted from your expected "double profit" gain target.</li>
+                        <li class="mb-3"><strong class="text-white">Trade Takeover:</strong> Uploading D.E.T onto an active account with open trades runs the risk of those trades being taken over, closed, or trailed by the algorithm.</li>
+                        <li class="mb-3"><strong class="text-white">Disclaimer:</strong> We are NOT an Advisory or Investment Institution. We offer NO Guarantees. In High-Risk trading, you may lose all your capital.</li>
+                    </ul>
+
+                    <div class="form-check mt-4 border-top border-secondary pt-3">
+                        <input class="form-check-input" type="checkbox" id="agreeCheck" onchange="togglePayButton()">
+                        <label class="form-check-label text-white fw-bold" for="agreeCheck">
+                            Caveat Subscriptor. I have read, understood, and agree to the strict conditions above.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <form action="/checkout/initialize" method="POST" class="w-100 m-0">
+                        <input type="hidden" name="selectedTier" id="selectedTierInput">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="payBtn" disabled>Proceed to Secure Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+        
+        function openCheckoutModal(tierName) {
+            document.getElementById('modalTierName').innerText = `Subscribe to ${tierName} Grade`;
+            document.getElementById('selectedTierInput').value = tierName;
+            document.getElementById('agreeCheck').checked = false; // Reset checkbox
+            document.getElementById('payBtn').disabled = true;     // Reset button
+            checkoutModal.show();
+        }
+
+        function togglePayButton() {
+            const isChecked = document.getElementById('agreeCheck').checked;
+            document.getElementById('payBtn').disabled = !isChecked;
+        }
+    </script>
+</body>
+</html>

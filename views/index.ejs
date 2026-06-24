@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ProTrading EA | Deriv Institutional Algorithms</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass-nav { background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .text-accent { background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0,0,0,0) 70%); top: -200px; left: 50%; transform: translateX(-50%); z-index: -1; }
+        .ea-brain-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative; overflow: hidden; }
+        .ea-brain-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #38bdf8, transparent); animation: scan 2s linear infinite; }
+        @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        .live-indicator { display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .btn-glow { background: #2563eb; color: white; border: none; box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); transition: all 0.3s; }
+        .btn-glow:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 0 30px rgba(37, 99, 235, 0.6); color: white;}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark glass-nav fixed-top py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-cpu text-primary me-2"></i>ProTrading EA</a>
+            <div>
+                <% if(currentUser) { %>
+                    <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4">Client Portal</a>
+                <% } else { %>
+                    <a href="/login" class="text-light text-decoration-none me-4 fw-semibold">Login</a>
+                    <a href="/register" class="btn btn-glow rounded-pill px-4 fw-semibold">Get Started</a>
+                <% } %>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-glow"></div>
+
+    <div class="container" style="margin-top: 150px;">
+        <div class="row align-items-center justify-content-between">
+            
+            <div class="col-lg-6 mb-5">
+                <div class="badge border border-secondary text-secondary rounded-pill px-3 py-2 mb-4">
+                    <span class="live-indicator me-2"></span> System Online & Trading Deriv Synthetics
+                </div>
+                <h1 class="display-3 fw-bold mb-4">Institutional <br><span class="text-accent">Algorithmic Edge</span></h1>
+                <p class="lead text-secondary mb-5 fs-5">Stop trading manually. Our Master EA analyzes synthetic indices 24/7, executing precision trades and instantly copying them to your personal MetaTrader 5 account.</p>
+                <div class="d-flex gap-3">
+                    <a href="/pricing" class="btn btn-glow btn-lg rounded-pill px-5">View Pricing</a>
+                    <a href="/dummy-ea.zip" class="btn btn-outline-secondary btn-lg rounded-pill px-4 text-white"><i class="bi bi-download me-2"></i>Download Client EA</a>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="ea-brain-card p-4">
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-3 mb-4">
+                        <h5 class="fw-bold m-0"><i class="bi bi-activity text-primary me-2"></i>Live Master EA Feed</h5>
+                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary rounded-pill">A.I. Analyzing</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-secondary small text-uppercase fw-bold letter-spacing-1">Current Asset</label>
+                        <h3 id="ea-symbol" class="fw-bold text-white mt-1">Loading...</h3>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="text-secondary small text-uppercase fw-bold">Live Price</label>
+                            <h4 id="ea-price" class="text-white mt-1">0.00</h4>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-secondary small text-uppercase fw-bold">Calculated Trend</label>
+                            <h4 id="ea-trend" class="text-info mt-1">-</h4>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark p-3 rounded border border-secondary">
+                        <label class="text-secondary small text-uppercase fw-bold">Current EA Action</label>
+                        <div class="d-flex align-items-center mt-2">
+                            <div class="spinner-grow spinner-grow-sm text-warning me-3" role="status"></div>
+                            <span id="ea-action" class="fs-5 text-warning fw-semibold">Waiting for connection...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function fetchEABrain() {
+            try {
+                const response = await fetch('/api/public/ea-state');
+                const data = await response.json();
+                
+                document.getElementById('ea-symbol').innerText = data.symbol;
+                document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(3) : "0.00";
+                document.getElementById('ea-trend').innerText = data.trend;
+                
+                const actionEl = document.getElementById('ea-action');
+                actionEl.innerText = data.action;
+                
+                // Color coding
+                if(data.action.includes("Buy")) { actionEl.className = "fs-5 text-success fw-semibold"; }
+                else if(data.action.includes("Sell")) { actionEl.className = "fs-5 text-danger fw-semibold"; }
+                else { actionEl.className = "fs-5 text-warning fw-semibold"; }
+
+            } catch (error) { console.error("Could not fetch EA state"); }
+        }
+
+        // Poll every 3 seconds
+        setInterval(fetchEABrain, 3000);
+        fetchEABrain(); // Initial load
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | ProTrading EA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #020617; color: #f8fafc; display: flex; align-items: center; min-height: 100vh; font-family: 'Inter', sans-serif; }
+        .auth-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .form-control { background: #020617; border: 1px solid #334155; color: white; padding: 12px; }
+        .form-control:focus { background: #020617; color: white; border-color: #38bdf8; box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25); }
+    </style>
+</head>
+<body>
+    <div class="container d-flex justify-content-center">
+        <div class="auth-card">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold"><span class="text-primary">Pro</span>Trading</h2>
+                <p class="text-secondary">Secure Client Authentication</p>
+            </div>
+
+            <% if(error && error.length > 0) { %> <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger py-2"><%= error %></div> <% } %>
+            <% if(success && success.length > 0) { %> <div class="alert alert-success bg-success bg-opacity-10 border-success text-success py-2"><%= success %></div> <% } %>
+
+            <form action="/login" method="POST">
+                <div class="mb-3">
+                    <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+                    <input type="text" class="form-control" name="username" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Password</label>
+                    </div>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mb-3">Access Terminal</button>
+            </form>
+            
+            <p class="text-center text-secondary small mb-0">No account yet? <a href="/register" class="text-primary text-decoration-none fw-bold">Initialize Setup</a></p>
+        </div>
+    </div>
+</body>
+</html>
