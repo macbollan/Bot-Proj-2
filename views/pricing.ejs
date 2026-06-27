@@ -1,127 +1,442 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Subscription Tiers | ProTrading EA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Choose Your Trading Level | D.E.T System</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass-nav { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; }
-        .tier-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; }
-        .tier-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(56, 189, 248, 0.1); border-color: #38bdf8; }
-        .modal-content { background-color: #0f172a; border: 1px solid #334155; }
-        .modal-header { border-bottom: 1px solid #334155; }
-        .modal-footer { border-top: 1px solid #334155; }
+        body {
+            background-color: #1a1818;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+            padding-top: 100px; /* Space for fixed header */
+            margin: 0;
+        }
+
+        /* =========================================
+           CUSTOM NEUTRAL NAVBAR
+        ========================================= */
+        .custom-navbar {
+            background-color: #322C2C;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            padding: 18px 0;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .text-logo {
+            color: #B0BF96;
+            font-size: 26px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .text-logo span {
+            color: #ffffff;
+            font-weight: 300;
+        }
+        .text-logo:hover {
+            color: #ffffff;
+        }
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 30px;
+        }
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active {
+            color: #B0BF96;
+        }
+        .mobile-toggle {
+            display: none;
+            color: #ffffff;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Mobile Menu Responsiveness */
+        @media (max-width: 991px) {
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #322C2C;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-menu li {
+                padding: 10px 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        /* =========================================
+           PAGE STYLES & CARDS
+        ========================================= */
+        .page-heading {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .page-heading h2 {
+            color: #B0BF96;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .page-heading p {
+            color: #aaa;
+            font-size: 16px;
+        }
+        .step-indicator {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 13px;
+            color: #B0BF96;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .pricing-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            padding-bottom: 80px;
+        }
+        .tier-card {
+            background: #322C2C;
+            border: 1px solid rgba(176, 191, 150, 0.2);
+            border-radius: 12px;
+            padding: 35px 25px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .tier-card:hover {
+            border-color: #B0BF96;
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .tier-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #B0BF96, #728352);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tier-card:hover::before {
+            opacity: 1;
+        }
+
+        .tier-name {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .tier-price {
+            color: #B0BF96;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+        .tier-rate {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        
+        .tier-details {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .tier-details span {
+            display: block;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        .tier-details strong {
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .agreement-section {
+            text-align: left;
+            margin-top: auto;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding-left: 0;
+        }
+        .form-check-input {
+            margin-top: 4px;
+            background-color: transparent;
+            border: 1px solid #B0BF96;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: #B0BF96;
+            border-color: #B0BF96;
+        }
+        .form-check-label {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .form-check-label strong {
+            color: #ccc;
+        }
+
+        .btn-secure {
+            background: transparent;
+            color: #B0BF96;
+            border: 1px solid #B0BF96;
+            border-radius: 6px;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-secure:disabled {
+            border-color: #444;
+            color: #555;
+            cursor: not-allowed;
+            background: rgba(0,0,0,0.2);
+        }
+        .btn-secure:not(:disabled):hover {
+            background: #B0BF96;
+            color: #322C2C;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active {
+            color: #B0BF96;
+        }
+        
+        /* Highlighted Get Started Button */
+        .nav-btn {
+            background: #B0BF96;
+            color: #322C2C !important;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700 !important;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: #96a67c;
+            transform: translateY(-2px);
+        }
+        .mobile-toggle {
+            display: none;
+            color: #ffffff;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Mobile Menu */
+        @media (max-width: 991px) {
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #322C2C;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-menu li {
+                padding: 10px 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark glass-nav py-3 mb-5">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-cpu text-primary me-2"></i>ProTrading Portal</a>
-            <div>
-                <% if(currentUser) { %>
-                    <a href="/dashboard" class="btn btn-outline-light btn-sm">Client Portal</a>
-                <% } else { %>
-                    <a href="/login" class="btn btn-outline-light btn-sm me-2">Login</a>
-                <% } %>
-            </div>
-        </div>
-    </nav>
 
-    <div class="container pb-5">
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold">"Tha System That Buys Money"</h1>
-            <p class="lead text-secondary">Select your float size to determine your subscription tier.</p>
+    <!-- ***** Custom Navbar Start ***** -->
+
+    <!-- ***** Custom Navbar Start ***** -->
+    <header class="custom-navbar">
+        <div class="nav-container">
+            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
+            <div class="mobile-toggle" id="mobile-toggle">☰</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/pricing">Trading Levels</a></li>
+                <li><a href="/login">Client Access</a></li>
+                <li><a href="/pricing" class="nav-btn">Get Started</a></li>
+            </ul>
+        </div>
+    </header>
+    <!-- ***** Custom Navbar End ***** -->
+    <!-- ***** Custom Navbar End ***** -->
+
+    <!-- ***** Main Content Start ***** -->
+    <div class="container">
+        <div class="page-heading">
+            <span class="step-indicator">Step 1 of 4</span>
+            <h2>Choose Your Trading Level</h2>
+            <p>Select the D.E.T tier that aligns with your custodial account float size.</p>
         </div>
 
         <% if(error && error.length > 0) { %> 
-            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger text-center mb-4 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> 
+            <div class="alert alert-danger" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; text-align: center; max-width: 600px; margin: 0 auto 30px;">
+                <%= error %>
+            </div> 
         <% } %>
-        <% if(success && success.length > 0) { %> 
-            <div class="alert alert-success bg-success bg-opacity-10 border-success text-success text-center mb-4 fw-bold"><i class="bi bi-check-circle me-2"></i><%= success %></div> 
-        <% } %>
 
-        <div class="row g-4">
-            <% tiers.forEach(tier => { %>
-                <div class="col-lg-4 col-md-6">
-                    <div class="tier-card p-4 h-100 d-flex flex-column">
-                        <h4 class="fw-bold <%= tier.color %> mb-1"><%= tier.name %> Grade</h4>
-                        <div class="text-secondary small fw-semibold mb-3">FLOAT: <%= tier.range %></div>
-                        
-                        <h2 class="fw-bold mb-3"><%= tier.amount %><span class="fs-6 text-secondary fw-normal"> due</span></h2>
-                        <div class="bg-dark p-2 rounded mb-4 text-center border border-secondary">
-                            <small class="text-uppercase text-secondary fw-bold" style="font-size: 0.75rem;">Rate</small>
-                            <div class="fw-semibold"><%= tier.rate %></div>
-                        </div>
-
-                        <div class="mt-auto">
-                            <% if(tier.name === 'Amber') { %>
-                                <button class="btn btn-outline-secondary w-100" disabled>No Trading Available</button>
-                            <% } else { %>
-                                <button class="btn btn-primary w-100 fw-bold" onclick="openCheckoutModal('<%= tier.name %>')">Subscribe</button>
-                            <% } %>
-                        </div>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
-    </div>
-
-    <div class="modal fade" id="checkoutModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content text-light">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Mandatory Terms & Conditions</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-secondary" style="font-size: 0.9rem;">
-                    <h5 class="text-white mb-3" id="modalTierName">Subscribe to [Tier]</h5>
+        <div class="pricing-grid">
+            <% tiers.forEach(function(tier) { %>
+                <div class="tier-card">
+                    <h3 class="tier-name"><%= tier.name %></h3>
+                    <div class="tier-price"><%= tier.amount %></div>
+                    <div class="tier-rate"><%= tier.rate %></div>
                     
-                    <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning p-3 mb-4">
-                        <strong>⚠️ 100% Gain Logout Protocol:</strong> When the float size doubles (100% increase) using the D.E.T System, you will be automatically logged out regardless of remaining time. Zero-Hedging will be applied to close open trades at break-even or minimal loss.
+                    <div class="tier-details">
+                        <span>Approved Trading Float</span>
+                        <strong><%= tier.range %></strong>
                     </div>
+                    
+                    <form action="/checkout/initialize" method="POST" class="checkout-form d-flex flex-column" style="flex-grow: 1;">
+                        <input type="hidden" name="selectedTier" value="<%= tier.name %>">
+                        
+                        <div class="agreement-section">
+                            <div class="form-check">
+                                <input class="form-check-input terms-checkbox" type="checkbox" name="termsAgreed" required id="terms-<%= tier.name %>">
+                                <label class="form-check-label" for="terms-<%= tier.name %>">
+                                    <strong>Confirm Your D.E.T Agreement:</strong> I understand and agree to continue with D.E.T. I have read the Risk Disclosure.
+                                </label>
+                            </div>
+                        </div>
 
-                    <ul class="list-unstyled mb-4">
-                        <li class="mb-3"><strong class="text-white">NO Top-up option:</strong> Mid-cycle top-ups are not permitted.</li>
-                        <li class="mb-3"><strong class="text-white">Withdrawal Penalty:</strong> Any withdrawals made from your account will be deducted from your expected "double profit" gain target.</li>
-                        <li class="mb-3"><strong class="text-white">Trade Takeover:</strong> Uploading D.E.T onto an active account with open trades runs the risk of those trades being taken over, closed, or trailed by the algorithm.</li>
-                        <li class="mb-3"><strong class="text-white">Disclaimer:</strong> We are NOT an Advisory or Investment Institution. We offer NO Guarantees. In High-Risk trading, you may lose all your capital.</li>
-                    </ul>
-
-                    <div class="form-check mt-4 border-top border-secondary pt-3">
-                        <input class="form-check-input" type="checkbox" id="agreeCheck" onchange="togglePayButton()">
-                        <label class="form-check-label text-white fw-bold" for="agreeCheck">
-                            Caveat Subscriptor. I have read, understood, and agree to the strict conditions above.
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <form action="/checkout/initialize" method="POST" class="w-100 m-0">
-                        <input type="hidden" name="selectedTier" id="selectedTierInput">
-                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="payBtn" disabled>Proceed to Secure Payment</button>
+                        <% if(tier.name === "Amber") { %>
+                            <button type="button" class="btn-secure" disabled style="border-color: #444; color: #555;">Not Available</button>
+                        <% } else { %>
+                            <button type="submit" class="btn-secure submit-btn" disabled>
+                                Continue to Secure Payment
+                            </button>
+                        <% } %>
                     </form>
                 </div>
-            </div>
+            <% }); %>
         </div>
     </div>
+    <!-- ***** Main Content End ***** -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ***** Footer Start ***** -->
+    <footer role="contentinfo" style="background: #322C2C; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; margin-top: auto;">
+        <div class="container">
+            <p style="color: #888; font-size: 14px; margin: 0;">
+                Copyright © 2026 D.E.T System. All Rights Reserved.<br>
+            </p>
+        </div>
+    </footer>
+    <!-- ***** Footer End ***** -->
+
+    <!-- Scripts -->
     <script>
-        const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
-        
-        function openCheckoutModal(tierName) {
-            document.getElementById('modalTierName').innerText = `Subscribe to ${tierName} Grade`;
-            document.getElementById('selectedTierInput').value = tierName;
-            document.getElementById('agreeCheck').checked = false; // Reset checkbox
-            document.getElementById('payBtn').disabled = true;     // Reset button
-            checkoutModal.show();
-        }
+        // Mobile Menu Toggle Logic
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            document.getElementById('nav-menu').classList.toggle('active');
+        });
 
-        function togglePayButton() {
-            const isChecked = document.getElementById('agreeCheck').checked;
-            document.getElementById('payBtn').disabled = !isChecked;
-        }
+        // Terms & Conditions Checkbox Logic
+        document.querySelectorAll('.checkout-form').forEach(form => {
+            const checkbox = form.querySelector('.terms-checkbox');
+            const submitBtn = form.querySelector('.submit-btn');
+            
+            if(checkbox && submitBtn) {
+                checkbox.addEventListener('change', function() {
+                    submitBtn.disabled = !this.checked;
+                });
+            }
+        });
     </script>
 </body>
 </html>

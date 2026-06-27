@@ -1,65 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Register | ProTrading EA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Complete Your Setup | D.E.T System</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { background-color: #020617; color: #f8fafc; display: flex; align-items: center; min-height: 100vh; font-family: 'Inter', sans-serif; }
-        .auth-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; width: 100%; max-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .form-control { background: #020617; border: 1px solid #334155; color: white; padding: 12px; }
-        .form-control:focus { background: #020617; color: white; border-color: #38bdf8; box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25); }
-        select.form-control { appearance: auto; } /* Ensures dropdown arrow is visible on dark theme */
+        body {
+            background-color: #1a1818;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+            padding-top: 100px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Styles */
+        .custom-navbar {
+            background-color: #322C2C;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            padding: 18px 0;
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .text-logo {
+            color: #B0BF96; font-size: 26px; font-weight: 800; text-decoration: none;
+            letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .text-logo span { color: #ffffff; font-weight: 300; }
+        .text-logo:hover { color: #ffffff; }
+
+        /* Page Layout */
+        .page-heading {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+        .page-heading h2 {
+            color: #B0BF96; font-size: 36px; font-weight: 700; margin-bottom: 15px;
+        }
+        .page-heading p {
+            color: #aaa; font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.6;
+        }
+        .step-indicator {
+            text-transform: uppercase; letter-spacing: 2px; font-size: 13px;
+            color: #B0BF96; font-weight: 600; display: block; margin-bottom: 15px;
+        }
+
+        /* Form Card */
+        .setup-card {
+            background: #322C2C;
+            border: 1px solid rgba(176, 191, 150, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 550px;
+            margin: 0 auto 60px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        
+        .form-label {
+            color: #B0BF96;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        .form-control:focus {
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border-color: #B0BF96;
+            box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15);
+        }
+        .form-control::placeholder {
+            color: #666;
+        }
+
+        .info-box {
+            background: rgba(176, 191, 150, 0.1);
+            border-left: 3px solid #B0BF96;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+        .info-box p {
+            margin: 0;
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        .btn-secure {
+            background: #B0BF96;
+            color: #322C2C;
+            border: none;
+            border-radius: 6px;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-secure:hover {
+            background: #96a67c;
+            transform: translateY(-2px);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active {
+            color: #B0BF96;
+        }
+        
+        /* Highlighted Get Started Button */
+        .nav-btn {
+            background: #B0BF96;
+            color: #322C2C !important;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700 !important;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: #96a67c;
+            transform: translateY(-2px);
+        }
+        .mobile-toggle {
+            display: none;
+            color: #ffffff;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Mobile Menu */
+        @media (max-width: 991px) {
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #322C2C;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-menu li {
+                padding: 10px 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container d-flex justify-content-center py-5">
-        <div class="auth-card">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold">Create Account</h2>
-                <p class="text-secondary">Join the Institutional Network</p>
-            </div>
 
+    <!-- ***** Custom Navbar Start ***** -->
+    <header class="custom-navbar">
+        <div class="nav-container">
+            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
+        </div>
+    </header>
+    <!-- ***** Custom Navbar End ***** -->
+
+    <!-- ***** Main Content Start ***** -->
+    <div class="container flex-grow-1">
+        <div class="page-heading">
+            <span class="step-indicator">Step 2 of 4</span>
+            <h2>Complete Your D.E.T Setup</h2>
+            <p>We need a few details to connect your payment, activation, and D.E.T access securely.</p>
+        </div>
+
+        <div class="setup-card">
             <% if(error && error.length > 0) { %> 
-                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger py-2"><%= error %></div> 
+                <div class="alert alert-danger" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; text-align: center; font-size: 14px;">
+                    <%= error %>
+                </div> 
             <% } %>
 
             <form action="/register" method="POST">
                 <div class="mb-3">
-                    <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
-                    <input type="text" class="form-control" name="username" required>
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" name="username" placeholder="e.g. John Doe" required>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label text-secondary small fw-bold text-uppercase">Email Address</label>
-                    <input type="email" class="form-control" name="email" required>
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" name="email" placeholder="you@domain.com" required>
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-secondary small fw-bold text-uppercase">WhatsApp</label>
-                        <input type="tel" class="form-control" name="whatsapp" placeholder="+1234567890" required>
+                    <div class="col-md-6">
+                        <label class="form-label">WhatsApp Number</label>
+                        <input type="tel" class="form-control" name="whatsapp" placeholder="+263..." required>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label text-secondary small fw-bold text-uppercase">Mobile Number</label>
-                        <input type="tel" class="form-control" name="mobileNumber" placeholder="+1234567890" required>
+                    <div class="col-md-6">
+                        <label class="form-label">Country</label>
+                        <input type="text" class="form-control" name="country" placeholder="e.g. Zimbabwe" required>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label text-secondary small fw-bold text-uppercase">Country</label>
-                    <input type="text" class="form-control" name="country" placeholder="e.g. Zimbabwe, South Africa" required>
+                    <label class="form-label">Secure Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Minimum 8 characters" minlength="8" required>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-secondary small fw-bold text-uppercase">Secure Password</label>
-                    <input type="password" class="form-control" name="password" required>
+
+                <div class="info-box">
+                    <p><strong>Verification Notice:</strong> We will send your activation confirmation and unique D.E.T ID to your WhatsApp first, then your email.</p>
                 </div>
-                
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mb-3">Sign Up</button>
+
+                <button type="submit" class="btn-secure">Confirm Your Details</button>
             </form>
-            
-            <p class="text-center text-secondary small mb-0">Already deployed? <a href="/login" class="text-primary text-decoration-none fw-bold">Login</a></p>
         </div>
     </div>
+    <!-- ***** Main Content End ***** -->
+
+    <!-- ***** Footer Start ***** -->
+    <footer role="contentinfo" style="background: #322C2C; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <div class="container">
+            <p style="color: #888; font-size: 14px; margin: 0;">
+                Copyright © 2026 D.E.T System. All Rights Reserved.
+            </p>
+        </div>
+    </footer>
+    <!-- ***** Footer End ***** -->
+
 </body>
 </html>

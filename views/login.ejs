@@ -1,43 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login | ProTrading EA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Client Access | D.E.T System</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        body { background-color: #020617; color: #f8fafc; display: flex; align-items: center; min-height: 100vh; font-family: 'Inter', sans-serif; }
-        .auth-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .form-control { background: #020617; border: 1px solid #334155; color: white; padding: 12px; }
-        .form-control:focus { background: #020617; color: white; border-color: #38bdf8; box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25); }
+        body {
+            background-color: #1a1818;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+            padding-top: 100px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================================
+           CUSTOM NEUTRAL NAVBAR
+        ========================================= */
+        .custom-navbar {
+            background-color: #322C2C;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            padding: 18px 0;
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+        }
+        .text-logo {
+            color: #B0BF96; font-size: 26px; font-weight: 800; text-decoration: none;
+            letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .text-logo span { color: #ffffff; font-weight: 300; }
+        .text-logo:hover { color: #ffffff; }
+        
+        .nav-menu {
+            display: flex; list-style: none; margin: 0; padding: 0; gap: 30px; align-items: center;
+        }
+        .nav-menu li a {
+            color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 500;
+            transition: color 0.3s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active { color: #B0BF96; }
+        
+        .nav-btn {
+            background: #B0BF96; color: #322C2C !important; padding: 10px 20px;
+            border-radius: 6px; font-weight: 700 !important; transition: all 0.3s ease;
+        }
+        .nav-btn:hover { background: #96a67c; transform: translateY(-2px); }
+        .mobile-toggle { display: none; color: #ffffff; font-size: 28px; cursor: pointer; }
+
+        @media (max-width: 991px) {
+            .nav-menu {
+                display: none; flex-direction: column; position: absolute;
+                top: 100%; left: 0; width: 100%; background-color: #322C2C;
+                padding: 20px 0; box-shadow: 0 10px 15px rgba(0,0,0,0.5); text-align: center;
+            }
+            .nav-menu.active { display: flex; }
+            .nav-menu li { padding: 10px 0; }
+            .mobile-toggle { display: block; }
+        }
+
+        /* =========================================
+           LOGIN CARD STYLES
+        ========================================= */
+        .page-heading {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+        .page-heading h2 {
+            color: #B0BF96; font-size: 36px; font-weight: 700; margin-bottom: 15px;
+        }
+        .page-heading p {
+            color: #aaa; font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.6;
+        }
+
+        .login-card {
+            background: #322C2C;
+            border: 1px solid rgba(176, 191, 150, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto 60px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        
+        .form-label {
+            color: #B0BF96;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+        .form-control:focus {
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border-color: #B0BF96;
+            box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15);
+        }
+        
+        .btn-secure {
+            background: #B0BF96;
+            color: #322C2C;
+            border: none;
+            border-radius: 6px;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .btn-secure:hover {
+            background: #96a67c;
+            transform: translateY(-2px);
+        }
+
+        .ux-safety-net {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            font-size: 14px;
+            color: #aaa;
+        }
+        .ux-safety-net a {
+            color: #B0BF96;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        .ux-safety-net a:hover {
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
-    <div class="container d-flex justify-content-center">
-        <div class="auth-card">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold"><span class="text-primary">Pro</span>Trading</h2>
-                <p class="text-secondary">Secure Client Authentication</p>
-            </div>
 
-            <% if(error && error.length > 0) { %> <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger py-2"><%= error %></div> <% } %>
-            <% if(success && success.length > 0) { %> <div class="alert alert-success bg-success bg-opacity-10 border-success text-success py-2"><%= success %></div> <% } %>
+    <!-- ***** Custom Navbar Start ***** -->
+    <header class="custom-navbar">
+        <div class="nav-container">
+            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
+            <div class="mobile-toggle" id="mobile-toggle">☰</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/pricing">Trading Levels</a></li>
+                <li><a href="/login" class="active">Client Access</a></li>
+                <li><a href="/pricing" class="nav-btn">Get Started</a></li>
+            </ul>
+        </div>
+    </header>
+    <!-- ***** Custom Navbar End ***** -->
+
+    <!-- ***** Main Content Start ***** -->
+    <div class="container flex-grow-1">
+        <div class="page-heading">
+            <h2>Client Access</h2>
+            <p>Access your D.E.T dashboard to manage your trading environment and institutional modules.</p>
+        </div>
+
+        <div class="login-card">
+            <% if(error && error.length > 0) { %> 
+                <div class="alert alert-danger" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; text-align: center; font-size: 14px;">
+                    <%= error %>
+                </div> 
+            <% } %>
 
             <form action="/login" method="POST">
                 <div class="mb-3">
-                    <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
-                    <input type="text" class="form-control" name="username" required autofocus>
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" name="username" placeholder="Enter your username" required>
                 </div>
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between">
-                        <label class="form-label text-secondary small fw-bold text-uppercase">Password</label>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Secure Password</label>
+                        <a href="#" style="font-size: 12px; color: #888; text-decoration: none;">Forgot?</a>
                     </div>
-                    <input type="password" class="form-control" name="password" required>
+                    <input type="password" class="form-control" name="password" placeholder="Enter your password" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mb-3">Access Terminal</button>
+
+                <button type="submit" class="btn-secure">Secure Access</button>
             </form>
-            
-            <p class="text-center text-secondary small mb-0">No account yet? <a href="/register" class="text-primary text-decoration-none fw-bold">Register</a></p>
+
+            <!-- The UX Safety Net to catch lost users without breaking Shaun's flow -->
+            <div class="ux-safety-net">
+                Don't have a D.E.T Profile? <br>
+                <a href="/register">Start Your Journey Here</a>
+            </div>
         </div>
     </div>
+    <!-- ***** Main Content End ***** -->
+
+    <!-- ***** Footer Start ***** -->
+    <footer role="contentinfo" style="background: #322C2C; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <div class="container">
+            <p style="color: #888; font-size: 14px; margin: 0;">
+                Copyright © 2026 D.E.T System. All Rights Reserved.
+            </p>
+        </div>
+    </footer>
+    <!-- ***** Footer End ***** -->
+
+    <script>
+        // Mobile Menu Toggle Logic
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            document.getElementById('nav-menu').classList.toggle('active');
+        });
+    </script>
 </body>
 </html>

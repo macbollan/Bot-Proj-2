@@ -1,113 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ProTrading EA | Deriv Institutional Algorithms</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>D.E.T System | Algorithmic Trading</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/fontawesome.css">
+
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass-nav { background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .text-accent { background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0,0,0,0) 70%); top: -200px; left: 50%; transform: translateX(-50%); z-index: -1; }
-        .ea-brain-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative; overflow: hidden; }
-        .ea-brain-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #38bdf8, transparent); animation: scan 2s linear infinite; }
-        @keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        .live-indicator { display: inline-block; width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        .btn-glow { background: #2563eb; color: white; border: none; box-shadow: 0 0 20px rgba(37, 99, 235, 0.4); transition: all 0.3s; }
-        .btn-glow:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 0 30px rgba(37, 99, 235, 0.6); color: white;}
+        body {
+            background-color: #1a1818;
+            font-family: 'Poppins', sans-serif;
+            color: #ffffff;
+            padding-top: 100px; /* Space for fixed header */
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* =========================================
+           CUSTOM NEUTRAL NAVBAR
+        ========================================= */
+        .custom-navbar {
+            background-color: #322C2C;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            padding: 18px 0;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .text-logo {
+            color: #B0BF96;
+            font-size: 26px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .text-logo span {
+            color: #ffffff;
+            font-weight: 300;
+        }
+        .text-logo:hover {
+            color: #ffffff;
+        }
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav-menu li a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .nav-menu li a:hover, .nav-menu li a.active {
+            color: #B0BF96;
+        }
+        .nav-btn {
+            background: transparent;
+            color: #B0BF96 !important;
+            padding: 8px 18px;
+            border: 1px solid #B0BF96;
+            border-radius: 6px;
+            font-weight: 600 !important;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: #B0BF96;
+            color: #322C2C !important;
+        }
+        .mobile-toggle {
+            display: none;
+            color: #ffffff;
+            font-size: 28px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Mobile Menu Responsiveness */
+        @media (max-width: 991px) {
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #322C2C;
+                padding: 20px 0;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+                text-align: center;
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-menu li {
+                padding: 10px 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+        }
+
+        /* =========================================
+           HERO DASHBOARD SECTION
+        ========================================= */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+        .hero-content {
+            flex: 1;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(176, 191, 150, 0.1);
+            border: 1px solid rgba(176, 191, 150, 0.3);
+            color: #B0BF96;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .status-badge i { margin-right: 8px; font-size: 10px; }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+        .hero-title span { color: #B0BF96; }
+
+        .hero-text {
+            color: #aaa;
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 35px;
+            max-width: 90%;
+        }
+
+        /* User Info Block */
+        .user-info-block {
+            background: rgba(0,0,0,0.3);
+            border-left: 3px solid #B0BF96;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 35px;
+            display: flex;
+            gap: 40px;
+        }
+        .info-item h6 {
+            color: #888;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .info-item p {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .det-id { color: #B0BF96 !important; font-family: monospace; font-size: 18px !important;}
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+        }
+        .btn-primary-action {
+            background: #B0BF96;
+            color: #322C2C;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+        .btn-primary-action:hover { transform: translateY(-2px); color: #1a1818; }
+
+        .btn-secondary-action {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .btn-secondary-action:hover { background: rgba(255,255,255,0.05); color: #fff;}
+
+        /* =========================================
+           GLASS WIDGET (Right Side)
+        ========================================= */
+        .widget-panel {
+            flex: 0 0 400px;
+            background: #322C2C;
+            border: 1px solid rgba(176, 191, 150, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .widget-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .widget-title i { color: #B0BF96; }
+        .ai-badge {
+            background: rgba(176, 191, 150, 0.15);
+            color: #B0BF96;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .data-label {
+            font-size: 11px;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .data-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 25px;
+        }
+        .pulse-text {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .action-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .status-dot {
+            height: 10px; width: 10px;
+            background-color: #B0BF96;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 991px) {
+            .dashboard-container { flex-direction: column; gap: 40px; margin: 40px auto; }
+            .widget-panel { flex: auto; width: 100%; }
+            .hero-title { font-size: 38px; }
+            .action-buttons { flex-direction: column; }
+            .user-info-block { flex-direction: column; gap: 20px; }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark glass-nav fixed-top py-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold fs-4" href="/"><i class="bi bi-cpu text-primary me-2"></i>ProTrading EA</a>
-            <div>
-                <% if(currentUser) { %>
-                    <a href="/dashboard" class="btn btn-outline-light rounded-pill px-4">Client Portal</a>
-                <% } else { %>
-                    <a href="/login" class="text-light text-decoration-none me-4 fw-semibold">Login</a>
-                    <a href="/register" class="btn btn-glow rounded-pill px-4 fw-semibold">Get Started</a>
-                <% } %>
+
+    <!-- ***** Custom Navbar Start ***** -->
+    <header class="custom-navbar">
+        <div class="nav-container">
+            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
+            <div class="mobile-toggle" id="mobile-toggle">☰</div>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/pricing">Trading Levels</a></li>
+                <li><a href="/login">Client Access</a></li>
+                <li><a href="/pricing" class="nav-btn">Get Started</a></li>
+            </ul>
+        </div>
+    </header>
+    <!-- ***** Custom Navbar End ***** -->
+
+    <!-- MAIN DASHBOARD -->
+    <div class="dashboard-container">
+
+        <!-- Left Side: User Details & Actions -->
+        <div class="hero-content">
+            <div class="status-badge">
+                <i class="fas fa-circle"></i> Status: D.E.T Is Ready
+            </div>
+
+            <h1 class="hero-title">
+                Welcome to your<br>
+                <span>Trading Environment</span>
+            </h1>
+
+            <p class="hero-text">
+                Your D.E.T is ready. The CornerStore interface connects directly to your MT5, executing precision data analytics and instantly translating them to your personal custody account.
+            </p>
+
+            <div class="action-buttons">
+                <a href="/pricing" class="btn-primary-action">
+                    <i class="fas fa-rocket"></i> Get Started
+                </a>
+                <a href="/login" class="btn-secondary-action">
+                    Client Access
+                </a>
             </div>
         </div>
-    </nav>
 
-    <div class="hero-glow"></div>
-
-    <div class="container" style="margin-top: 150px;">
-        <div class="row align-items-center justify-content-between">
-            
-            <div class="col-lg-6 mb-5">
-                <div class="badge border border-secondary text-secondary rounded-pill px-3 py-2 mb-4">
-                    <span class="live-indicator me-2"></span> System Online & Trading Deriv Synthetics
+        <!-- Right Side: The Glass Connection Widget -->
+        <div class="widget-panel">
+            <div class="widget-header">
+                <div class="widget-title">
+                    <i class="fas fa-network-wired"></i> CornerStore Feed
                 </div>
-                <h1 class="display-3 fw-bold mb-4">Institutional <br><span class="text-accent">Algorithmic Edge</span></h1>
-                <p class="lead text-secondary mb-5 fs-5">Stop trading manually. Our Master EA analyzes synthetic indices 24/7, executing precision trades and instantly copying them to your personal MetaTrader 5 account.</p>
-                <div class="d-flex gap-3">
-                    <a href="/pricing" class="btn btn-glow btn-lg rounded-pill px-5">View Pricing</a>
-                    <a href="/dummy-ea2.zip" class="btn btn-outline-secondary btn-lg rounded-pill px-4 text-white"><i class="bi bi-download me-2"></i>Download Client EA</a>
+                <div class="ai-badge">System Active</div>
+            </div>
+
+            <span class="data-label">Current Trading Asset</span>
+            <div class="data-value pulse-text" style="color: #ccc; font-size: 20px;">
+                Awaiting Connection...
+            </div>
+
+            <span class="data-label">Live Market Price</span>
+            <div class="data-value">0.00</div>
+
+            <div class="action-box">
+                <span class="data-label">Current Algo Action</span>
+                <div style="color: #B0BF96; font-weight: 600; font-size: 15px; margin-top: 8px;">
+                    <span class="status-dot"></span> Protected State
                 </div>
             </div>
 
-            <div class="col-lg-5">
-                <div class="ea-brain-card p-4">
-                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-3 mb-4">
-                        <h5 class="fw-bold m-0"><i class="bi bi-activity text-primary me-2"></i>Live Master EA Feed</h5>
-                        <span class="badge bg-primary bg-opacity-25 text-primary border border-primary rounded-pill">A.I. Analyzing</span>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="text-secondary small text-uppercase fw-bold letter-spacing-1">Current Asset</label>
-                        <h3 id="ea-symbol" class="fw-bold text-white mt-1">Loading...</h3>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-6">
-                            <label class="text-secondary small text-uppercase fw-bold">Live Price</label>
-                            <h4 id="ea-price" class="text-white mt-1">0.00</h4>
-                        </div>
-  
-                    </div>
-
-                    <div class="bg-dark p-3 rounded border border-secondary">
-                        <label class="text-secondary small text-uppercase fw-bold">Current EA Action</label>
-                        <div class="d-flex align-items-center mt-2">
-                            <div class="spinner-grow spinner-grow-sm text-warning me-3" role="status"></div>
-                            <span id="ea-action" class="fs-5 text-warning fw-semibold">Classified</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <p style="font-size: 11px; color: #666; margin-top: 20px; text-align: center;">
+                Activate D.E.T On Your Trading Chart to sync real-time analytics.
+            </p>
         </div>
+
     </div>
 
+    <!-- Scripts -->
     <script>
-        async function fetchEABrain() {
-            try {
-                const response = await fetch('/api/public/ea-state');
-                const data = await response.json();
-                
-                document.getElementById('ea-symbol').innerText = data.symbol;
-                document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(3) : "0.00";
-                document.getElementById('ea-trend').innerText = data.trend;
-                
-                const actionEl = document.getElementById('ea-action');
-                actionEl.innerText = data.action;
-                
-                // Color coding
-                if(data.action.includes("Buy")) { actionEl.className = "fs-5 text-success fw-semibold"; }
-                else if(data.action.includes("Sell")) { actionEl.className = "fs-5 text-danger fw-semibold"; }
-                else { actionEl.className = "fs-5 text-warning fw-semibold"; }
-
-            } catch (error) { console.error("Could not fetch EA state"); }
-        }
-
-        // Poll every 3 seconds
-        setInterval(fetchEABrain, 3000);
-        fetchEABrain(); // Initial load
+        // Mobile Menu Toggle Logic
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            document.getElementById('nav-menu').classList.toggle('active');
+        });
     </script>
+
 </body>
 </html>

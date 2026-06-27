@@ -289,7 +289,14 @@ app.post("/api/paynow/update", async (req, res) => {
 // ==========================================
 // 2. WEB UI & AUTHENTICATION ROUTES
 // ==========================================
-app.get("/", (req, res) => res.render("index"));
+
+app.get("/", (req, res) => {
+    // If not logged in, req.user will be undefined
+    res.render("index", { 
+        currentUser: req.user || null 
+    });
+});
+
 app.get("/register", (req, res) => res.render("register"));
 
 app.post("/register", async (req, res) => {
