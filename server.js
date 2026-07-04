@@ -13,12 +13,25 @@ require("dotenv").config();
 const User = require("./models/User.model");
 const app = express();
 
-// --- GLOBAL MEMORY FOR EA DATA ---
+// ==========================================
+// GLOBAL MEMORY FOR D.E.T. DATA
+// ==========================================
 let activeTradesList = []; 
 let eaBrainState = { 
     symbol: "Awaiting Connection...", 
-    trend: "Unknown", action: "Scanning", price: 0.00, openTrades: 0,
-    equityHistory: [] 
+    trend: "Unknown", 
+    action: "Scanning", 
+    price: 0.00, 
+    openTrades: 0,
+    equityHistory: [],
+    trends: {
+        long: "Awaiting Data...", swing: "Awaiting Data...", day: "Awaiting Data...",
+        intra: "Awaiting Data...", scalpa: "Awaiting Data...", real: "Awaiting Data..."
+    },
+    analytics: {
+        scalpa: "Awaiting Data...", intra: "Awaiting Data...", day: "Awaiting Data...",
+        swing: "Awaiting Data...", long: "Awaiting Data..."
+    }
 };
 
 // --- DATABASE CONNECTION (Legacy String to bypass ISP block) ---
@@ -64,16 +77,16 @@ function isAdmin(req, res, next) {
 }
 
 // ==========================================
-// 1. EA API ROUTES (How MT5 talks to your server)
+// 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
 
-// A. Master EA Endpoint (Receives the master trades)
+// A. Master EA Endpoint (Receives the master trades & UI State)
 app.post("/api/master/update", (req, res) => {
-    const { masterPassword, analysis, trades } = req.body;
+    const { masterPassword, analysis, trades, uiState } = req.body;
     
-   //if (masterPassword !== "YOUR_SECRET_MASTER_PASSWORD") {
-     //   return res.status(403).json({ error: "Unauthorized" });
-    //}
+    // if (masterPassword !== "YOUR_SECRET_MASTER_PASSWORD") {
+    //     return res.status(403).json({ error: "Unauthorized" });
+    // }
     
     if (analysis) {
         eaBrainState.symbol = analysis.symbol;
@@ -87,6 +100,11 @@ app.post("/api/master/update", (req, res) => {
             if(eaBrainState.equityHistory.length > 50) eaBrainState.equityHistory.shift(); 
         }
     }
+
+    if (uiState) {
+        if(uiState.trends) eaBrainState.trends = uiState.trends;
+        if(uiState.analytics) eaBrainState.analytics = uiState.analytics;
+    }
     
     if (trades) activeTradesList = trades;
     res.json({ status: "success" });
@@ -95,38 +113,49 @@ app.post("/api/master/update", (req, res) => {
 // B. Public Endpoint for the Web Dashboard Charts
 app.get("/api/public/ea-state", (req, res) => res.json(eaBrainState));
 
-// C. Client EA Endpoint (Verifies License & Locks MT5 Account)
-app.post("/api/verify-license", async (req, res) => {
-    const { licenseKey, accountNumber } = req.body;
+// C. S.M.A.R.T CLIENT SYNC ENDPOINT (The single connection for the Client EA)
+app.post("/api/client/sync", async (req, res) => {
+    const { licenseKey, currentBalance, currentEquity } = req.body;
+    
     try {
-      const user = await User.findOne({ licenseKey: licenseKey });
-      
-      if (!user) return res.json({ status: "rejected", reason: "Invalid License Key" });
-      if (user.isSuspended) return res.json({ status: "rejected", reason: "Account Suspended by Admin" });
-      if (new Date() > user.licenseExpiry) return res.json({ status: "rejected", reason: "License Expired" });
-  
-      if (!user.mt5AccountNumber) {
-        user.mt5AccountNumber = accountNumber;
-        await user.save();
-      } else if (user.mt5AccountNumber !== Number(accountNumber)) {
-        return res.json({ status: "rejected", reason: "License locked to a different MT5 Account" });
-      }
-      res.json({ status: "approved" });
-    } catch (err) {
-      res.json({ status: "error", reason: "Server error" });
-    }
-});
+        const user = await User.findOne({ licenseKey: licenseKey });
+        
+        if (!user || new Date() > user.licenseExpiry) {
+            return res.json({ action: "KILL" }); 
+        }
 
-// D. Client EA Endpoint (Pulls the trades to copy)
-app.get("/api/client/trades", async (req, res) => {
-    const { licenseKey } = req.query;
-    const user = await User.findOne({ licenseKey: licenseKey });
-    
-    if (!user || user.isSuspended || new Date() > user.licenseExpiry) {
-        return res.status(403).json({ error: "License invalid, expired, or suspended" });
+        if (user.isSuspended || user.accountLocked) {
+            return res.json({ action: "ZERO_HEDGE" }); 
+        }
+
+        let updated = false;
+
+        if (user.startingBalance === 0 || user.startingBalance == null) {
+            user.startingBalance = currentBalance;
+            user.targetBalance = currentBalance * 2; 
+            updated = true;
+        }
+
+        if (currentEquity >= user.targetBalance && user.targetBalance > 0) {
+            user.accountLocked = true;
+            user.isSuspended = true; 
+            await user.save();
+            console.log(`[ZERO-HEDGE] Participant ${user.username} doubled their account! Locking platform.`);
+            return res.json({ action: "ZERO_HEDGE" }); 
+        }
+
+        if (updated) await user.save();
+
+        res.json({
+            action: "TRADE",
+            masterState: eaBrainState,
+            trades: activeTradesList
+        });
+
+    } catch (err) {
+        console.error("Sync Error:", err);
+        res.status(500).json({ action: "ERROR" });
     }
-    
-    res.json({ trades: activeTradesList });
 });
 
 
@@ -156,23 +185,18 @@ app.get("/pricing", (req, res) => {
 // PAYNOW INTEGRATION & TIER CONFIGURATION
 // ==========================================
 
-// WARNING: Replace with your actual Paynow Integration ID and Key
 const paynow = new Paynow("YOUR_INTEGRATION_ID", "YOUR_INTEGRATION_KEY");
-
-// Note: Paynow cannot send background webhooks to "localhost". 
-// When you deploy to a live server, change this to your actual domain.
 paynow.resultUrl = " https://f19c-41-173-57-29.ngrok-free.app/api/paynow/update"; 
 paynow.returnUrl = " https://f19c-41-173-57-29.ngrok-free.app/checkout/return"; 
 
-// Helper map: Ties the Tier name to the Price (USD/ZWL) and Duration (Days)
 const tierConfig = {
     "Amethyst": { price: 30, durationDays: 30 },
     "Topaz": { price: 22, durationDays: 30 },
     "Tanzanite": { price: 100, durationDays: 30 },
-    "Sapphire": { price: 900, durationDays: 210 }, // 7 months
+    "Sapphire": { price: 900, durationDays: 210 }, 
     "Emerald": { price: 8000, durationDays: 210 },
     "Diamond": { price: 70000, durationDays: 210 },
-    "Rhodium": { price: 500000, durationDays: 365 }, // 12 months
+    "Rhodium": { price: 500000, durationDays: 365 }, 
     "Platinum": { price: 4000000, durationDays: 365 },
     "Uranium": { price: 30000000, durationDays: 365 },
     "Atomic": { price: 200000000, durationDays: 365 },
@@ -180,82 +204,22 @@ const tierConfig = {
     "Solomonic": { price: 5000000000, durationDays: 365 }
 };
 
-// 1. INITIATE PAYMENT (Triggered when user clicks "Proceed to Secure Payment")
-//app.post("/checkout/initialize", isLoggedIn, async (req, res) => {
-  //  const { selectedTier } = req.body;
-    //const config = tierConfig[selectedTier];
-    
-   // if (!config) {
-     //   req.flash("error", "Invalid tier selected.");
-       // return res.redirect("/pricing");
-   // }
-
-    // CREATE CUSTOM INVOICE REFERENCE: "UserID-TierName-Timestamp"
-    // This is crucial. It travels to Paynow and back so we know WHO paid for WHAT.
-    //const invoiceRef = `${req.user._id}-${selectedTier}-${Date.now()}`;
-    
-    //let payment = paynow.createPayment(invoiceRef, req.user.email);
-    //payment.add(selectedTier + " EA License", config.price);
-
-    //try {
-      //  const response = await paynow.send(payment);
-        //if (response.success) {
-            // Redirect user securely to Paynow's checkout portal
-          //  res.redirect(response.redirectUrl);
-        //} else {
-          //  console.log(response.error);
-            //req.flash("error", "Failed to initiate payment gateway.");
-            //res.redirect("/pricing");
-        //}
-    //} catch (error) {
-      //  req.flash("error", "Payment gateway error.");
-        //res.redirect("/pricing");
-    //}
-//});
-
 // TEMPORARY FAKE CHECKOUT (For testing without Paynow Keys)
-app.post("/checkout/initialize", isLoggedIn, async (req, res) => {
-    const { selectedTier } = req.body;
-    const config = tierConfig[selectedTier];
-    
-    try {
-        const user = await User.findById(req.user._id);
-        
-        // Instantly generate the key as if they paid
-        user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase();
-        user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
-        user.currentTier = selectedTier;
-        user.prepaymentAmount = config.price;
-        user.termsAgreed = true;
-        user.isSuspended = false;
-        user.mt5AccountNumber = null; 
-        
-        await user.save();
-        
-        req.flash("success", `TEST MODE: Successfully bypassed Paynow. ${selectedTier} License Generated!`);
-        res.redirect("/dashboard");
-    } catch (error) {
-        req.flash("error", "Failed to generate test license.");
-        res.redirect("/pricing");
-    }
+// To revert to real checkout, swap this back to your original commented block
+app.post("/checkout/initialize", (req, res) => {
+    const selectedTier = req.body.selectedTier;
+    res.render("register", { error: null, selectedTier: selectedTier });
 });
 
-// 2. RETURN URL (Where user lands immediately after paying)
 app.get("/checkout/return", isLoggedIn, (req, res) => {
-    // We don't generate the license here because a user could fake this URL.
-    // We wait for the silent webhook below.
     req.flash("success", "Payment processing! Your license key will generate automatically once the network confirms receipt.");
     res.redirect("/dashboard");
 });
 
-// 3. RESULT URL / WEBHOOK (Paynow pings this silently in the background)
 app.post("/api/paynow/update", async (req, res) => {
-    // Paynow sends us the status of the transaction
     const { reference, paynowreference, status } = req.body;
     
-    // ONLY generate the key if the money is successfully paid
     if (status === "Paid") {
-        // Extract the user ID and Tier from our custom reference string
         const parts = reference.split("-");
         const userId = parts[0];
         const tierName = parts[1];
@@ -264,15 +228,13 @@ app.post("/api/paynow/update", async (req, res) => {
         try {
             const user = await User.findById(userId);
             if (user) {
-                // THE GOLDEN GOOSE: Generating the License Key
                 user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase();
                 user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
-                
                 user.currentTier = tierName;
                 user.prepaymentAmount = config.price;
                 user.termsAgreed = true;
-                user.isSuspended = false; // Unsuspend them if they were previously blocked
-                user.mt5AccountNumber = null; // Un-lock MT5 account for the new cycle
+                user.isSuspended = false; 
+                user.mt5AccountNumber = null; 
                 
                 await user.save();
                 console.log(`[SUCCESS] Payment received! License generated for ${user.username} (${tierName})`);
@@ -281,8 +243,6 @@ app.post("/api/paynow/update", async (req, res) => {
             console.error("Webhook database update failed:", err);
         }
     }
-    
-    // Paynow expects an "OK" response so it stops pinging us
     res.status(200).send("OK");
 });
 
@@ -291,7 +251,6 @@ app.post("/api/paynow/update", async (req, res) => {
 // ==========================================
 
 app.get("/", (req, res) => {
-    // If not logged in, req.user will be undefined
     res.render("index", { 
         currentUser: req.user || null 
     });
@@ -301,7 +260,23 @@ app.get("/register", (req, res) => res.render("register"));
 
 app.post("/register", async (req, res) => {
   try {
-    const newUser = new User({ username: req.body.username, email: req.body.email });
+    const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
+    const newDetId = generateDET_ID();
+
+    const newUser = new User({ 
+        username: req.body.username, 
+        email: req.body.email,
+        whatsapp: req.body.whatsapp || "",
+        country: req.body.country || "",
+        currentTier: req.body.selectedTier || "Unknown",
+        licenseKey: newDetId,
+        licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        startingBalance: 0,
+        targetBalance: 0,
+        accountLocked: false,
+        isSuspended: false
+    });
+
     const registeredUser = await User.register(newUser, req.body.password);
     req.login(registeredUser, (err) => res.redirect("/dashboard"));
   } catch (err) {
@@ -324,6 +299,7 @@ app.get("/dashboard", isLoggedIn, (req, res) => {
     res.render("dashboard", { currentUser: req.user });
 });
 
+
 // ==========================================
 // 3. ADMIN PANEL ROUTES
 // ==========================================
@@ -332,53 +308,62 @@ app.get("/admin", isAdmin, async (req, res) => {
     res.render("admin", { users: allUsers });
 });
 
+// Upgraded Generate Route: Now handles Tier Selection AND Days
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
     const days = parseInt(req.body.durationDays) || 30; 
+    const tier = req.body.tierLevel || "Unknown"; // Catch the tier from the new modal
+    
     const user = await User.findById(req.params.id);
     user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
     user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
-    user.isSuspended = false;
+    user.currentTier = tier; // Update their plan level
+    user.isSuspended = false; // Automatically unsuspend if they are getting a new key
+    
     await user.save();
-    req.flash("success", `Generated ${days}-day License for ${user.username}`);
+    req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
     res.redirect("/admin");
 });
 
+// Suspend/Ban Toggle
 app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
     const user = await User.findById(req.params.id);
     user.isSuspended = !user.isSuspended;
     await user.save();
+    req.flash("success", `Participant ${user.isSuspended ? 'Suspended' : 'Restored'}.`);
+    res.redirect("/admin");
+});
+
+// NEW: Delete User Route
+app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
+    await User.findByIdAndDelete(req.params.id);
+    req.flash("success", "Participant permanently deleted from the network.");
     res.redirect("/admin");
 });
 
 // ==========================================
-// DEVELOPER TESTING BACKDOOR (Delete before going live!)
+// DEVELOPER TESTING BACKDOOR
 // ==========================================
 app.get("/dev/generate-key", async (req, res) => {
     try {
-        // First, clear any old test accounts to prevent duplicates
         await User.deleteOne({ username: "DevTester" });
-
         const testUser = new User({
             username: "DevTester",
             email: "dev@protrading.com",
-            licenseKey: "TEST-KEY-2026", // <--- Here is your permanent test key
-            licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days
-            currentTier: "Topaz", // Testing with the $200-$1000 tier
+            licenseKey: "TEST-KEY-2026", 
+            licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+            currentTier: "Topaz", 
             isSuspended: false,
-            mt5AccountNumber: null, // Leaves it open to attach to whatever MT5 account you use
+            mt5AccountNumber: null, 
             startingBalance: 0,
             targetBalance: 0,
             accountLocked: false
         });
-
         await testUser.save();
         res.send("<h1 style='color: green; font-family: sans-serif;'>Success! Your Test Key is: TEST-KEY-2026</h1>");
     } catch (err) {
         res.send("Error: " + err.message);
     }
 });
-
-
 
 // --- START SERVER ---
 const port = process.env.PORT || 80;

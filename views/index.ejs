@@ -3,317 +3,184 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>D.E.T System | Algorithmic Trading</title>
-
+    <title>D.E.T System | The System That Buys Money</title>
+    
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <!-- Bootstrap core CSS -->
     <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/fontawesome.css">
 
     <style>
+        /* =========================================
+           GLOBAL DARK THEME
+        ========================================= */
         body {
             background-color: #1a1818;
             font-family: 'Poppins', sans-serif;
             color: #ffffff;
-            padding-top: 100px; /* Space for fixed header */
+            padding-top: 80px; 
             margin: 0;
-            min-height: 100vh;
+            overflow-x: hidden;
         }
-
+        a { text-decoration: none; }
+        
         /* =========================================
            CUSTOM NEUTRAL NAVBAR
         ========================================= */
         .custom-navbar {
             background-color: #322C2C;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+            position: fixed; top: 0; left: 0; width: 100%;
+            z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.5);
             padding: 18px 0;
         }
         .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
         }
         .text-logo {
-            color: #B0BF96;
-            font-size: 26px;
-            font-weight: 800;
-            text-decoration: none;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
+            color: #B0BF96; font-size: 26px; font-weight: 800; 
+            letter-spacing: 1.5px; text-transform: uppercase;
         }
-        .text-logo span {
-            color: #ffffff;
-            font-weight: 300;
-        }
-        .text-logo:hover {
-            color: #ffffff;
-        }
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 30px;
-            align-items: center;
-        }
+        .text-logo span { color: #ffffff; font-weight: 300; }
+        .text-logo:hover { color: #ffffff; }
+        
+        .nav-menu { display: flex; list-style: none; margin: 0; padding: 0; gap: 30px; align-items: center; }
         .nav-menu li a {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #ffffff; font-size: 14px; font-weight: 500;
+            transition: color 0.3s; text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .nav-menu li a:hover, .nav-menu li a.active {
-            color: #B0BF96;
-        }
+        .nav-menu li a:hover, .nav-menu li a.active { color: #B0BF96; }
+        
         .nav-btn {
-            background: transparent;
-            color: #B0BF96 !important;
-            padding: 8px 18px;
-            border: 1px solid #B0BF96;
-            border-radius: 6px;
-            font-weight: 600 !important;
-            transition: all 0.3s ease;
+            background: #B0BF96; color: #322C2C !important; padding: 10px 20px;
+            border-radius: 6px; font-weight: 700 !important; transition: all 0.3s ease;
         }
-        .nav-btn:hover {
-            background: #B0BF96;
-            color: #322C2C !important;
-        }
-        .mobile-toggle {
-            display: none;
-            color: #ffffff;
-            font-size: 28px;
-            cursor: pointer;
-            user-select: none;
-        }
+        .nav-btn:hover { background: #96a67c; transform: translateY(-2px); }
+        
+        .mobile-toggle { display: none; color: #ffffff; font-size: 28px; cursor: pointer; }
 
-        /* Mobile Menu Responsiveness */
         @media (max-width: 991px) {
             .nav-menu {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background-color: #322C2C;
-                padding: 20px 0;
-                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
-                text-align: center;
+                display: none; flex-direction: column; position: absolute;
+                top: 100%; left: 0; width: 100%; background-color: #322C2C;
+                padding: 20px 0; box-shadow: 0 10px 15px rgba(0,0,0,0.5); text-align: center;
             }
-            .nav-menu.active {
-                display: flex;
-            }
-            .nav-menu li {
-                padding: 10px 0;
-            }
-            .mobile-toggle {
-                display: block;
-            }
+            .nav-menu.active { display: flex; }
+            .nav-menu li { padding: 10px 0; }
+            .mobile-toggle { display: block; }
         }
 
         /* =========================================
-           HERO DASHBOARD SECTION
+           HERO SECTION
         ========================================= */
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 60px auto;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            gap: 50px;
+        .hero-section {
+            padding: 100px 20px;
+            text-align: center;
+            background: radial-gradient(circle at center, #2a2525 0%, #1a1818 100%);
+            border-bottom: 1px solid rgba(176, 191, 150, 0.1);
         }
-        .hero-content {
-            flex: 1;
-        }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(176, 191, 150, 0.1);
-            border: 1px solid rgba(176, 191, 150, 0.3);
-            color: #B0BF96;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .status-badge i { margin-right: 8px; font-size: 10px; }
-
         .hero-title {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 800;
             line-height: 1.2;
-            margin-bottom: 20px;
-        }
-        .hero-title span { color: #B0BF96; }
-
-        .hero-text {
-            color: #aaa;
-            font-size: 16px;
-            line-height: 1.7;
-            margin-bottom: 35px;
-            max-width: 90%;
-        }
-
-        /* User Info Block */
-        .user-info-block {
-            background: rgba(0,0,0,0.3);
-            border-left: 3px solid #B0BF96;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 35px;
-            display: flex;
-            gap: 40px;
-        }
-        .info-item h6 {
-            color: #888;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
-        .info-item p {
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-        }
-        .det-id { color: #B0BF96 !important; font-family: monospace; font-size: 18px !important;}
-
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-        }
-        .btn-primary-action {
-            background: #B0BF96;
-            color: #322C2C;
-            padding: 14px 28px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.2s;
-        }
-        .btn-primary-action:hover { transform: translateY(-2px); color: #1a1818; }
-
-        .btn-secondary-action {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 14px 28px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 15px;
-            transition: background 0.2s;
-        }
-        .btn-secondary-action:hover { background: rgba(255,255,255,0.05); color: #fff;}
-
-        /* =========================================
-           GLASS WIDGET (Right Side)
-        ========================================= */
-        .widget-panel {
-            flex: 0 0 400px;
-            background: #322C2C;
-            border: 1px solid rgba(176, 191, 150, 0.2);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        .widget-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .widget-title {
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .widget-title i { color: #B0BF96; }
-        .ai-badge {
-            background: rgba(176, 191, 150, 0.15);
-            color: #B0BF96;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .data-label {
-            font-size: 11px;
-            color: #777;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            display: block;
-        }
-        .data-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
             margin-bottom: 25px;
         }
-        .pulse-text {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
+        .hero-title span { color: #B0BF96; }
+        .hero-subtitle {
+            font-size: 18px;
+            color: #aaa;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
         }
 
-        .action-box {
+        /* Institutional Security Badge */
+        .security-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(176, 191, 150, 0.2);
+            border-radius: 12px;
+            padding: 25px 40px;
+            display: inline-block;
+            margin-bottom: 40px;
+            text-align: left;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .badge-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .badge-row:last-child { margin-bottom: 0; }
+        .badge-icon { color: #B0BF96; font-size: 20px; }
+        .badge-text-old { color: #666; text-decoration: line-through; font-size: 14px; margin-right: 15px; }
+        .badge-text-new { color: #fff; font-weight: 600; font-size: 16px; }
+
+        .btn-primary-custom {
+            background: #B0BF96;
+            color: #1a1818;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(176, 191, 150, 0.2);
+        }
+        .btn-primary-custom:hover { transform: translateY(-3px); background: #96a67c; color: #000; }
+
+        /* =========================================
+           CONTENT SECTIONS (Dark Cards)
+        ========================================= */
+        .section-padding { padding: 100px 20px; }
+        .section-title { font-size: 36px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+        .section-title span { color: #B0BF96; }
+        
+        .dark-card {
+            background: #322C2C;
+            border: 1px solid rgba(176, 191, 150, 0.15);
+            border-radius: 16px;
+            padding: 40px;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+        .dark-card:hover { transform: translateY(-5px); border-color: rgba(176, 191, 150, 0.4); }
+        .card-icon { font-size: 40px; color: #B0BF96; margin-bottom: 20px; }
+        .card-title { font-size: 22px; font-weight: 600; margin-bottom: 15px; color: #fff; }
+        .card-text { font-size: 15px; color: #aaa; line-height: 1.7; }
+
+        /* Trader Types Grid */
+        .trader-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        .trader-box {
             background: rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 10px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
         }
-        .status-dot {
-            height: 10px; width: 10px;
-            background-color: #B0BF96;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
+        .trader-box h6 { color: #B0BF96; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .trader-box p { color: #888; font-size: 13px; margin: 0; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 991px) {
-            .dashboard-container { flex-direction: column; gap: 40px; margin: 40px auto; }
-            .widget-panel { flex: auto; width: 100%; }
-            .hero-title { font-size: 38px; }
-            .action-buttons { flex-direction: column; }
-            .user-info-block { flex-direction: column; gap: 20px; }
+        /* Footer CTA */
+        .cta-section {
+            background: linear-gradient(135deg, #322C2C 0%, #1a1818 100%);
+            border-top: 2px solid #B0BF96;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title { font-size: 40px; }
+            .security-badge { padding: 20px; }
+            .badge-row { flex-direction: column; align-items: flex-start; gap: 5px; margin-bottom: 20px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ***** Custom Navbar Start ***** -->
+    <!-- ***** Custom Navbar ***** -->
     <header class="custom-navbar">
         <div class="nav-container">
             <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
@@ -322,70 +189,117 @@
                 <li><a href="/" class="active">Home</a></li>
                 <li><a href="/pricing">Trading Levels</a></li>
                 <li><a href="/login">Client Access</a></li>
-                <li><a href="/pricing" class="nav-btn">Get Started</a></li>
+                <li><a href="/pricing" class="nav-btn">Start Your Journey</a></li>
             </ul>
         </div>
     </header>
-    <!-- ***** Custom Navbar End ***** -->
 
-    <!-- MAIN DASHBOARD -->
-    <div class="dashboard-container">
-
-        <!-- Left Side: User Details & Actions -->
-        <div class="hero-content">
-            <div class="status-badge">
-                <i class="fas fa-circle"></i> Status: D.E.T Is Ready
-            </div>
-
-            <h1 class="hero-title">
-                Welcome to your<br>
-                <span>Trading Environment</span>
-            </h1>
-
-            <p class="hero-text">
-                Your D.E.T is ready. The CornerStore interface connects directly to your MT5, executing precision data analytics and instantly translating them to your personal custody account.
+    <!-- ***** Hero Section ***** -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Tha System That <br><span>Buys Money</span></h1>
+            <p class="hero-subtitle">
+                Introducing D.E.T — Disruptive Exousia Thermostat. A sophisticated, real-time, high-speed Data-Analytics Trading System. Instant market insights delivered with quantum-speed precision.
             </p>
 
-            <div class="action-buttons">
-                <a href="/pricing" class="btn-primary-action">
-                    <i class="fas fa-rocket"></i> Get Started
-                </a>
-                <a href="/login" class="btn-secondary-action">
-                    Client Access
-                </a>
-            </div>
-        </div>
-
-        <!-- Right Side: The Glass Connection Widget -->
-        <div class="widget-panel">
-            <div class="widget-header">
-                <div class="widget-title">
-                    <i class="fas fa-network-wired"></i> CornerStore Feed
+            <div class="security-badge">
+                <div class="badge-row">
+                    <i class="fas fa-shield-alt badge-icon"></i>
+                    <span class="badge-text-old">"Your money is safe with us"</span>
+                    <span class="badge-text-new">Your money never leaves your custody</span>
                 </div>
-                <div class="ai-badge">System Active</div>
-            </div>
-
-            <span class="data-label">Current Trading Asset</span>
-            <div class="data-value pulse-text" style="color: #ccc; font-size: 20px;">
-                Awaiting Connection...
-            </div>
-
-            <span class="data-label">Live Market Price</span>
-            <div class="data-value">0.00</div>
-
-            <div class="action-box">
-                <span class="data-label">Current Algo Action</span>
-                <div style="color: #B0BF96; font-weight: 600; font-size: 15px; margin-top: 8px;">
-                    <span class="status-dot"></span> Protected State
+                <div class="badge-row">
+                    <i class="fas fa-key badge-icon"></i>
+                    <span class="badge-text-old">"Give us your login details"</span>
+                    <span class="badge-text-new">We never login to your account</span>
                 </div>
             </div>
 
-            <p style="font-size: 11px; color: #666; margin-top: 20px; text-align: center;">
-                Activate D.E.T On Your Trading Chart to sync real-time analytics.
+            <br>
+            <a href="/pricing" class="btn-primary-custom">Choose Your D.E.T Plan</a>
+        </div>
+    </section>
+
+    <!-- ***** The Top 1% Advantage ***** -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4">
+                    <h2 class="section-title" style="text-align: left;">The <span>Top 1%</span> Advantage</h2>
+                    <p style="color: #aaa; font-size: 18px; line-height: 1.8; margin-bottom: 30px;">
+                        D.E.T levels the playing field. It gives the 99% of traders something that has always been reserved for the top 1% of the Financial World: ACCESS to sophisticated, real-time, high-speed data analytics.
+                    </p>
+                    <p style="color: #fff; font-size: 16px; line-height: 1.8; font-weight: 500;">
+                        Not delayed. Not filtered. Not "after the fact." But Access In the precise moment, because in markets, timing is everything.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="dark-card">
+                        <i class="fas fa-brain card-icon"></i>
+                        <h3 class="card-title">Pure Market Logic</h3>
+                        <p class="card-text">
+                            D.E.T is not magic. It's pure Mathematics, Holy Intelligence (H.I) mixed with Algorithmic Engineering, and Brutal Market Logic—delivered through a system designed for you, not just for quants.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ***** CornerStore Interface ***** -->
+    <section class="section-padding" style="background-color: #221f1f;">
+        <div class="container">
+            <h2 class="section-title">The <span>CornerStore</span> Interface</h2>
+            <p style="text-align: center; color: #aaa; max-width: 800px; margin: 0 auto 50px;">
+                1:5 Human-Trader Ratio. Supporting five trader types simultaneously & instantaneously with precision. Running predictive models across multiple markets.
+            </p>
+
+            <div class="trader-grid">
+                <div class="trader-box">
+                    <h6>ScalpaTrader</h6>
+                    <p>Ultra-short-term precision</p>
+                </div>
+                <div class="trader-box">
+                    <h6>IntraTrader</h6>
+                    <p>Within-day opportunities</p>
+                </div>
+                <div class="trader-box">
+                    <h6>DayTrader</h6>
+                    <p>Full-day strategies</p>
+                </div>
+                <div class="trader-box">
+                    <h6>SwingTrader</h6>
+                    <p>Multi-day positions</p>
+                </div>
+                <div class="trader-box">
+                    <h6>LongTrader</h6>
+                    <p>Extended positions</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ***** CTA / Prophecy ***** -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 style="font-size: 42px; font-weight: 800; color: #fff; margin-bottom: 20px;">
+                This Is Not Just a Pitch. <span style="color: #B0BF96;">This Is a Prophecy.</span>
+            </h2>
+            <p style="font-size: 20px; color: #aaa; max-width: 800px; margin: 0 auto 40px; line-height: 1.8;">
+                The question is no longer whether technology will transform trading. It already has. The world HAS already automated <strong>without you</strong>. 
+            </p>
+            <a href="/pricing" class="btn-primary-custom">Start Your D.E.T Journey</a>
+        </div>
+    </section>
+
+    <!-- ***** Footer ***** -->
+    <footer style="background: #111; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <div class="container">
+            <p style="color: #666; font-size: 14px; margin: 0;">
+                Copyright © 2026 Shaun Clarence Micro Bank. All Rights Reserved.<br>
             </p>
         </div>
-
-    </div>
+    </footer>
 
     <!-- Scripts -->
     <script>
@@ -394,6 +308,5 @@
             document.getElementById('nav-menu').classList.toggle('active');
         });
     </script>
-
 </body>
 </html>

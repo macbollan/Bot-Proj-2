@@ -2,66 +2,259 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Client Portal | ProTrading Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Client Dashboard | D.E.T System</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass-nav { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; backdrop-filter: blur(10px); }
-        .glass-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 25px; height: 100%; }
-        .text-accent { color: #38bdf8; }
+        :root {
+            --det-green: #B0BF96;
+            --det-green-hover: #96a67c;
+            --det-dark: #1a1818;
+            --det-card: #322C2C;
+            --det-border: rgba(176, 191, 150, 0.15);
+            --sidebar-width: 260px;
+        }
+
+        body { 
+            background-color: var(--det-dark); 
+            color: #f8fafc; 
+            font-family: 'Poppins', sans-serif; 
+            overflow-x: hidden; 
+            margin: 0;
+        }
+
+        /* =========================================
+           INSTITUTIONAL SIDEBAR
+        ========================================= */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--det-card);
+            border-right: 1px solid var(--det-border);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid var(--det-border);
+        }
+        .text-logo {
+            color: var(--det-green);
+            font-size: 22px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        .text-logo span { color: #ffffff; font-weight: 300; }
         
-        /* Premium Plan Gradient Backgrounds */
-        .plan-card { position: relative; overflow: hidden; border: none; }
-        .plan-bg-blur { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: #38bdf8; filter: blur(80px); opacity: 0.2; border-radius: 50%; z-index: 0; }
-        .plan-content { position: relative; z-index: 1; }
+        .sidebar-nav {
+            padding: 20px 10px;
+            flex-grow: 1;
+        }
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #aaa;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .nav-link i { margin-right: 12px; font-size: 18px; }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .nav-link.active {
+            color: var(--det-dark);
+            background: var(--det-green);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--det-border);
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* =========================================
+           MAIN CONTENT AREA
+        ========================================= */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background-color: var(--det-dark);
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--det-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+        }
+        .mobile-toggle {
+            display: none;
+            color: var(--det-green);
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Cards & Widgets */
+        .dashboard-wrapper {
+            padding: 30px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .glass-card { 
+            background: var(--det-card); 
+            border: 1px solid var(--det-border); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            padding: 25px; 
+            height: 100%; 
+        }
+        .text-accent { color: var(--det-green) !important; }
         
-        /* Secure Key Box */
-        .key-box { background: #020617; border: 1px dashed #475569; border-radius: 8px; font-family: 'Courier New', monospace; letter-spacing: 2px; transition: all 0.3s; cursor: pointer; }
-        .key-box:hover { border-color: #38bdf8; background: #082f49; }
-        .key-hidden { filter: blur(4px); user-select: none; }
-        
-        /* Chart specific */
+        .key-box { 
+            background: var(--det-dark); border: 1px dashed var(--det-green); border-radius: 8px; 
+            font-family: 'Courier New', monospace; letter-spacing: 2px; 
+            transition: all 0.3s; cursor: pointer; color: var(--det-green);
+        }
+        .key-box:hover { border-style: solid; background: rgba(176, 191, 150, 0.1); }
+        .key-hidden { filter: blur(5px); user-select: none; color: #fff; border-color: #475569; }
+
         canvas { max-height: 250px; width: 100%; }
+
+        .btn-det {
+            background: var(--det-green); color: var(--det-dark); font-weight: 600;
+            transition: all 0.3s; border: none;
+        }
+        .btn-det:hover { background: var(--det-green-hover); color: #000; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 991px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-toggle { display: block; }
+            .top-bar { padding: 15px 20px; }
+            .dashboard-wrapper { padding: 20px 15px; }
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark glass-nav py-3 mb-4 sticky-top">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-cpu text-accent me-2"></i>ProTrading Portal</a>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-secondary d-none d-md-block">Terminal ID: <strong class="text-white"><%= currentUser.username.toUpperCase() %></strong></span>
-                <a href="/logout" class="btn btn-sm btn-outline-danger px-3"><i class="bi bi-power"></i> Disconnect</a>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <a href="/dashboard" class="nav-link active">
+                    <i class="bi bi-grid-1x2-fill"></i> Trading Environment
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/pricing" class="nav-link">
+                    <i class="bi bi-arrow-up-circle"></i> Upgrade D.E.T Plan
+                </a>
+            </div>
+            <div class="nav-item mt-4">
+                <small class="text-uppercase fw-bold text-muted ms-3 mb-2 d-block" style="font-size: 11px;">Settings</small>
+                <a href="#" class="nav-link">
+                    <i class="bi bi-person-badge"></i> My Profile
+                </a>
+                <a href="/logout" class="nav-link text-danger mt-2">
+                    <i class="bi bi-power"></i> Secure Logout
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center">
+                <span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;"></span>
+                Node Server Online
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid px-4 pb-5">
+    <main class="main-content">
         
-        <% if(success && success.length > 0) { %> <div class="alert alert-success bg-success bg-opacity-10 border-success text-success fw-bold"><i class="bi bi-check-circle me-2"></i><%= success %></div> <% } %>
-        <% if(error && error.length > 0) { %> <div class="alert alert-danger bg-danger bg-opacity-10 border-danger text-danger fw-bold"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> <% } %>
-
-        <div class="row g-4">
+        <header class="top-bar">
+            <button class="mobile-toggle" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <h4 class="mb-0 fw-bold d-none d-md-block" style="color: #fff;">Terminal Dashboard</h4>
             
-            <div class="col-xl-4 col-lg-5">
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-sm-block">
+                    <small class="text-muted d-block" style="font-size: 11px; line-height: 1;">Logged in as</small>
+                    <span class="fw-bold" style="font-size: 14px;"><%= currentUser.username.toUpperCase() %></span>
+                </div>
+                <div class="bg-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; background-color: #322C2C !important; border: 1px solid var(--det-border);">
+                    <i class="bi bi-person-fill text-accent"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-wrapper">
+            
+            <% if(success && success.length > 0) { %> 
+                <div class="alert bg-success bg-opacity-10 border-success text-success fw-bold" style="border-radius: 8px;">
+                    <i class="bi bi-check-circle me-2"></i><%= success %>
+                </div> 
+            <% } %>
+            <% if(error && error.length > 0) { %> 
+                <div class="alert bg-danger bg-opacity-10 border-danger text-danger fw-bold" style="border-radius: 8px;">
+                    <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
+                </div> 
+            <% } %>
+
+            <div class="row g-4">
                 
-                <div class="glass-card plan-card mb-4">
-                    <div class="plan-bg-blur"></div>
-                    <div class="plan-content">
+                <div class="col-xl-4 col-lg-5">
+                    
+                    <div class="glass-card mb-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h6 class="text-secondary fw-bold text-uppercase m-0">Current Subscription</h6>
-                            <% if(currentUser.isSuspended) { %> <span class="badge bg-danger">SUSPENDED</span>
-                            <% } else if(currentUser.licenseKey && new Date() < new Date(currentUser.licenseExpiry)) { %> <span class="badge bg-success">ACTIVE</span>
-                            <% } else { %> <span class="badge bg-warning text-dark">INACTIVE</span> <% } %>
+                            <h6 class="text-secondary fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Current D.E.T Plan</h6>
+                            <% if(currentUser.isSuspended) { %> 
+                                <span class="badge bg-danger">SUSPENDED</span>
+                            <% } else if(currentUser.licenseKey && new Date() < new Date(currentUser.licenseExpiry)) { %> 
+                                <span class="badge" style="background: var(--det-green); color: var(--det-dark);">ACTIVE</span>
+                            <% } else { %> 
+                                <span class="badge bg-secondary text-light">INACTIVE</span> 
+                            <% } %>
                         </div>
                         
-                        <h2 class="fw-bold mb-1"><%= currentUser.currentTier %> Grade</h2>
-                        <p class="text-secondary small mb-4">Institutional Trade Copier Network</p>
+                        <h2 class="fw-bold mb-1"><%= currentUser.currentTier %> Level</h2>
+                        <p class="text-secondary small mb-4">S.M.A.R.T Integration Access</p>
 
-                        <div class="bg-dark p-3 rounded border border-secondary mb-3">
-                            <div class="d-flex justify-content-between text-secondary small text-uppercase fw-bold mb-1">
-                                <span>Time Remaining</span>
+                        <div class="p-3 rounded border mb-4" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                            <div class="d-flex justify-content-between text-secondary small text-uppercase fw-bold mb-2">
+                                <span>Cycle Remaining</span>
                                 <% 
                                     let daysLeft = 0;
                                     if(currentUser.licenseExpiry) {
@@ -69,122 +262,136 @@
                                         if(daysLeft < 0) daysLeft = 0;
                                     }
                                 %>
-                                <span><%= daysLeft %> Days</span>
+                                <span class="text-white"><%= daysLeft %> Days</span>
                             </div>
-                            <div class="progress" style="height: 6px; background-color: #1e293b;">
-                                <div class="progress-bar bg-info" style="width: <%= daysLeft > 0 ? '75%' : '0%' %>"></div>
+                            <div class="progress" style="height: 6px; background-color: var(--det-card);">
+                                <div class="progress-bar" style="width: <%= daysLeft > 0 ? '75%' : '0%' %>; background-color: var(--det-green);"></div>
                             </div>
-                            <div class="text-end text-muted mt-1" style="font-size: 0.7rem;">Expires: <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString() : 'N/A' %></div>
+                            <div class="text-end text-muted mt-2" style="font-size: 0.75rem;">
+                                Expires: <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString() : 'N/A' %>
+                            </div>
                         </div>
-
-                        <a href="/pricing" class="btn btn-outline-light w-100 btn-sm"><i class="bi bi-arrow-up-circle me-2"></i>Upgrade / Extend Plan</a>
-                    </div>
-                </div>
-
-                <div class="glass-card">
-                    <h5 class="fw-bold mb-4 border-bottom border-secondary pb-3"><i class="bi bi-key text-accent me-2"></i>Terminal License Key</h5>
-                    
-                    <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
-                        <p class="text-secondary small">Click to reveal and copy your key. Paste this into the Dummy EA inputs on MetaTrader 5.</p>
                         
-                        <div class="key-box p-3 text-center text-accent fs-5 fw-bold mb-4 key-hidden" id="licenseKeyBox" onclick="copyKey()">
-                            <%= currentUser.licenseKey %>
-                        </div>
+                        <a href="/pricing" class="btn btn-outline-secondary w-100 btn-sm py-2" style="border-color: var(--det-border);">
+                            Manage Plan / Upgrade
+                        </a>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-6">
-                                <small class="text-secondary text-uppercase fw-bold d-block">MT5 Account Lock</small>
-                                <% if(currentUser.mt5AccountNumber) { %>
-                                    <span class="fs-5 fw-bold text-success"><i class="bi bi-lock-fill me-1"></i><%= currentUser.mt5AccountNumber %></span>
-                                <% } else { %>
-                                    <span class="badge bg-secondary">Pending Connection</span>
-                                <% } %>
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
+                            <i class="bi bi-key text-accent me-2"></i>Integration ID
+                        </h5>
+                        
+                        <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
+                            <p class="text-secondary small mb-3">Click to reveal your unique 9-digit ID. Paste this into the CornerStore EA.</p>
+                            
+                            <div class="key-box p-3 text-center fs-5 fw-bold mb-4 key-hidden" id="licenseKeyBox" onclick="copyKey()">
+                                <%= currentUser.licenseKey %>
                             </div>
-                            <div class="col-6 text-end">
-                                <small class="text-secondary text-uppercase fw-bold d-block">Download</small>
-                                <a href="/dummy-ea.zip" class="btn btn-primary btn-sm mt-1"><i class="bi bi-download me-1"></i> Client EA</a>
-                            </div>
-                        </div>
 
-                    <% } else { %>
-                        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning text-warning">
-                            <i class="bi bi-exclamation-triangle me-2"></i>You do not have an active key. Please subscribe to a tier to generate one.
-                        </div>
-                    <% } %>
+                            <div class="row align-items-center">
+                                <div class="col-6">
+                                    <small class="text-secondary text-uppercase fw-bold d-block mb-1">MT5 Lock</small>
+                                    <% if(currentUser.accountLocked) { %>
+                                        <span class="badge bg-danger">ZERO-HEDGE</span>
+                                    <% } else { %>
+                                        <span class="badge" style="background: rgba(176,191,150,0.2); color: var(--det-green);">Awaiting Ping</span>
+                                    <% } %>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small class="text-secondary text-uppercase fw-bold d-block mb-1">Installation</small>
+                                    <a href="/det-client.zip" class="btn btn-det btn-sm w-100">
+                                        <i class="bi bi-download me-1"></i> Client EA
+                                    </a>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="alert bg-warning bg-opacity-10 border-warning text-warning" style="border-radius: 8px; font-size: 14px;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>No active key. Please subscribe to generate one.
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
-            </div>
 
-            <div class="col-xl-8 col-lg-7">
-                <div class="glass-card">
-                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-                        <h5 class="fw-bold m-0"><i class="bi bi-activity text-success me-2"></i>Master AI Feed</h5>
-                        <span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3 py-2"><span class="spinner-grow spinner-grow-sm me-2" style="width: 0.5rem; height: 0.5rem;"></span>Live Sync</span>
+                <div class="col-xl-8 col-lg-7">
+                    <div class="glass-card d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
+                            <h5 class="fw-bold m-0"><i class="bi bi-activity text-accent me-2"></i>CornerStore Feed</h5>
+                            <span class="badge" style="background: rgba(176, 191, 150, 0.15); color: var(--det-green); border: 1px solid rgba(176, 191, 150, 0.3); border-radius: 20px; padding: 6px 16px;">
+                                <span class="spinner-grow spinner-grow-sm me-2" style="width: 0.5rem; height: 0.5rem;"></span>Live Sync
+                            </span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3 col-6">
+                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Active Asset</small>
+                                    <h5 id="ea-symbol" class="fw-bold text-white mt-2 mb-0">--</h5>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Live Price</small>
+                                    <h5 id="ea-price" class="text-accent fw-bold mt-2 mb-0">0.00</h5>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">A.I. Trend</small>
+                                    <h5 id="ea-trend" class="fw-bold mt-2 mb-0" style="color: #fff;">--</h5>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Open Trades</small>
+                                    <h5 id="ea-trades" class="text-white fw-bold mt-2 mb-0">0</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-secondary text-uppercase fw-bold" style="letter-spacing: 1px;">Live Equity Curve (Master)</small>
+                                <span id="ea-action" class="fw-bold small" style="color: var(--det-green);">Scanning...</span>
+                            </div>
+                            <div class="p-3 rounded border" style="background: var(--det-dark); border-color: var(--det-border) !important;">
+                                <canvas id="equityChart"></canvas>
+                            </div>
+                        </div>
+
                     </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3 col-6">
-                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
-                                <small class="text-secondary text-uppercase fw-bold">Active Asset</small>
-                                <h5 id="ea-symbol" class="fw-bold text-white mt-2 mb-0">--</h5>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
-                                <small class="text-secondary text-uppercase fw-bold">Live Price</small>
-                                <h5 id="ea-price" class="text-accent fw-bold mt-2 mb-0">0.00</h5>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
-                                <small class="text-secondary text-uppercase fw-bold">A.I. Trend</small>
-                                <h5 id="ea-trend" class="text-info fw-bold mt-2 mb-0">--</h5>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <div class="bg-dark p-3 rounded border border-secondary text-center h-100">
-                                <small class="text-secondary text-uppercase fw-bold">Open Trades</small>
-                                <h5 id="ea-trades" class="text-warning fw-bold mt-2 mb-0">0</h5>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-secondary text-uppercase fw-bold">Live Equity Curve (Master Account)</small>
-                            <span id="ea-action" class="text-success fw-bold small">Executing...</span>
-                        </div>
-                        <div class="bg-dark p-3 rounded border border-secondary">
-                            <canvas id="equityChart"></canvas>
-                        </div>
-                    </div>
-
                 </div>
-            </div>
 
+            </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 1. Copy Key Logic
+        // Sidebar Toggle for Mobile
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+
+        // Copy Key Logic
         function copyKey() {
             const box = document.getElementById('licenseKeyBox');
             if(box.classList.contains('key-hidden')) {
-                box.classList.remove('key-hidden'); // Reveal it
+                box.classList.remove('key-hidden'); 
             } else {
                 navigator.clipboard.writeText(box.innerText.trim());
                 const originalText = box.innerText;
                 box.innerText = "COPIED TO CLIPBOARD!";
-                box.classList.add('text-success');
+                box.style.color = "#fff";
                 setTimeout(() => {
                     box.innerText = originalText;
-                    box.classList.remove('text-success');
-                    box.classList.add('key-hidden'); // Hide it again
+                    box.style.color = ""; 
+                    box.classList.add('key-hidden'); 
                 }, 2000);
             }
         }
 
-        // 2. Chart.js Initialization
+        // Chart.js Initialization
         const ctx = document.getElementById('equityChart').getContext('2d');
         const equityChart = new Chart(ctx, {
             type: 'line',
@@ -193,8 +400,8 @@
                 datasets: [{ 
                     label: 'Master Equity', 
                     data: [], 
-                    borderColor: '#38bdf8', 
-                    backgroundColor: 'rgba(56, 189, 248, 0.1)', 
+                    borderColor: '#B0BF96', 
+                    backgroundColor: 'rgba(176, 191, 150, 0.1)', 
                     borderWidth: 2, 
                     fill: true, 
                     tension: 0.3,
@@ -213,25 +420,24 @@
             }
         });
 
-        // 3. Fetch Live EA Data
+        // Fetch Live EA Data
         async function fetchDashboardData() {
             try {
                 const res = await fetch('/api/public/ea-state');
                 const data = await res.json();
                 
-                document.getElementById('ea-symbol').innerText = data.symbol;
+                document.getElementById('ea-symbol').innerText = data.symbol || '--';
                 document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : "0.00";
-                document.getElementById('ea-trend').innerText = data.trend;
+                document.getElementById('ea-trend').innerText = data.trend || '--';
                 document.getElementById('ea-trades').innerText = data.openTrades || 0;
-                document.getElementById('ea-action').innerText = data.action;
+                document.getElementById('ea-action').innerText = data.action || 'Scanning';
 
                 // Color code the action text
                 const actionEl = document.getElementById('ea-action');
-                if(data.action.includes("Buy")) actionEl.className = "text-success fw-bold small";
-                else if(data.action.includes("Sell")) actionEl.className = "text-danger fw-bold small";
-                else actionEl.className = "text-warning fw-bold small";
+                if(data.action && data.action.includes("Buy")) actionEl.style.color = "#B0BF96"; 
+                else if(data.action && data.action.includes("Sell")) actionEl.style.color = "#ef4444"; 
+                else actionEl.style.color = "#f59e0b"; 
                 
-                // Update Chart
                 if(data.equityHistory && data.equityHistory.length > 0) {
                     equityChart.data.datasets[0].data = data.equityHistory;
                     equityChart.update();
@@ -239,8 +445,8 @@
             } catch (e) { console.error("Error fetching EA Data"); }
         }
 
-        // Poll every 2.5 seconds
         setInterval(fetchDashboardData, 2500);
+        fetchDashboardData();
     </script>
 </body>
 </html>
