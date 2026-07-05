@@ -83,16 +83,55 @@
 
         canvas { max-height: 200px; width: 100%; }
 
-        /* Institutional Table Styling */
-        .table-responsive { border-radius: 8px; overflow: hidden; border: 1px solid var(--det-border); }
-        .table { margin-bottom: 0; color: #fff !important; }
+        /* =========================================
+           Institutional Table Styling
+           FIX: swipeable / scrollable table on small screens
+        ========================================= */
+        .table-responsive-wrapper {
+            border-radius: 8px;
+            border: 1px solid var(--det-border);
+            overflow: hidden; /* keeps the rounded corners clean */
+        }
+        .table-responsive {
+            /* overflow:hidden here was clipping the table instead of scrolling it —
+               switched to overflow-x:auto so mobile users can swipe sideways */
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch; /* smooth momentum swipe on iOS */
+            scrollbar-width: thin;
+            scrollbar-color: var(--det-green) transparent;
+        }
+        .table-responsive::-webkit-scrollbar { height: 6px; }
+        .table-responsive::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
+        .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--det-green); }
+
+        .table { margin-bottom: 0; color: #fff !important; min-width: 760px; } /* forces real scroll instead of squished columns */
         .table-dark-custom { background-color: var(--det-dark); }
         .table thead th { 
             background-color: #111; color: #cbd5e1 !important; font-weight: 600; font-size: 12px; 
             text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--det-border); padding: 15px;
+            white-space: nowrap;
         }
         .table tbody td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; background-color: transparent; color: #fff !important; }
         .table tbody tr:hover td { background-color: rgba(176, 191, 150, 0.05); }
+
+        .swipe-hint {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+        .swipe-hint i { color: var(--det-green); animation: swipeMove 1.4s ease-in-out infinite; }
+        @keyframes swipeMove {
+            0%, 100% { transform: translateX(0); opacity: 0.6; }
+            50% { transform: translateX(6px); opacity: 1; }
+        }
+        @media (max-width: 767px) {
+            .swipe-hint { display: flex; }
+        }
         
         .code-pill { background: #1a1818; border: 1px solid var(--det-border); color: var(--det-green) !important; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 600; }
         
@@ -295,135 +334,141 @@
                                 <i class="bi bi-download me-1"></i> Export CSV
                             </button>
                         </div>
+
+                        <div class="swipe-hint">
+                            <i class="bi bi-arrow-left-right"></i> Swipe table to see more
+                        </div>
                         
-                        <div class="table-responsive">
-                            <table class="table align-middle mb-0" id="participantTable">
-                                <thead class="table-dark-custom">
-                                    <tr>
-                                        <th>Participant</th>
-                                        <th>Status</th>
-                                        <th>Integration ID</th>
-                                        <th>D.E.T Plan</th>
-                                        <th>Cycle Expires</th>
-                                        <th class="text-end">Command Controls</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% 
-                                        let activeCount = 0;
-                                        let lockedCount = 0;
-                                        
-                                        users.forEach(client => { 
-                                            if(client.accountLocked) lockedCount++;
-                                            if(client.licenseKey && !client.isSuspended && new Date() < new Date(client.licenseExpiry)) activeCount++;
-                                    %>
+                        <div class="table-responsive-wrapper">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0" id="participantTable">
+                                    <thead class="table-dark-custom">
                                         <tr>
-                                            <td>
-                                                <div class="fw-bold text-white fs-6"><%= client.username %></div>
-                                                <small style="color: #cbd5e1 !important;"><%= client.email %></small>
-                                            </td>
-                                            <td>
-                                                <% if(client.accountLocked) { %> 
-                                                    <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444 !important;">ZERO-HEDGE LOCK</span>
-                                                <% } else if(client.isSuspended) { %> 
-                                                    <span class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b !important;">BANNED</span>
-                                                <% } else if(new Date() > new Date(client.licenseExpiry)) { %> 
-                                                    <span class="status-badge" style="background: rgba(100, 116, 139, 0.3); color: #cbd5e1 !important;">EXPIRED</span>
-                                                <% } else if(client.licenseKey) { %> 
-                                                    <span class="status-badge" style="background: rgba(176, 191, 150, 0.2); color: var(--det-green) !important;">ACTIVE</span>
-                                                <% } else { %> 
-                                                    <span class="status-badge" style="background: #475569; color: #fff !important;">UNLICENSED</span> 
-                                                <% } %>
-                                            </td>
-                                            <td><span class="code-pill"><%= client.licenseKey || '---' %></span></td>
-                                            <td><span class="badge border text-white fs-6" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= client.currentTier || 'None' %></span></td>
-                                            <td class="fw-semibold <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : 'text-white' %>">
-                                                <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %>
-                                            </td>
-                                            <td class="text-end">
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    
-                                                    <button class="action-btn btn-manage" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" title="Manage License">
-                                                        <i class="bi bi-key-fill"></i>
-                                                    </button>
-
-                                                    <% if(client.licenseKey) { %>
-                                                        <form action="/admin/suspend-license/<%= client._id %>" method="POST" class="d-inline">
-                                                            <button type="submit" class="action-btn btn-ban" title="<%= client.isSuspended ? 'Unban Account' : 'Ban Account' %>">
-                                                                <i class="bi <%= client.isSuspended ? 'bi-shield-check' : 'bi-shield-lock-fill' %>"></i>
-                                                            </button>
-                                                        </form>
-                                                    <% } %>
-
-                                                    <button class="action-btn btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal<%= client._id %>" title="Delete Participant">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-
-                                                </div>
-                                            </td>
+                                            <th>Participant</th>
+                                            <th>Status</th>
+                                            <th>Integration ID</th>
+                                            <th>D.E.T Plan</th>
+                                            <th>Cycle Expires</th>
+                                            <th class="text-end">Command Controls</th>
                                         </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% 
+                                            let activeCount = 0;
+                                            let lockedCount = 0;
+                                            
+                                            users.forEach(client => { 
+                                                if(client.accountLocked) lockedCount++;
+                                                if(client.licenseKey && !client.isSuspended && new Date() < new Date(client.licenseExpiry)) activeCount++;
+                                        %>
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-bold text-white fs-6"><%= client.username %></div>
+                                                    <small style="color: #cbd5e1 !important;"><%= client.email %></small>
+                                                </td>
+                                                <td>
+                                                    <% if(client.accountLocked) { %> 
+                                                        <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444 !important;">ZERO-HEDGE LOCK</span>
+                                                    <% } else if(client.isSuspended) { %> 
+                                                        <span class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b !important;">BANNED</span>
+                                                    <% } else if(new Date() > new Date(client.licenseExpiry)) { %> 
+                                                        <span class="status-badge" style="background: rgba(100, 116, 139, 0.3); color: #cbd5e1 !important;">EXPIRED</span>
+                                                    <% } else if(client.licenseKey) { %> 
+                                                        <span class="status-badge" style="background: rgba(176, 191, 150, 0.2); color: var(--det-green) !important;">ACTIVE</span>
+                                                    <% } else { %> 
+                                                        <span class="status-badge" style="background: #475569; color: #fff !important;">UNLICENSED</span> 
+                                                    <% } %>
+                                                </td>
+                                                <td><span class="code-pill"><%= client.licenseKey || '---' %></span></td>
+                                                <td><span class="badge border text-white fs-6" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= client.currentTier || 'None' %></span></td>
+                                                <td class="fw-semibold <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : 'text-white' %>">
+                                                    <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        
+                                                        <button class="action-btn btn-manage" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" title="Manage License">
+                                                            <i class="bi bi-key-fill"></i>
+                                                        </button>
 
-                                        <div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title fw-bold text-white">Manage D.E.T Access</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <% if(client.licenseKey) { %>
+                                                            <form action="/admin/suspend-license/<%= client._id %>" method="POST" class="d-inline">
+                                                                <button type="submit" class="action-btn btn-ban" title="<%= client.isSuspended ? 'Unban Account' : 'Ban Account' %>">
+                                                                    <i class="bi <%= client.isSuspended ? 'bi-shield-check' : 'bi-shield-lock-fill' %>"></i>
+                                                                </button>
+                                                            </form>
+                                                        <% } %>
+
+                                                        <button class="action-btn btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal<%= client._id %>" title="Delete Participant">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+
                                                     </div>
-                                                    <form action="/admin/generate-license/<%= client._id %>" method="POST">
-                                                        <div class="modal-body">
-                                                            <p class="mb-4" style="color: #cbd5e1; font-size: 14px;">You are generating a new secure key for <strong class="text-white"><%= client.username %></strong>. This will override their current access.</p>
-                                                            
-                                                            <div class="mb-3 text-start">
-                                                                <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Select Trading Level</label>
-                                                                <select class="form-select" name="tierLevel" required>
-                                                                    <option value="Amber" <%= client.currentTier == 'Amber' ? 'selected' : '' %>>Amber (No Trading)</option>
-                                                                    <option value="Amethyst" <%= client.currentTier == 'Amethyst' ? 'selected' : '' %>>Amethyst ($50 - $199)</option>
-                                                                    <option value="Topaz" <%= client.currentTier == 'Topaz' ? 'selected' : '' %>>Topaz ($200 - $1K)</option>
-                                                                    <option value="Tanzanite" <%= client.currentTier == 'Tanzanite' ? 'selected' : '' %>>Tanzanite ($1K - $10K)</option>
-                                                                    <option value="Sapphire" <%= client.currentTier == 'Sapphire' ? 'selected' : '' %>>Sapphire ($10K - $100K)</option>
-                                                                    <option value="Emerald" <%= client.currentTier == 'Emerald' ? 'selected' : '' %>>Emerald ($100K - $1M)</option>
-                                                                </select>
-                                                            </div>
+                                                </td>
+                                            </tr>
 
-                                                            <div class="mb-3 text-start">
-                                                                <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Duration (Days)</label>
-                                                                <input type="number" name="durationDays" class="form-control" value="30" required>
-                                                            </div>
+                                            <div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title fw-bold text-white">Manage D.E.T Access</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
-                                                            <button type="submit" class="btn btn-det"><i class="bi bi-lightning-charge-fill me-1"></i> Issue Key</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                        <form action="/admin/generate-license/<%= client._id %>" method="POST">
+                                                            <div class="modal-body">
+                                                                <p class="mb-4" style="color: #cbd5e1; font-size: 14px;">You are generating a new secure key for <strong class="text-white"><%= client.username %></strong>. This will override their current access.</p>
+                                                                
+                                                                <div class="mb-3 text-start">
+                                                                    <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Select Trading Level</label>
+                                                                    <select class="form-select" name="tierLevel" required>
+                                                                        <option value="Amber" <%= client.currentTier == 'Amber' ? 'selected' : '' %>>Amber (No Trading)</option>
+                                                                        <option value="Amethyst" <%= client.currentTier == 'Amethyst' ? 'selected' : '' %>>Amethyst ($50 - $199)</option>
+                                                                        <option value="Topaz" <%= client.currentTier == 'Topaz' ? 'selected' : '' %>>Topaz ($200 - $1K)</option>
+                                                                        <option value="Tanzanite" <%= client.currentTier == 'Tanzanite' ? 'selected' : '' %>>Tanzanite ($1K - $10K)</option>
+                                                                        <option value="Sapphire" <%= client.currentTier == 'Sapphire' ? 'selected' : '' %>>Sapphire ($10K - $100K)</option>
+                                                                        <option value="Emerald" <%= client.currentTier == 'Emerald' ? 'selected' : '' %>>Emerald ($100K - $1M)</option>
+                                                                    </select>
+                                                                </div>
 
-                                        <div class="modal fade" id="deleteModal<%= client._id %>" tabindex="-1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content" style="border-color: #ef4444;">
-                                                    <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
-                                                        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                    </div>
-                                                    <div class="modal-body text-start">
-                                                        <p style="color: #cbd5e1; font-size: 14px;">Are you sure you want to completely delete <strong class="text-white"><%= client.username %></strong> from the network?</p>
-                                                        <p class="text-danger small mb-0 fw-bold">This action cannot be undone, and their EA will immediately disconnect.</p>
-                                                    </div>
-                                                    <div class="modal-footer" style="border-top-color: rgba(239, 68, 68, 0.2);">
-                                                        <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
-                                                        <form action="/admin/delete-user/<%= client._id %>" method="POST">
-                                                            <button type="submit" class="btn btn-danger">Yes, Nuke Account</button>
+                                                                <div class="mb-3 text-start">
+                                                                    <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Duration (Days)</label>
+                                                                    <input type="number" name="durationDays" class="form-control" value="30" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-det"><i class="bi bi-lightning-charge-fill me-1"></i> Issue Key</button>
+                                                            </div>
                                                         </form>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                    <% }) %>
-                                </tbody>
-                            </table>
+                                            <div class="modal fade" id="deleteModal<%= client._id %>" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content" style="border-color: #ef4444;">
+                                                        <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+                                                            <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <p style="color: #cbd5e1; font-size: 14px;">Are you sure you want to completely delete <strong class="text-white"><%= client.username %></strong> from the network?</p>
+                                                            <p class="text-danger small mb-0 fw-bold">This action cannot be undone, and their EA will immediately disconnect.</p>
+                                                        </div>
+                                                        <div class="modal-footer" style="border-top-color: rgba(239, 68, 68, 0.2);">
+                                                            <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
+                                                            <form action="/admin/delete-user/<%= client._id %>" method="POST">
+                                                                <button type="submit" class="btn btn-danger">Yes, Nuke Account</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
