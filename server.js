@@ -84,10 +84,6 @@ function isAdmin(req, res, next) {
 app.post("/api/master/update", (req, res) => {
     const { masterPassword, analysis, trades, uiState } = req.body;
     
-    // if (masterPassword !== "YOUR_SECRET_MASTER_PASSWORD") {
-    //     return res.status(403).json({ error: "Unauthorized" });
-    // }
-    
     if (analysis) {
         eaBrainState.symbol = analysis.symbol;
         eaBrainState.trend = analysis.trend;
@@ -182,12 +178,14 @@ app.get("/pricing", (req, res) => {
 });
 
 // ==========================================
-// PAYNOW INTEGRATION & TIER CONFIGURATION
+// PAYNOW INTEGRATION & THE INTELLIGENT CHECKOUT
 // ==========================================
 
-const paynow = new Paynow("YOUR_INTEGRATION_ID", "YOUR_INTEGRATION_KEY");
-paynow.resultUrl = " https://f19c-41-173-57-29.ngrok-free.app/api/paynow/update"; 
-paynow.returnUrl = " https://f19c-41-173-57-29.ngrok-free.app/checkout/return"; 
+const paynow = new Paynow(process.env.PAYNOW_INTEGRATION_ID || "YOUR_INTEGRATION_ID", process.env.PAYNOW_INTEGRATION_KEY || "YOUR_INTEGRATION_KEY");
+
+const LIVE_DOMAIN = "https://bot-proj-2-1.onrender.com";
+paynow.resultUrl = `${LIVE_DOMAIN}/api/paynow/update`; 
+paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`; 
 
 const tierConfig = {
     "Amethyst": { price: 30, durationDays: 30 },
@@ -204,22 +202,71 @@ const tierConfig = {
     "Solomonic": { price: 5000000000, durationDays: 365 }
 };
 
-// TEMPORARY FAKE CHECKOUT (For testing without Paynow Keys)
-// To revert to real checkout, swap this back to your original commented block
+// 1. Intercept users coming from Pricing Page Modal
 app.post("/checkout/initialize", (req, res) => {
     const selectedTier = req.body.selectedTier;
+    // SEQUENCE FIX: If already logged in, skip registration, go straight to secure checkout portal
+    if (req.isAuthenticated()) {
+        return res.redirect(`/checkout?tier=${encodeURIComponent(selectedTier)}`);
+    }
+    // Else, send to Registration Form (it will forward them to checkout after)
     res.render("register", { error: null, selectedTier: selectedTier });
 });
 
+// 2. The New Secure Payment Portal (EcoCash UI + Visa Fallback)
+app.get("/checkout", isLoggedIn, (req, res) => {
+    const tier = req.query.tier;
+    if(!tierConfig[tier]) return res.redirect("/pricing");
+    res.render("checkout", { tier: tier, config: tierConfig[tier] });
+});
+
+// 3. API: Trigger EcoCash/OneMoney USSD Push to User's Phone
+app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
+    const { tier, phone, method } = req.body;
+    const config = tierConfig[tier];
+    if(!config) return res.json({ success: false, error: "Invalid tier" });
+
+    const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
+    let payment = paynow.createPayment(invoiceRef, req.user.email);
+    payment.add(`${tier} Grade D.E.T Activation`, config.price);
+
+    try {
+        const response = await paynow.sendMobile(payment, phone, method); // 'ecocash' or 'onemoney'
+        if(response.success) {
+            res.json({ success: true, instructions: response.instructions });
+        } else {
+            res.json({ success: false, error: response.error });
+        }
+    } catch(err) {
+        res.json({ success: false, error: "Bank gateway unreachable." });
+    }
+});
+
+// 4. API: Fallback to standard Paynow Gateway (For Visa/InnBucks)
+app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
+    const tier = req.query.tier;
+    const config = tierConfig[tier];
+    const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
+    let payment = paynow.createPayment(invoiceRef, req.user.email);
+    payment.add(`${tier} Grade D.E.T Activation`, config.price);
+
+    try {
+        const response = await paynow.send(payment);
+        if(response.success) res.redirect(response.redirectUrl);
+        else res.redirect("/pricing");
+    } catch(e) { res.redirect("/pricing"); }
+});
+
 app.get("/checkout/return", isLoggedIn, (req, res) => {
-    req.flash("success", "Payment processing! Your license key will generate automatically once the network confirms receipt.");
+    req.flash("success", "Payment processing! Your 9-Digit ID will generate automatically once the network confirms receipt.");
     res.redirect("/dashboard");
 });
 
+// 5. The Silent Webhook
 app.post("/api/paynow/update", async (req, res) => {
-    const { reference, paynowreference, status } = req.body;
+    const { reference, status } = req.body;
     
-    if (status === "Paid") {
+    if (status === "Paid" || status === "Awaiting Delivery") {
         const parts = reference.split("-");
         const userId = parts[0];
         const tierName = parts[1];
@@ -227,23 +274,32 @@ app.post("/api/paynow/update", async (req, res) => {
 
         try {
             const user = await User.findById(userId);
-            if (user) {
-                user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase();
+            if (user && !user.licenseKey) { // Prevent double-generation
+                const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
+                
+                user.licenseKey = generateDET_ID();
                 user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
                 user.currentTier = tierName;
                 user.prepaymentAmount = config.price;
                 user.termsAgreed = true;
                 user.isSuspended = false; 
+                user.accountLocked = false;
                 user.mt5AccountNumber = null; 
                 
                 await user.save();
-                console.log(`[SUCCESS] Payment received! License generated for ${user.username} (${tierName})`);
+                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName})`);
             }
         } catch (err) {
             console.error("Webhook database update failed:", err);
         }
     }
     res.status(200).send("OK");
+});
+
+// 6. Polling endpoint for Checkout UI
+app.get("/api/user/status", isLoggedIn, async (req, res) => {
+    const user = await User.findById(req.user._id);
+    res.json({ isPaid: !!user.licenseKey });
 });
 
 // ==========================================
@@ -260,17 +316,13 @@ app.get("/register", (req, res) => res.render("register"));
 
 app.post("/register", async (req, res) => {
   try {
-    const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
-    const newDetId = generateDET_ID();
-
     const newUser = new User({ 
         username: req.body.username, 
         email: req.body.email,
         whatsapp: req.body.whatsapp || "",
         country: req.body.country || "",
-        currentTier: req.body.selectedTier || "Unknown",
-        licenseKey: newDetId,
-        licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        currentTier: req.body.selectedTier || "None",
+        licenseKey: null, // Key stays null until payment webhook confirms success
         startingBalance: 0,
         targetBalance: 0,
         accountLocked: false,
@@ -278,7 +330,15 @@ app.post("/register", async (req, res) => {
     });
 
     const registeredUser = await User.register(newUser, req.body.password);
-    req.login(registeredUser, (err) => res.redirect("/dashboard"));
+    
+    req.login(registeredUser, (err) => {
+        if(err) {
+            req.flash("error", "Auto login session failure.");
+            return res.redirect("/login");
+        }
+        // SEQUENCE FIX: Redirect user straight to live paynow checkout portal
+        res.redirect(`/checkout?tier=${encodeURIComponent(req.body.selectedTier || "None")}`);
+    });
   } catch (err) {
     req.flash("error", err.message);
     res.redirect("/register");
@@ -308,23 +368,21 @@ app.get("/admin", isAdmin, async (req, res) => {
     res.render("admin", { users: allUsers });
 });
 
-// Upgraded Generate Route: Now handles Tier Selection AND Days
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
     const days = parseInt(req.body.durationDays) || 30; 
-    const tier = req.body.tierLevel || "Unknown"; // Catch the tier from the new modal
+    const tier = req.body.tierLevel || "Unknown"; 
     
     const user = await User.findById(req.params.id);
     user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
     user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
-    user.currentTier = tier; // Update their plan level
-    user.isSuspended = false; // Automatically unsuspend if they are getting a new key
+    user.currentTier = tier; 
+    user.isSuspended = false; 
     
     await user.save();
     req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
     res.redirect("/admin");
 });
 
-// Suspend/Ban Toggle
 app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
     const user = await User.findById(req.params.id);
     user.isSuspended = !user.isSuspended;
@@ -333,7 +391,6 @@ app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
     res.redirect("/admin");
 });
 
-// NEW: Delete User Route
 app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     req.flash("success", "Participant permanently deleted from the network.");

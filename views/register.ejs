@@ -5,210 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Complete Your Setup | D.E.T System</title>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap core CSS -->
-    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #1a1818;
-            font-family: 'Poppins', sans-serif;
-            color: #ffffff;
-            padding-top: 100px;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        body { background-color: #1a1818; font-family: 'Poppins', sans-serif; color: #fff; padding-top: 100px; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* Navbar Styles */
-        .custom-navbar {
-            background-color: #322C2C;
-            position: fixed;
-            top: 0; left: 0; width: 100%;
-            z-index: 1000;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
-            padding: 18px 0;
-        }
-        .nav-container {
-            display: flex; justify-content: space-between; align-items: center;
-            max-width: 1200px; margin: 0 auto; padding: 0 20px;
-        }
-        .text-logo {
-            color: #B0BF96; font-size: 26px; font-weight: 800; text-decoration: none;
-            letter-spacing: 1.5px; text-transform: uppercase;
-        }
-        .text-logo span { color: #ffffff; font-weight: 300; }
-        .text-logo:hover { color: #ffffff; }
+        /* High Contrast Fixes */
+        p, span, div, h1, h2, h3, h4, h5, h6, label { color: #f8fafc; }
 
-        /* Page Layout */
-        .page-heading {
-            text-align: center;
-            padding: 40px 0 20px;
-        }
-        .page-heading h2 {
-            color: #B0BF96; font-size: 36px; font-weight: 700; margin-bottom: 15px;
-        }
-        .page-heading p {
-            color: #aaa; font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.6;
-        }
-        .step-indicator {
-            text-transform: uppercase; letter-spacing: 2px; font-size: 13px;
-            color: #B0BF96; font-weight: 600; display: block; margin-bottom: 15px;
-        }
+        .custom-navbar { background-color: #322C2C; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.5); padding: 18px 0; border-bottom: 1px solid rgba(176, 191, 150, 0.25); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .text-logo { color: #B0BF96 !important; font-size: 26px; font-weight: 800; text-decoration: none; letter-spacing: 1.5px; text-transform: uppercase; }
+        .text-logo span { color: #ffffff !important; font-weight: 300; }
+        .text-logo:hover { color: #ffffff !important; }
 
-        /* Form Card */
-        .setup-card {
-            background: #322C2C;
-            border: 1px solid rgba(176, 191, 150, 0.2);
-            border-radius: 12px;
-            padding: 40px;
-            width: 100%;
-            max-width: 550px;
-            margin: 0 auto 60px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        }
+        .page-heading { text-align: center; padding: 40px 0 20px; }
+        .page-heading h2 { color: #B0BF96 !important; font-size: 36px; font-weight: 700; margin-bottom: 15px; }
+        .page-heading p { color: #cbd5e1 !important; font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+        .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: #B0BF96 !important; font-weight: 600; display: block; margin-bottom: 15px; }
+
+        .setup-card { background: #322C2C; border: 1px solid rgba(176, 191, 150, 0.2); border-radius: 12px; padding: 40px; width: 100%; max-width: 550px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
         
-        .form-label {
-            color: #B0BF96;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-        .form-control {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 15px;
-        }
-        .form-control:focus {
-            background: rgba(0,0,0,0.3);
-            color: white;
-            border-color: #B0BF96;
-            box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15);
-        }
-        .form-control::placeholder {
-            color: #666;
-        }
+        .form-label { color: #B0BF96 !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .form-control { background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; }
+        .form-control:focus { background: rgba(0,0,0,0.3) !important; color: white !important; border-color: #B0BF96 !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
+        .form-control::placeholder { color: #64748b !important; }
 
-        .info-box {
-            background: rgba(176, 191, 150, 0.1);
-            border-left: 3px solid #B0BF96;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 25px;
-        }
-        .info-box p {
-            margin: 0;
-            font-size: 13px;
-            color: #ccc;
-            line-height: 1.5;
-        }
+        .info-box { background: rgba(176, 191, 150, 0.1); border-left: 3px solid #B0BF96; padding: 15px; border-radius: 4px; margin-bottom: 25px; }
+        .info-box p { margin: 0; font-size: 13px; color: #cbd5e1 !important; line-height: 1.5; }
 
-        .btn-secure {
-            background: #B0BF96;
-            color: #322C2C;
-            border: none;
-            border-radius: 6px;
-            padding: 14px 20px;
-            font-weight: 600;
-            font-size: 16px;
-            width: 100%;
-            transition: all 0.3s;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-secure:hover {
-            background: #96a67c;
-            transform: translateY(-2px);
-        }
+        .btn-secure { background: #B0BF96; color: #1a1818 !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: 10px; }
+        .btn-secure:hover { background: #96a67c; transform: translateY(-2px); }
 
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 30px;
-            align-items: center;
-        }
-        .nav-menu li a {
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .nav-menu li a:hover, .nav-menu li a.active {
-            color: #B0BF96;
-        }
-        
-        /* Highlighted Get Started Button */
-        .nav-btn {
-            background: #B0BF96;
-            color: #322C2C !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 700 !important;
-            transition: all 0.3s ease;
-        }
-        .nav-btn:hover {
-            background: #96a67c;
-            transform: translateY(-2px);
-        }
-        .mobile-toggle {
-            display: none;
-            color: #ffffff;
-            font-size: 28px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Mobile Menu */
-        @media (max-width: 991px) {
-            .nav-menu {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background-color: #322C2C;
-                padding: 20px 0;
-                box-shadow: 0 10px 15px rgba(0,0,0,0.5);
-                text-align: center;
-            }
-            .nav-menu.active {
-                display: flex;
-            }
-            .nav-menu li {
-                padding: 10px 0;
-            }
-            .mobile-toggle {
-                display: block;
-            }
-        }
+        /* The High-Contrast UX Safety Net */
+        .ux-safety-net { text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #cbd5e1 !important; }
+        .ux-safety-net a { color: #B0BF96 !important; font-weight: 700; text-decoration: none; letter-spacing: 0.5px; transition: 0.3s; display: inline-block; margin-top: 5px;}
+        .ux-safety-net a:hover { color: #fff !important; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-    <!-- ***** Custom Navbar Start ***** -->
     <header class="custom-navbar">
         <div class="nav-container">
             <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
         </div>
     </header>
-    <!-- ***** Custom Navbar End ***** -->
 
-    <!-- ***** Main Content Start ***** -->
     <div class="container flex-grow-1">
         <div class="page-heading">
             <span class="step-indicator">Step 2 of 4</span>
@@ -218,14 +61,16 @@
 
         <div class="setup-card">
             <% if(error && error.length > 0) { %> 
-                <div class="alert alert-danger" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; text-align: center; font-size: 14px;">
-                    <%= error %>
+                <div class="alert alert-danger" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; text-align: center; font-size: 14px; border-radius: 8px;">
+                    <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
                 </div> 
             <% } %>
 
             <form action="/register" method="POST">
+                <input type="hidden" name="selectedTier" value="<%= typeof selectedTier !== 'undefined' ? selectedTier : 'None' %>">
+
                 <div class="mb-3">
-                    <label class="form-label">Full Name</label>
+                    <label class="form-label">Full Name / Terminal ID</label>
                     <input type="text" class="form-control" name="username" placeholder="e.g. John Doe" required>
                 </div>
                 
@@ -251,24 +96,26 @@
                 </div>
 
                 <div class="info-box">
-                    <p><strong>Verification Notice:</strong> We will send your activation confirmation and unique D.E.T ID to your WhatsApp first, then your email.</p>
+                    <p><strong>Verification Notice:</strong> Your 9-Digit D.E.T ID will be linked directly to these credentials upon payment completion.</p>
                 </div>
 
-                <button type="submit" class="btn-secure">Confirm Your Details</button>
+                <button type="submit" class="btn-secure">Confirm Details & Continue to Pay</button>
             </form>
+
+            <div class="ux-safety-net">
+                Already have a profile? <br>
+                <a href="/login">Login to bypass Setup</a>
+            </div>
         </div>
     </div>
-    <!-- ***** Main Content End ***** -->
 
-    <!-- ***** Footer Start ***** -->
-    <footer role="contentinfo" style="background: #322C2C; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+    <footer role="contentinfo" style="background: #322C2C; padding: 30px 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; margin-top: auto;">
         <div class="container">
-            <p style="color: #888; font-size: 14px; margin: 0;">
+            <p style="color: #cbd5e1 !important; font-size: 14px; margin: 0;">
                 Copyright © 2026 D.E.T System. All Rights Reserved.
             </p>
         </div>
     </footer>
-    <!-- ***** Footer End ***** -->
 
 </body>
 </html>
