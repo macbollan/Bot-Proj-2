@@ -1,262 +1,251 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Choose Your Trading Level | D.E.T System</title>
+<%- include('partials/header', { title: 'Choose Your Trading Level | D.E.T System', page: 'pricing' }) %>
+
+<style>
+    .page-heading { text-align: center; padding: 40px 0; }
+    .page-heading h2 { color: var(--det-green); font-size: 36px; font-weight: 700; margin-bottom: 10px; }
+    .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--det-green); font-weight: 600; display: block; margin-bottom: 15px; }
+
+    .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding-bottom: 40px; }
+    .tier-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 35px 25px; width: 100%; max-width: 350px; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .tier-card:hover { border-color: var(--det-green); transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+    .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--det-green), #728352); opacity: 0; transition: opacity 0.3s; }
+    .tier-card:hover::before { opacity: 1; }
+
+    .tier-name { color: #ffffff !important; font-size: 22px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .tier-float { color: #cbd5e1 !important; font-size: 13px; margin-bottom: 12px; font-weight: 400; }
+    .tier-price { color: var(--det-green) !important; font-size: 38px; font-weight: 700; margin-bottom: 2px; line-height: 1; }
+    .tier-rate { color: #cbd5e1 !important; font-size: 14px; margin-bottom: 18px; }
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
+    .tier-details { background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 8px; margin-bottom: 18px; text-align: left; }
+    .tier-details span { display: block; font-size: 12px; color: #cbd5e1 !important; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tier-details strong { color: #fff !important; font-size: 15px; }
+
+    .tier-prepaid {
+        background: rgba(176, 191, 150, 0.08);
+        border: 1px solid rgba(176, 191, 150, 0.15);
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 18px;
+        text-align: left;
+    }
+    .tier-prepaid span { 
+        display: block; 
+        font-size: 11px; 
+        color: #cbd5e1 !important; 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .tier-prepaid strong { 
+        color: var(--det-green) !important; 
+        font-size: 16px; 
+        font-weight: 700;
+    }
+
+    .btn-secure { background: transparent; color: var(--det-green) !important; border: 1px solid var(--det-green); border-radius: 6px; padding: 12px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: auto; }
+    .btn-secure:hover { background: var(--det-green); color: var(--det-dark) !important; }
+
+    .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
+    .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
+    .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    .terms-box { background: var(--det-dark); border: 1px solid var(--det-border); border-radius: 8px; padding: 15px; height: 180px; overflow-y: auto; font-size: 12px; color: #cbd5e1 !important; margin-bottom: 15px; text-align: left;}
+    .terms-box::-webkit-scrollbar { width: 6px; }
+    .terms-box::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
+    
+    .form-check-input { background-color: var(--det-dark); border: 1px solid var(--det-green); width: 18px; height: 18px; cursor: pointer; }
+    .form-check-input:checked { background-color: var(--det-green); border-color: var(--det-green); }
+    .form-check-input:focus { box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.25); }
 
-    <style>
-        :root {
-            --det-green: #B0BF96;
-            --det-green-hover: #96a67c;
-            --det-dark: #1a1818;
-            --det-card: #322C2C;
-            --det-border: rgba(176, 191, 150, 0.25);
+    .btn-det-modal { background-color: var(--det-green) !important; color: var(--det-dark) !important; font-weight: 700 !important; border: none !important; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
+    .btn-det-modal:disabled { background-color: #475569 !important; color: #cbd5e1 !important; cursor: not-allowed; opacity: 1 !important; }
+
+    /* Full Disclaimer Section */
+    .disclaimer-section {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 35px 40px;
+        margin: 20px 0 60px;
+    }
+    .disclaimer-section h4 {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+    .disclaimer-section h4.text-accent {
+        color: var(--det-green);
+    }
+    .disclaimer-section p {
+        color: #cbd5e1 !important;
+        font-size: 14px;
+        line-height: 1.8;
+        margin-bottom: 12px;
+    }
+    .disclaimer-section .warning-box {
+        background: rgba(176, 191, 150, 0.06);
+        border-left: 4px solid #f0c040;
+        padding: 14px 18px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+    }
+    .disclaimer-section .warning-box p {
+        margin-bottom: 0;
+        font-size: 14px;
+    }
+    .disclaimer-section .warning-box strong {
+        color: #f0c040;
+    }
+    .disclaimer-section .divider {
+        border-top: 1px solid var(--det-border);
+        margin: 20px 0;
+    }
+    @media (max-width: 768px) {
+        .disclaimer-section {
+            padding: 24px 18px;
         }
-
-        body {
-            background-color: var(--det-dark);
-            font-family: 'Poppins', sans-serif;
-            color: #ffffff;
-            padding-top: 100px; 
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        .disclaimer-section p {
+            font-size: 13px;
         }
+    }
+</style>
 
-        p, span, div, h1, h2, h3, h4, h5, h6, label { color: #f8fafc; }
-        .text-muted { color: #cbd5e1 !important; } 
-        .text-secondary { color: #e2e8f0 !important; }
-        .text-accent { color: var(--det-green) !important; }
-
-        /* =========================================
-           CUSTOM NEUTRAL NAVBAR
-        ========================================= */
-        .custom-navbar {
-            background-color: var(--det-card);
-            position: fixed; top: 0; left: 0; width: 100%;
-            z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.5);
-            padding: 18px 0; border-bottom: 1px solid var(--det-border);
-        }
-        .nav-container {
-            display: flex; justify-content: space-between; align-items: center;
-            max-width: 1200px; margin: 0 auto; padding: 0 20px;
-        }
-        .text-logo { color: var(--det-green) !important; font-size: 26px; font-weight: 800; text-decoration: none; letter-spacing: 1.5px; text-transform: uppercase; }
-        .text-logo span { color: #ffffff !important; font-weight: 300; }
-        .text-logo:hover { color: #ffffff !important; }
-        
-        .nav-menu { display: flex; list-style: none; margin: 0; padding: 0; gap: 30px; align-items: center; }
-        .nav-menu li a { color: #ffffff !important; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
-        .nav-menu li a:hover, .nav-menu li a.active { color: var(--det-green) !important; }
-        
-        .nav-btn { background: var(--det-green); color: var(--det-dark) !important; padding: 10px 20px; border-radius: 6px; font-weight: 700 !important; transition: all 0.3s ease; border: none; }
-        .nav-btn:hover { background: var(--det-green-hover); transform: translateY(-2px); color: #000 !important;}
-        
-        .mobile-toggle { display: none; color: #ffffff; font-size: 28px; cursor: pointer; user-select: none; }
-
-        @media (max-width: 991px) {
-            .nav-menu { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--det-card); padding: 20px 0; box-shadow: 0 10px 15px rgba(0,0,0,0.5); text-align: center; }
-            .nav-menu.active { display: flex; }
-            .nav-menu li { padding: 10px 0; }
-            .mobile-toggle { display: block; }
-        }
-
-        /* =========================================
-           PAGE STYLES & CARDS
-        ========================================= */
-        .page-heading { text-align: center; padding: 40px 0; }
-        .page-heading h2 { color: var(--det-green); font-size: 36px; font-weight: 700; margin-bottom: 10px; }
-        .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--det-green); font-weight: 600; display: block; margin-bottom: 15px; }
-
-        .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding-bottom: 80px; }
-        .tier-card {
-            background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 35px 25px;
-            width: 100%; max-width: 350px; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden;
-            display: flex; flex-direction: column;
-        }
-        .tier-card:hover { border-color: var(--det-green); transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-        .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--det-green), #728352); opacity: 0; transition: opacity 0.3s; }
-        .tier-card:hover::before { opacity: 1; }
-
-        .tier-name { color: #ffffff !important; font-size: 22px; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .tier-price { color: var(--det-green) !important; font-size: 38px; font-weight: 700; margin-bottom: 5px; line-height: 1; }
-        .tier-rate { color: #cbd5e1 !important; font-size: 14px; margin-bottom: 25px; }
-        
-        .tier-details { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: left; }
-        .tier-details span { display: block; font-size: 13px; color: #cbd5e1 !important; margin-bottom: 5px; }
-        .tier-details strong { color: #fff !important; font-size: 15px; }
-
-        .btn-secure {
-            background: transparent; color: var(--det-green) !important; border: 1px solid var(--det-green); border-radius: 6px;
-            padding: 12px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: auto;
-        }
-        .btn-secure:hover { background: var(--det-green); color: var(--det-dark) !important; }
-
-        /* =========================================
-           MODAL STYLING & BUTTON FIX
-        ========================================= */
-        .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
-        .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
-        .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
-        
-        .terms-box { background: var(--det-dark); border: 1px solid var(--det-border); border-radius: 8px; padding: 15px; height: 180px; overflow-y: auto; font-size: 12px; color: #cbd5e1 !important; margin-bottom: 15px; }
-        .terms-box::-webkit-scrollbar { width: 6px; }
-        .terms-box::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
-        
-        .form-check-input { background-color: var(--det-dark); border: 1px solid var(--det-green); width: 18px; height: 18px; cursor: pointer; }
-        .form-check-input:checked { background-color: var(--det-green); border-color: var(--det-green); }
-        .form-check-input:focus { box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.25); }
-
-        /* THE VISIBLE BUTTON FIX */
-        .btn-det-modal {
-            background-color: var(--det-green) !important;
-            color: var(--det-dark) !important;
-            font-weight: 700 !important;
-            border: none !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-        .btn-det-modal:disabled {
-            background-color: #475569 !important; /* Visible Slate Grey */
-            color: #cbd5e1 !important; /* Light Silver Text */
-            cursor: not-allowed;
-            opacity: 1 !important;
-        }
-    </style>
-</head>
-<body>
-
-    <header class="custom-navbar">
-        <div class="nav-container">
-            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
-            <div class="mobile-toggle" id="mobile-toggle">☰</div>
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/pricing" class="active">Trading Levels</a></li>
-                <li><a href="/login">Client Access</a></li>
-                <li><a href="/pricing" class="nav-btn">Get Started</a></li>
-            </ul>
-        </div>
-    </header>
-
-    <div class="container flex-grow-1">
-        <div class="page-heading">
-            <span class="step-indicator">Step 1 of 4</span>
-            <h2>Choose Your Trading Level</h2>
-            <p class="text-secondary">Select the D.E.T tier that aligns with your custodial account float size.</p>
-        </div>
-
-        <% if(error && error.length > 0) { %> 
-            <div class="alert alert-danger text-center mx-auto mb-4" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; max-width: 600px; border-radius: 8px;">
-                <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
-            </div> 
-        <% } %>
-
-        <div class="pricing-grid">
-            <% tiers.forEach(function(tier) { %>
-                <div class="tier-card">
-                    <h3 class="tier-name"><%= tier.name %></h3>
-                    <div class="tier-price"><%= tier.amount %></div>
-                    <div class="tier-rate"><%= tier.rate %></div>
-                    
-                    <div class="tier-details">
-                        <span>Approved Trading Float</span>
-                        <strong><%= tier.range %></strong>
-                    </div>
-                    
-                    <% if(tier.name === "Amber") { %>
-                        <button type="button" class="btn-secure mt-auto" disabled style="border-color: #444; color: #555 !important; cursor: not-allowed;">Not Available</button>
-                    <% } else { %>
-                        <button type="button" class="btn-secure mt-auto" onclick="openCheckoutModal('<%= tier.name %>')">
-                            Select <%= tier.name %> Level
-                        </button>
-                    <% } %>
-                </div>
-            <% }); %>
-        </div>
+<div class="container flex-grow-1">
+    <div class="page-heading">
+        <span class="step-indicator">Step 1 of 4</span>
+        <h2>Choose Your Trading Level</h2>
+        <p class="text-secondary">Select the D.E.T tier that aligns with your custodial account float size.</p>
     </div>
 
-    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock text-accent me-2"></i>D.E.T Agreement</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <% if(error && error.length > 0) { %> 
+        <div class="alert alert-danger text-center mx-auto mb-4" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; max-width: 600px; border-radius: 8px;">
+            <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
+        </div> 
+    <% } %>
+
+    <div class="pricing-grid">
+        <% tiers.forEach(function(tier) { %>
+            <div class="tier-card">
+                <h3 class="tier-name"><%= tier.name %></h3>
+                <div class="tier-float"><%= tier.range %></div>
+                <div class="tier-price"><%= tier.amount %></div>
+                <div class="tier-rate"><%= tier.rate %></div>
+                <div class="tier-details">
+                    <span>Approved Trading Float</span>
+                    <strong><%= tier.range %></strong>
                 </div>
-                
-                <form action="/checkout/initialize" method="POST" id="tierForm">
-                    <div class="modal-body">
-                        <input type="hidden" name="selectedTier" id="modalTierInput" value="">
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);">
-                            <span class="text-uppercase fw-bold" style="font-size: 12px; color: #cbd5e1;">Selected Level</span>
-                            <span class="fw-bold text-accent fs-5" id="modalTierDisplay">--</span>
-                        </div>
-
-                        <p class="small fw-bold text-white mb-2">Terms & Risk Disclosure</p>
-                        <div class="terms-box">
-                            <p style="color: inherit;">1. D.E.T System is NOT an Investment Institution, nor an Investment Advisor.</p>
-                            <p style="color: inherit;">2. Caveat Subscriptor: There are NO guarantees of profit. Trading carries a high level of risk and may not be suitable for all participants. You may lose some or all of your initial capital.</p>
-                            <p style="color: inherit;">3. Zero-Hedge Protocol: If your account reaches 100% gain against the approved float size, the D.E.T connection will automatically suspend until a new cycle is initiated.</p>
-                            <p style="color: inherit;">4. The System executes purely on logic and data analytics without human intervention.</p>
-                        </div>
-
-                        <div class="form-check mt-3 d-flex align-items-center gap-2">
-                            <input class="form-check-input mt-0" type="checkbox" id="termsCheck" required>
-                            <label class="form-check-label text-white small" for="termsCheck" style="cursor: pointer;">
-                                I confirm I have read and agree to the Risk Disclosure.
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                        <!-- THE VISIBLE BUTTON -->
-                        <button type="submit" class="btn-det-modal" id="proceedBtn" disabled>Continue to Setup <i class="bi bi-arrow-right ms-1"></i></button>
-                    </div>
-                </form>
+                <div class="tier-prepaid">
+                    <span>Prepayment Amount</span>
+                    <strong><%= tier.prepaid %></strong>
+                </div>
+                <% if(tier.name === "Amber") { %>
+                    <button type="button" class="btn-secure mt-auto" disabled style="border-color: #444; color: #555 !important; cursor: not-allowed;">Not Available</button>
+                <% } else { %>
+                    <button type="button" class="btn-secure mt-auto" onclick="openCheckoutModal('<%= tier.name %>')">Select <%= tier.name %> Level</button>
+                <% } %>
             </div>
-        </div>
+        <% }); %>
     </div>
 
-    <footer role="contentinfo" style="background: var(--det-card); padding: 30px 0; border-top: 1px solid var(--det-border); text-align: center; margin-top: auto;">
-        <div class="container">
-            <p style="color: #cbd5e1 !important; font-size: 14px; margin: 0;">
-                Copyright © 2026 D.E.T System. All Rights Reserved.
-            </p>
+    <!-- ===== FULL DISCLAIMER SECTION ===== -->
+    <div class="disclaimer-section">
+        <h4>Terms and Conditions</h4>
+        <p>When the float size doubles using D.E.T System – thus 100% (one hundred percent) increase of float size in user's trading account after D.E.T activation – automatically we log out the user from D.E.T, regardless of remaining log-in time. After we log out the user, behind the scenes D.E.T will manage the current open trades until they close by the preset Take-Profit or by Stop-Loss. Account User won't be able to enter new trades before these pending trades close, unless if user voluntarily closes all of them.</p>
+
+        <div class="divider"></div>
+
+        <h4 class="text-accent">Disclaimer: We shall not be held responsible for your loss</h4>
+        <p>Caveat Subscriptor, we are "NOT an Advisory Institution" "NOT an Investment Institution", "NOT an Investment Advisor" we offer "NO Guarantees" these are just our opinions and in High-Risk trading you ACTUALLY may lose all your capital.</p>
+
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> There is NO Top-up option.</p>
         </div>
-    </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('mobile-toggle').addEventListener('click', function() {
-            document.getElementById('nav-menu').classList.toggle('active');
-        });
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> When your account is diverted to a lower designated Grade/Level, if there is any remaining balance on your prepaid amount, it will be activated at another designated lower Grade/Level, when your current login time expires, until your total prepayment amount is fully utilised accordingly. As a prerequisite you agree to only withdraw from earned amount from your account.</p>
+        </div>
 
-        const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
-        const termsCheck = document.getElementById('termsCheck');
-        const proceedBtn = document.getElementById('proceedBtn');
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> D.E.T will do a Zero-Hedging when the account doubles (100% gain). Meaning all positive and negative trades in the entire account will be combined, such that when these open trades neutralise each other to a Breakeven, D.E.T will instantaneously close all trades, at the minimalistic loss as possible.<br><em>N.B: To avoid this, make a quick prepayment to reactivate D.E.T.</em></p>
+        </div>
 
-        function openCheckoutModal(tierName) {
-            termsCheck.checked = false;
-            proceedBtn.disabled = true;
-            document.getElementById('modalTierDisplay').innerText = tierName;
-            document.getElementById('modalTierInput').value = tierName;
-            checkoutModal.show();
-        }
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> If you make any withdrawals from your account, the equivalent amount will be withdrawn from your expected "double profit" gain.</p>
+        </div>
 
-        termsCheck.addEventListener('change', function() {
-            proceedBtn.disabled = !this.checked;
-        });
-    </script>
+        <div class="warning-box">
+            <p><strong>⚠️ Warning:</strong> If you upload D.E.T onto an active account with open trades, you run the risk of all trades being taken over by D.E.T. Some trades may be closed. Others may be trailed. While others put on preset SL or TP.</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock text-accent me-2"></i>D.E.T Agreement</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="/checkout/initialize" method="POST" id="tierForm">
+                <div class="modal-body">
+                    <input type="hidden" name="selectedTier" id="modalTierInput" value="">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);">
+                        <span class="text-uppercase fw-bold" style="font-size: 12px; color: #cbd5e1;">Selected Level</span>
+                        <span class="fw-bold text-accent fs-5" id="modalTierDisplay">--</span>
+                    </div>
+
+                    <p class="small fw-bold text-white mb-2 text-start">Terms & Risk Disclosure</p>
+                    <div class="terms-box">
+                        <p style="color: inherit;">1. D.E.T System is NOT an Investment Institution, nor an Investment Advisor.</p>
+                        <p style="color: inherit;">2. Caveat Subscriptor: There are NO guarantees of profit. Trading carries a high level of risk.</p>
+                        <p style="color: inherit;">3. Zero-Hedge Protocol: If your account reaches 100% gain, the D.E.T connection will suspend.</p>
+                        <p style="color: inherit;">4. The System executes purely on logic and data analytics without human intervention.</p>
+                        <p style="color: inherit; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;"><strong style="color: #f0c040;">⚠️ Warning:</strong> No Top-up option. Account may be diverted to lower grade.</p>
+                    </div>
+
+                    <div class="form-check mt-3 d-flex align-items-center gap-2 text-start">
+                        <input class="form-check-input mt-0" type="checkbox" id="termsCheck" required>
+                        <label class="form-check-label text-white small" for="termsCheck" style="cursor: pointer;">
+                            I confirm I have read and agree to the Risk Disclosure.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-det-modal" id="proceedBtn" disabled>Continue to Setup <i class="bi bi-arrow-right ms-1"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer role="contentinfo" style="background: var(--det-card); padding: 30px 0; border-top: 1px solid var(--det-border); text-align: center; margin-top: auto;">
+    <div class="container">
+        <p style="color: #cbd5e1 !important; font-size: 14px; margin: 0;">Copyright © 2026 D.E.T System. All Rights Reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('mobile-toggle').addEventListener('click', function() {
+        document.getElementById('nav-menu').classList.toggle('active');
+    });
+
+    const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    const termsCheck = document.getElementById('termsCheck');
+    const proceedBtn = document.getElementById('proceedBtn');
+
+    function openCheckoutModal(tierName) {
+        termsCheck.checked = false; proceedBtn.disabled = true;
+        document.getElementById('modalTierDisplay').innerText = tierName;
+        document.getElementById('modalTierInput').value = tierName;
+        checkoutModal.show();
+    }
+    termsCheck.addEventListener('change', function() { proceedBtn.disabled = !this.checked; });
+</script>
 </body>
 </html>

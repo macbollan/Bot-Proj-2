@@ -1,196 +1,156 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Secure Checkout | D.E.T System</title>
+<%- include('partials/header', { title: 'Secure Checkout | D.E.T System', page: 'checkout' }) %>
+
+<style>
+    .page-heading { text-align: center; padding: 40px 0 20px; }
+    .page-heading h2 { color: var(--det-green) !important; font-size: 36px; font-weight: 700; margin-bottom: 15px; }
+    .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--det-green) !important; font-weight: 600; display: block; margin-bottom: 15px; }
+
+    .checkout-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 40px; width: 100%; max-width: 550px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+    .invoice-box { background: rgba(176, 191, 150, 0.05); border: 1px solid rgba(176, 191, 150, 0.25); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: center; }
+    .form-control { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 15px; border-radius: 6px; font-size: 18px; text-align: center; letter-spacing: 2px; width: 100%; margin-bottom: 15px; }
+    .form-control:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
 
-    <style>
-        body { background-color: #1a1818; font-family: 'Poppins', sans-serif; color: #ffffff; padding-top: 100px; margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* High Contrast Overrides */
-        p, span, div, h1, h2, h3, h4, h5, h6, label { color: #f8fafc; }
-        .text-muted { color: #cbd5e1 !important; }
+    .payment-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .payment-tab { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; flex: 1; text-align: center; }
+    .payment-tab:hover { background: rgba(255,255,255,0.05); }
+    .payment-tab.active { background: rgba(176,191,150,0.15); border-color: var(--det-green); color: var(--det-green); }
 
-        .custom-navbar { background-color: #322C2C; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.5); padding: 18px 0; border-bottom: 1px solid rgba(176,191,150,0.25); }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .text-logo { color: #B0BF96 !important; font-size: 26px; font-weight: 800; text-decoration: none; letter-spacing: 1.5px; text-transform: uppercase; }
-        .text-logo span { color: #ffffff !important; font-weight: 300; }
-        
-        .page-heading { text-align: center; padding: 40px 0 20px; }
-        .page-heading h2 { color: #B0BF96 !important; font-size: 36px; font-weight: 700; margin-bottom: 15px; }
-        .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: #B0BF96 !important; font-weight: 600; display: block; margin-bottom: 15px; }
+    .btn-secure { background: var(--det-green); color: var(--det-dark) !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; margin-top: 5px; cursor: pointer; }
+    .btn-secure:hover { background: var(--det-green-hover); transform: translateY(-2px); }
+    
+    .btn-outline { background: transparent; color: #cbd5e1 !important; border: 1px solid #64748b; border-radius: 6px; padding: 14px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; display: block; text-align: center; cursor: pointer;}
+    .btn-outline:hover { background: rgba(255,255,255,0.05); color: #fff !important; border-color: var(--det-green); }
 
-        .checkout-card { background: #322C2C; border: 1px solid rgba(176, 191, 150, 0.2); border-radius: 12px; padding: 40px; width: 100%; max-width: 550px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-        .invoice-box { background: rgba(176, 191, 150, 0.05); border: 1px solid rgba(176, 191, 150, 0.25); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
-        
-        .form-label { color: #B0BF96 !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: center; }
-        .form-control { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 15px; border-radius: 6px; font-size: 18px; text-align: center; letter-spacing: 2px; width: 100%; margin-bottom: 15px; }
-        .form-control:focus { border-color: #B0BF96 !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
+    #loader { display: none; text-align: center; margin-top: 30px; }
+    .spinner-border { color: var(--det-green); width: 3rem; height: 3rem; border-width: 0.3em; }
 
-        /* Payment Method Tabs */
-        .payment-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-        .payment-tab { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; flex: 1; text-align: center; }
-        .payment-tab:hover { background: rgba(255,255,255,0.05); }
-        .payment-tab.active { background: rgba(176,191,150,0.15); border-color: #B0BF96; color: #B0BF96; }
+    .checkmark { width: 56px; height: 56px; border-radius: 50%; display: block; stroke-width: 4; stroke: #fff; stroke-miterlimit: 10; margin: 10% auto; box-shadow: inset 0px 0px 0px var(--det-green); animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both; }
+    .checkmark__circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 4; stroke-miterlimit: 10; stroke: var(--det-green); fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+    .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
+    @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px var(--det-green); } }
+</style>
 
-        .btn-secure { background: #B0BF96; color: #1a1818 !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; margin-top: 5px; cursor: pointer; }
-        .btn-secure:hover { background: #96a67c; transform: translateY(-2px); }
-        
-        .btn-outline { background: transparent; color: #cbd5e1 !important; border: 1px solid #64748b; border-radius: 6px; padding: 14px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; display: block; text-align: center; text-decoration: none; cursor: pointer;}
-        .btn-outline:hover { background: rgba(255,255,255,0.05); color: #fff !important; border-color: #B0BF96; }
-
-        #loader { display: none; text-align: center; margin-top: 30px; }
-        .spinner-border { color: #B0BF96; width: 3rem; height: 3rem; border-width: 0.3em; }
-
-        /* The Custom Checkmark Animation */
-        .checkmark { width: 56px; height: 56px; border-radius: 50%; display: block; stroke-width: 4; stroke: #fff; stroke-miterlimit: 10; margin: 10% auto; box-shadow: inset 0px 0px 0px #B0BF96; animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both; }
-        .checkmark__circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 4; stroke-miterlimit: 10; stroke: #B0BF96; fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
-        .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
-        @keyframes stroke { 100% { stroke-dashoffset: 0; } }
-        @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
-        @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #B0BF96; } }
-    </style>
-</head>
-<body>
-
-    <header class="custom-navbar">
-        <div class="nav-container">
-            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
-        </div>
-    </header>
-
-    <div class="container flex-grow-1">
-        <div class="page-heading">
-            <span class="step-indicator">Step 3 of 4</span>
-            <h2>Secure Payment Gateway</h2>
-        </div>
-
-        <div class="checkout-card">
-            <div class="invoice-box">
-                <span style="font-size: 12px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;">Selected Activation</span>
-                <h3 style="color: #fff; font-weight: 700; margin: 5px 0;"><%= tier %> Level</h3>
-                <h2 style="color: #B0BF96; font-weight: 800; margin: 0;">$<%= config.price %> USD</h2>
-            </div>
-
-            <div id="payment-ui">
-                <div class="payment-tabs">
-                    <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">EcoCash</div>
-                    <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">OneMoney</div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
-                    <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
-                    <input type="hidden" id="selectedMethod" value="ecocash">
-                    
-                    <button class="btn-secure" onclick="triggerMobilePush()">
-                        Send Prompt to Phone <i class="bi bi-phone-vibrate ms-1"></i>
-                    </button>
-                </div>
-
-                <div class="text-center mt-4 mb-4">
-                    <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
-                </div>
-
-                <a href="/checkout/standard-gateway?tier=<%= tier %>" class="btn-outline">
-                    Pay with Visa / MasterCard <i class="bi bi-credit-card ms-1"></i>
-                </a>
-            </div>
-
-            <div id="loader">
-                <div id="spinner-container">
-                    <div class="spinner-border mb-4" role="status"></div>
-                    <h4 style="color: #B0BF96; font-weight: 700;">Check your phone!</h4>
-                    <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
-                </div>
-                
-                <div id="success-container" style="display: none;">
-                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                    </svg>
-                    <h4 style="color: #B0BF96; font-weight: 700;">Payment Successful!</h4>
-                    <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
-                </div>
-            </div>
-            
-        </div>
+<div class="container flex-grow-1">
+    <div class="page-heading">
+        <span class="step-indicator">Step 3 of 4</span>
+        <h2>Secure Payment Gateway</h2>
     </div>
 
-    <script>
-        // Tab Selection Logic
-        function selectMobileMethod(method) {
-            document.getElementById('tab-ecocash').classList.remove('active');
-            document.getElementById('tab-onemoney').classList.remove('active');
-            document.getElementById(`tab-${method}`).classList.add('active');
-            
-            document.getElementById('selectedMethod').value = method;
-            document.getElementById('phoneLabel').innerText = `Enter ${method === 'ecocash' ? 'EcoCash' : 'OneMoney'} Number`;
-            
-            const input = document.getElementById('mobileNumber');
-            input.placeholder = method === 'ecocash' ? '077XXXXXXX' : '071XXXXXXX';
-        }
+    <div class="checkout-card">
+        <div class="invoice-box">
+            <span style="font-size: 12px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;">Selected Activation</span>
+            <h3 style="color: #fff; font-weight: 700; margin: 5px 0;"><%= tier %> Level</h3>
+            <h2 style="color: var(--det-green); font-weight: 800; margin: 0;">$<%= config.price %> USD</h2>
+        </div>
 
-        // Trigger USSD Push & Polling Logic
-        async function triggerMobilePush() {
-            const phone = document.getElementById('mobileNumber').value;
-            const method = document.getElementById('selectedMethod').value;
-            
-            if(!phone || phone.length < 9) {
-                return alert("Please enter a valid mobile number.");
-            }
+        <div id="payment-ui">
+            <div class="payment-tabs">
+                <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">EcoCash</div>
+                <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">OneMoney</div>
+            </div>
 
-            // Hide the UI, show the loader
-            document.getElementById('payment-ui').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
-            
-            try {
-                const response = await fetch('/api/checkout/mobile-push', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tier: '<%= tier %>', phone: phone, method: method })
-                });
-                const data = await response.json();
+            <div class="mb-4">
+                <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
+                <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
+                <input type="hidden" id="selectedMethod" value="ecocash">
                 
-                if(!data.success) {
-                    alert("Gateway Error: " + data.error);
-                    window.location.reload();
-                    return;
-                }
+                <button class="btn-secure" onclick="triggerMobilePush()">
+                    Send Prompt to Phone <i class="bi bi-phone-vibrate ms-1"></i>
+                </button>
+            </div>
 
-                // Polling Loop: Check database every 3 seconds
-                const pollInterval = setInterval(async () => {
-                    try {
-                        const statusRes = await fetch('/api/user/status');
-                        const statusData = await statusRes.json();
-                        
-                        if(statusData.isPaid) {
-                            clearInterval(pollInterval);
-                            
-                            // Swap spinner for success animation
-                            document.getElementById('spinner-container').style.display = 'none';
-                            document.getElementById('success-container').style.display = 'block';
-                            
-                            // Redirect to Dashboard after animation plays
-                            setTimeout(() => { 
-                                window.location.href = "/dashboard"; 
-                            }, 2500);
-                        }
-                    } catch(e) {
-                        console.log("Waiting for network connection...");
-                    }
-                }, 3000);
+            <div class="text-center mt-4 mb-4">
+                <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
+            </div>
 
-            } catch(error) {
-                alert("Connection failed. Please try again.");
+            <a href="/checkout/standard-gateway?tier=<%= tier %>" class="btn-outline">
+                Pay with Visa / MasterCard <i class="bi bi-credit-card ms-1"></i>
+            </a>
+        </div>
+
+        <div id="loader">
+            <div id="spinner-container">
+                <div class="spinner-border mb-4" role="status"></div>
+                <h4 style="color: var(--det-green); font-weight: 700;">Check your phone!</h4>
+                <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
+            </div>
+            
+            <div id="success-container" style="display: none;">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <h4 style="color: var(--det-green); font-weight: 700;">Payment Successful!</h4>
+                <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('mobile-toggle').addEventListener('click', function() {
+        document.getElementById('nav-menu').classList.toggle('active');
+    });
+
+    function selectMobileMethod(method) {
+        document.getElementById('tab-ecocash').classList.remove('active');
+        document.getElementById('tab-onemoney').classList.remove('active');
+        document.getElementById(`tab-${method}`).classList.add('active');
+        
+        document.getElementById('selectedMethod').value = method;
+        document.getElementById('phoneLabel').innerText = `Enter ${method === 'ecocash' ? 'EcoCash' : 'OneMoney'} Number`;
+        
+        const input = document.getElementById('mobileNumber');
+        input.placeholder = method === 'ecocash' ? '077XXXXXXX' : '071XXXXXXX';
+    }
+
+    async function triggerMobilePush() {
+        const phone = document.getElementById('mobileNumber').value;
+        const method = document.getElementById('selectedMethod').value;
+        
+        if(!phone || phone.length < 9) return alert("Please enter a valid mobile number.");
+
+        document.getElementById('payment-ui').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+        
+        try {
+            const response = await fetch('/api/checkout/mobile-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tier: '<%= tier %>', phone: phone, method: method })
+            });
+            const data = await response.json();
+            
+            if(!data.success) {
+                alert("Gateway Error: " + data.error);
                 window.location.reload();
+                return;
             }
+
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch('/api/user/status');
+                    const statusData = await statusRes.json();
+                    
+                    if(statusData.isPaid) {
+                        clearInterval(pollInterval);
+                        document.getElementById('spinner-container').style.display = 'none';
+                        document.getElementById('success-container').style.display = 'block';
+                        setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
+                    }
+                } catch(e) { console.log("Waiting..."); }
+            }, 3000);
+
+        } catch(error) {
+            alert("Connection failed. Please try again.");
+            window.location.reload();
         }
-    </script>
+    }
+</script>
 </body>
 </html>

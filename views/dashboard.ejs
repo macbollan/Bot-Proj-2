@@ -1,31 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Client Dashboard | D.E.T System</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        :root {
-            --det-green: #B0BF96;
-            --det-green-hover: #96a67c;
-            --det-dark: #1a1818;
-            --det-card: #322C2C;
-            --det-border: rgba(176, 191, 150, 0.15);
-            --sidebar-width: 260px;
+<%- include('partials/header', { title: 'Client Dashboard | D.E.T System', page: 'dashboard', hideNav: true }) %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+        /* Dashboard uses its own fixed sidebar for navigation, so cancel out
+           the top-navbar spacing that partials/header applies by default. */
+        body {
+            padding-top: 0 !important;
+            display: block !important;
         }
 
-        body { 
-            background-color: var(--det-dark); 
-            color: #f8fafc; 
-            font-family: 'Poppins', sans-serif; 
-            overflow-x: hidden; 
-            margin: 0;
+        :root {
+            --det-border: rgba(176, 191, 150, 0.15);
+            --sidebar-width: 260px;
         }
 
         /* =========================================
@@ -68,7 +54,7 @@
             display: flex;
             align-items: center;
             padding: 12px 15px;
-            color: #aaa;
+            color: #cbd5e1;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 500;
@@ -87,7 +73,7 @@
             padding: 20px;
             border-top: 1px solid var(--det-border);
             font-size: 12px;
-            color: #666;
+            color: #94a3b8;
         }
 
         /* =========================================
@@ -164,9 +150,83 @@
             .top-bar { padding: 15px 20px; }
             .dashboard-wrapper { padding: 20px 15px; }
         }
-    </style>
-</head>
-<body>
+
+        /* =========================================
+           WELCOME BANNER
+        ========================================= */
+        .welcome-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .welcome-banner h3 { font-weight: 700; margin: 0; }
+        .welcome-banner p { color: #cbd5e1; margin: 4px 0 0; font-size: 14px; }
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);
+            color: var(--det-green); padding: 8px 16px; border-radius: 30px;
+            font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* =========================================
+           TOP BAR PROFILE MENU
+        ========================================= */
+        .profile-trigger { cursor: pointer; border: none; background: none; padding: 0; }
+        .profile-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            background-color: var(--det-card) !important; border: 1px solid var(--det-border);
+            transition: border-color 0.2s;
+        }
+        .profile-trigger:hover .profile-avatar { border-color: var(--det-green); }
+        .profile-dropdown-menu {
+            background: var(--det-card); border: 1px solid var(--det-border);
+            border-radius: 10px; padding: 8px; min-width: 210px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .profile-dropdown-menu .dropdown-item {
+            color: #f8fafc; border-radius: 6px; padding: 10px 12px; font-size: 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .profile-dropdown-menu .dropdown-item i { color: var(--det-green); width: 16px; }
+        .profile-dropdown-menu .dropdown-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .profile-dropdown-menu .dropdown-item.text-danger i { color: #ef4444; }
+        .profile-dropdown-menu .dropdown-divider { border-color: var(--det-border); margin: 6px 0; }
+
+        /* =========================================
+           INTEGRATION ID — HERO CARD
+        ========================================= */
+        .integration-hero {
+            background: linear-gradient(135deg, var(--det-card) 0%, #241f1f 100%);
+            border: 1px solid var(--det-border);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            padding: 28px;
+        }
+
+        /* =========================================
+           MODALS (Dark Theme)
+        ========================================= */
+        .modal-content {
+            background: var(--det-card);
+            border: 1px solid var(--det-border);
+            border-radius: 14px;
+            color: #f8fafc;
+        }
+        .modal-header { border-bottom: 1px solid var(--det-border); }
+        .modal-footer { border-top: 1px solid var(--det-border); }
+        .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+        .modal .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .modal .form-control {
+            background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important; padding: 10px 14px; border-radius: 6px; font-size: 14px;
+        }
+        .modal .form-control:focus { background: rgba(0,0,0,0.3) !important; border-color: var(--det-green) !important; box-shadow: 0 0 0 0.2rem rgba(176, 191, 150, 0.15) !important; }
+        .modal .form-text { color: #94a3b8; font-size: 12.5px; }
+</style>
 
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -185,8 +245,11 @@
             </div>
             <div class="nav-item mt-4">
                 <small class="text-uppercase fw-bold text-muted ms-3 mb-2 d-block" style="font-size: 11px;">Settings</small>
-                <a href="#" class="nav-link">
+                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                     <i class="bi bi-person-badge"></i> My Profile
+                </a>
+                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="bi bi-shield-lock"></i> Change Password
                 </a>
                 <a href="/logout" class="nav-link text-danger mt-2">
                     <i class="bi bi-power"></i> Secure Logout
@@ -214,8 +277,18 @@
                     <small class="text-muted d-block" style="font-size: 11px; line-height: 1;">Logged in as</small>
                     <span class="fw-bold" style="font-size: 14px;"><%= currentUser.username.toUpperCase() %></span>
                 </div>
-                <div class="bg-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; background-color: #322C2C !important; border: 1px solid var(--det-border);">
-                    <i class="bi bi-person-fill text-accent"></i>
+                <div class="dropdown">
+                    <button class="profile-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="list-style: none;">
+                        <div class="profile-avatar rounded-circle">
+                            <i class="bi bi-person-fill text-accent"></i>
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-person-badge"></i> Edit Profile</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-shield-lock"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-power"></i> Secure Logout</a></li>
+                    </ul>
                 </div>
             </div>
         </header>
@@ -233,11 +306,68 @@
                 </div> 
             <% } %>
 
+            <div class="welcome-banner">
+                <div>
+                    <h3>Welcome back, <%= currentUser.username %></h3>
+                    <p>Here's the current state of your D.E.T trading environment.</p>
+                </div>
+                <div class="status-pill">
+                    <span class="spinner-grow spinner-grow-sm" style="width: 8px; height: 8px; color: var(--det-green);"></span>
+                    Node Server Online
+                </div>
+            </div>
+
+            <div class="row g-4 mb-1">
+                <div class="col-12">
+                    <div class="integration-hero">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
+                            <h5 class="fw-bold m-0"><i class="bi bi-key text-accent me-2"></i>Integration ID</h5>
+                            <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
+                                <span class="badge" style="background: rgba(176, 191, 150, 0.15); color: var(--det-green); border: 1px solid rgba(176, 191, 150, 0.3); padding: 6px 14px; border-radius: 20px;">Key Active</span>
+                            <% } %>
+                        </div>
+
+                        <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
+                            <div class="row align-items-center g-4">
+                                <div class="col-lg-7">
+                                    <p class="text-secondary small mb-3">Click to reveal your unique 9-digit ID. Paste this into the CornerStore EA.</p>
+                                    <div class="key-box p-3 text-center fs-5 fw-bold key-hidden" id="licenseKeyBox" onclick="copyKey()">
+                                        <%= currentUser.licenseKey %>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <small class="text-secondary text-uppercase fw-bold d-block mb-1">MT5 Lock</small>
+                                            <% if(currentUser.accountLocked) { %>
+                                                <span class="badge bg-danger">ZERO-HEDGE</span>
+                                            <% } else { %>
+                                                <span class="badge" style="background: rgba(176,191,150,0.2); color: var(--det-green);">Awaiting Ping</span>
+                                            <% } %>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-secondary text-uppercase fw-bold d-block mb-1">Installation</small>
+                                            <a href="/det-client.zip" class="btn btn-det btn-sm w-100">
+                                                <i class="bi bi-download me-1"></i> Client EA
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } else { %>
+                            <div class="alert bg-warning bg-opacity-10 border-warning text-warning mb-0" style="border-radius: 8px; font-size: 14px;">
+                                <i class="bi bi-exclamation-triangle me-2"></i>No active key. Please subscribe to generate one.
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4">
                 
                 <div class="col-xl-4 col-lg-5">
                     
-                    <div class="glass-card mb-4">
+                    <div class="glass-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h6 class="text-secondary fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Current D.E.T Plan</h6>
                             <% if(currentUser.isSuspended) { %> 
@@ -275,41 +405,6 @@
                         <a href="/pricing" class="btn btn-outline-secondary w-100 btn-sm py-2" style="border-color: var(--det-border);">
                             Manage Plan / Upgrade
                         </a>
-                    </div>
-
-                    <div class="glass-card">
-                        <h5 class="fw-bold mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
-                            <i class="bi bi-key text-accent me-2"></i>Integration ID
-                        </h5>
-                        
-                        <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
-                            <p class="text-secondary small mb-3">Click to reveal your unique 9-digit ID. Paste this into the CornerStore EA.</p>
-                            
-                            <div class="key-box p-3 text-center fs-5 fw-bold mb-4 key-hidden" id="licenseKeyBox" onclick="copyKey()">
-                                <%= currentUser.licenseKey %>
-                            </div>
-
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <small class="text-secondary text-uppercase fw-bold d-block mb-1">MT5 Lock</small>
-                                    <% if(currentUser.accountLocked) { %>
-                                        <span class="badge bg-danger">ZERO-HEDGE</span>
-                                    <% } else { %>
-                                        <span class="badge" style="background: rgba(176,191,150,0.2); color: var(--det-green);">Awaiting Ping</span>
-                                    <% } %>
-                                </div>
-                                <div class="col-6 text-end">
-                                    <small class="text-secondary text-uppercase fw-bold d-block mb-1">Installation</small>
-                                    <a href="/det-client.zip" class="btn btn-det btn-sm w-100">
-                                        <i class="bi bi-download me-1"></i> Client EA
-                                    </a>
-                                </div>
-                            </div>
-                        <% } else { %>
-                            <div class="alert bg-warning bg-opacity-10 border-warning text-warning" style="border-radius: 8px; font-size: 14px;">
-                                <i class="bi bi-exclamation-triangle me-2"></i>No active key. Please subscribe to generate one.
-                            </div>
-                        <% } %>
                     </div>
                 </div>
 
@@ -365,6 +460,79 @@
             </div>
         </div>
     </main>
+
+    <!-- ========================================= -->
+    <!-- EDIT PROFILE MODAL -->
+    <!-- ========================================= -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="/profile/update" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-person-badge text-accent me-2"></i>Edit Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" value="<%= currentUser.username %>" disabled>
+                            <div class="form-text">Your username cannot be changed.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" placeholder="you@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">WhatsApp Number</label>
+                            <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>" placeholder="+263...">
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label">Country</label>
+                            <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>" placeholder="Your country">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" style="border-color: var(--det-border); color: #f8fafc;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-det">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- CHANGE PASSWORD MODAL -->
+    <!-- ========================================= -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="/profile/change-password" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock text-accent me-2"></i>Change Password</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" name="currentPassword" placeholder="Enter current password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" name="newPassword" placeholder="Enter new password" minlength="6" required>
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" name="confirmPassword" placeholder="Re-enter new password" minlength="6" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" style="border-color: var(--det-border); color: #f8fafc;" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-det">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>

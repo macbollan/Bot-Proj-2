@@ -1,0 +1,582 @@
+<%- include('partials/header') %>
+
+<style>
+    .pricing-table {
+        width: 100%;
+        margin: 40px 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .pricing-table thead {
+        background: #111;
+    }
+    .pricing-table thead th {
+        padding: 22px 20px;
+        text-align: left;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--det-green) !important;
+        border-bottom: 2px solid var(--det-border);
+    }
+    .pricing-table tbody tr {
+        transition: all 0.3s ease;
+        background-color: var(--det-card);
+    }
+    .pricing-table tbody tr:hover {
+        background-color: rgba(176, 191, 150, 0.05);
+    }
+    .pricing-table tbody tr:not(:last-child) td {
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .pricing-table tbody td {
+        padding: 20px;
+        font-size: 15px;
+        vertical-align: middle;
+    }
+    .pricing-table tbody td strong {
+        color: #fff !important;
+        font-size: 16px;
+    }
+    
+    .subscribe-btn {
+        display: inline-block;
+        background: transparent;
+        border: 1px solid var(--det-green);
+        color: var(--det-green) !important;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        margin-top: 12px;
+    }
+    .subscribe-btn:hover {
+        background: var(--det-green);
+        color: var(--det-dark) !important;
+    }
+
+    .cta-section {
+        padding: 60px 0; 
+        background: rgba(176, 191, 150, 0.05); 
+        border-top: 1px solid var(--det-border);
+        border-bottom: 1px solid var(--det-border);
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    /* Student Status Badges */
+    .student-count {
+        display: inline-block;
+        background: rgba(176, 191, 150, 0.1);
+        border: 1px solid var(--det-border);
+        border-radius: 20px;
+        padding: 4px 14px;
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-top: 6px;
+    }
+    .student-count strong {
+        color: var(--det-green);
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-badge.ready { background: rgba(176, 191, 150, 0.2); color: var(--det-green); }
+    .status-badge.waiting { background: rgba(240, 192, 64, 0.15); color: #f0c040; }
+    .status-badge.full { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+    .status-badge.scheduled { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+
+    .next-slot {
+        font-size: 12px;
+        color: #cbd5e1;
+        margin-top: 4px;
+    }
+    .next-slot strong {
+        color: #fff;
+    }
+
+    /* One-on-One toggle */
+    .one-on-one-badge {
+        background: rgba(240, 192, 64, 0.1);
+        border: 1px solid rgba(240, 192, 64, 0.2);
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 11px;
+        color: #f0c040;
+        display: inline-block;
+        margin-top: 4px;
+    }
+</style>
+
+<div class="container flex-grow-1">
+    <div class="row mt-5">
+        <div class="col-lg-12 text-center mb-4">
+            <h2 class="text-accent fw-bold display-5">D.E.T Training Packages</h2>
+            <p class="text-muted">Master the analytics system from foundational to specialized operations.</p>
+        </div>
+        
+        <div class="col-lg-12">
+            <!-- System Status Message -->
+            <div class="alert alert-info text-center mb-4" style="background: rgba(52, 152, 219, 0.08); border: 1px solid rgba(52, 152, 219, 0.15); color: #cbd5e1; border-radius: 8px;">
+                <i class="bi bi-info-circle me-2 text-accent"></i>
+                <strong>Class Policy:</strong> If we don't get enough students within 7 banking days, we will resume class with the paid-up students.
+                <span class="d-block mt-1" style="font-size: 13px; color: var(--det-green);">
+                    <i class="bi bi-clock me-1"></i> Classes run Monday–Friday, 8:00 AM – 5:00 PM
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Service Level</th>
+                            <th>Duration</th>
+                            <th>Details</th>
+                            <th>Students</th>
+                            <th>Next Class</th>
+                            <th>Enrollment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong class="text-uppercase">ECD Level</strong>
+                                <div class="one-on-one-badge"><i class="bi bi-person me-1"></i> 1-on-1: $600</div>
+                            </td>
+                            <td>5 days</td>
+                            <td>3hrs/day with minimum 5 per class</td>
+                            <td>
+                                <div class="student-count">
+                                    <i class="bi bi-people me-1"></i> 
+                                    <strong id="ecd-count">0</strong> / 5 enrolled
+                                </div>
+                                <span class="status-badge waiting" id="ecd-status">Waiting</span>
+                            </td>
+                            <td>
+                                <div class="next-slot" id="ecd-next-slot">
+                                    <strong>Next:</strong> <span id="ecd-date">Pending</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="text-accent fs-5">$300</strong><br>
+                                <a href="/checkout?tier=ECD_Training" class="subscribe-btn" onclick="handleTrainingPayment('ECD')">Subscribe to ECD</a>
+                                <small style="display:block; font-size:11px; color:#cbd5e1; margin-top:8px;">By clicking, I agree to the terms and conditions</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong class="text-uppercase">Beginner Level</strong>
+                                <div class="one-on-one-badge"><i class="bi bi-person me-1"></i> 1-on-1: $1,000</div>
+                            </td>
+                            <td>5 days</td>
+                            <td>2hrs/day with minimum 5 per class</td>
+                            <td>
+                                <div class="student-count">
+                                    <i class="bi bi-people me-1"></i> 
+                                    <strong id="beginner-count">0</strong> / 5 enrolled
+                                </div>
+                                <span class="status-badge waiting" id="beginner-status">Waiting</span>
+                            </td>
+                            <td>
+                                <div class="next-slot" id="beginner-next-slot">
+                                    <strong>Next:</strong> <span id="beginner-date">Pending</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="text-accent fs-5">$500</strong><br>
+                                <a href="/checkout?tier=Beginner_Training" class="subscribe-btn" onclick="handleTrainingPayment('Beginner')">Subscribe to Beginner</a>
+                                <small style="display:block; font-size:11px; color:#cbd5e1; margin-top:8px;">By clicking, I agree to the terms and conditions</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong class="text-uppercase">Advanced Level</strong>
+                                <div class="one-on-one-badge"><i class="bi bi-person me-1"></i> 1-on-1: $600</div>
+                            </td>
+                            <td>5 days</td>
+                            <td>2hrs/day with minimum 5 per class</td>
+                            <td>
+                                <div class="student-count">
+                                    <i class="bi bi-people me-1"></i> 
+                                    <strong id="advanced-count">0</strong> / 5 enrolled
+                                </div>
+                                <span class="status-badge waiting" id="advanced-status">Waiting</span>
+                            </td>
+                            <td>
+                                <div class="next-slot" id="advanced-next-slot">
+                                    <strong>Next:</strong> <span id="advanced-date">Pending</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="text-accent fs-5">$300</strong><br>
+                                <a href="/checkout?tier=Advanced_Training" class="subscribe-btn" onclick="handleTrainingPayment('Advanced')">Subscribe to Advanced</a>
+                                <small style="display:block; font-size:11px; color:#cbd5e1; margin-top:8px;">By clicking, I agree to the terms and conditions</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong class="text-uppercase">Specialized Class</strong>
+                                <div class="one-on-one-badge"><i class="bi bi-person me-1"></i> 1-on-1: $2,000</div>
+                            </td>
+                            <td>14 days</td>
+                            <td>1hr/day with minimum 5 per class</td>
+                            <td>
+                                <div class="student-count">
+                                    <i class="bi bi-people me-1"></i> 
+                                    <strong id="specialized-count">0</strong> / 5 enrolled
+                                </div>
+                                <span class="status-badge waiting" id="specialized-status">Waiting</span>
+                            </td>
+                            <td>
+                                <div class="next-slot" id="specialized-next-slot">
+                                    <strong>Next:</strong> <span id="specialized-date">Pending</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="text-accent fs-5">$1,000</strong><br>
+                                <a href="/checkout?tier=Specialized_Training" class="subscribe-btn" onclick="handleTrainingPayment('Specialized')">Subscribe to Specialized</a>
+                                <small style="display:block; font-size:11px; color:#cbd5e1; margin-top:8px;">By clicking, I agree to the terms and conditions</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- One-on-One Info Box -->
+            <div class="alert alert-warning text-center mt-3" style="background: rgba(240, 192, 64, 0.05); border: 1px solid rgba(240, 192, 64, 0.15); border-radius: 8px; color: #cbd5e1;">
+                <i class="bi bi-person-circle me-2" style="color: #f0c040;"></i>
+                <strong>One-on-One Training:</strong> Exactly double the quoted price. 
+                <span style="color: var(--det-green);">Check your next available slot below before payment.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="cta-section">
+    <div class="container">
+        <h3 class="fw-bold mb-3">Ready to Deploy the System?</h3>
+        <p class="text-muted mb-4 max-w-700 mx-auto">Skip the training and plug directly into the automated data feed. View our custodial platform pricing tiers.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="/pricing" class="btn btn-outline-light px-4 py-2 fw-bold">View Activation Tiers</a>
+            <a href="/register" class="nav-btn px-4 py-2">Get Started</a>
+        </div>
+    </div>
+</section>
+
+<%- include('partials/footer') %>
+
+<script>
+// ============================================================
+// SMART TRAINING SCHEDULING ENGINE (Client-Side Simulation)
+// ============================================================
+
+// Training class configurations
+const trainingClasses = {
+    ECD: { 
+        name: 'ECD Level', 
+        minStudents: 5, 
+        durationDays: 5, 
+        hoursPerDay: 3,
+        price: 300,
+        oneOnOnePrice: 600
+    },
+    Beginner: { 
+        name: 'Beginner Level', 
+        minStudents: 5, 
+        durationDays: 5, 
+        hoursPerDay: 2,
+        price: 500,
+        oneOnOnePrice: 1000
+    },
+    Advanced: { 
+        name: 'Advanced Level', 
+        minStudents: 5, 
+        durationDays: 5, 
+        hoursPerDay: 2,
+        price: 300,
+        oneOnOnePrice: 600
+    },
+    Specialized: { 
+        name: 'Specialized Class', 
+        minStudents: 5, 
+        durationDays: 14, 
+        hoursPerDay: 1,
+        price: 1000,
+        oneOnOnePrice: 2000
+    }
+};
+
+// Track paid students per class (simulated - would come from DB in production)
+const paidStudents = {
+    ECD: [],
+    Beginner: [],
+    Advanced: [],
+    Specialized: []
+};
+
+// Track class schedules (Monday-Friday, 8-5)
+const classSchedules = {};
+
+// ============================================================
+// SCHEDULING ENGINE
+// ============================================================
+
+function generateSchedule(classKey, studentCount) {
+    const config = trainingClasses[classKey];
+    if (!config) return null;
+
+    // Start from next Monday
+    const now = new Date();
+    const daysUntilMonday = (1 - now.getDay() + 7) % 7 || 7; // Monday
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() + daysUntilMonday);
+    startDate.setHours(8, 0, 0, 0);
+
+    // Calculate end date (durationDays, weekdays only)
+    let endDate = new Date(startDate);
+    let daysAdded = 0;
+    while (daysAdded < config.durationDays) {
+        if (endDate.getDay() >= 1 && endDate.getDay() <= 5) { // Mon-Fri
+            daysAdded++;
+        }
+        if (daysAdded < config.durationDays) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
+    }
+    endDate.setHours(17, 0, 0, 0);
+
+    // Generate daily schedule
+    const sessions = [];
+    let currentDate = new Date(startDate);
+    let sessionCount = 0;
+    while (sessionCount < config.durationDays) {
+        if (currentDate.getDay() >= 1 && currentDate.getDay() <= 5) {
+            const start = new Date(currentDate);
+            start.setHours(8, 0, 0, 0);
+            const end = new Date(currentDate);
+            end.setHours(8 + config.hoursPerDay, 0, 0, 0);
+            
+            // Check for conflicts with other classes
+            const conflict = checkConflict(classKey, start, end);
+            
+            sessions.push({
+                date: new Date(currentDate),
+                start: start,
+                end: end,
+                conflict: conflict
+            });
+            sessionCount++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return {
+        startDate: startDate,
+        endDate: endDate,
+        sessions: sessions,
+        studentCount: studentCount,
+        isReady: studentCount >= config.minStudents,
+        isFull: studentCount >= 10 // max capacity
+    };
+}
+
+function checkConflict(classKey, start, end) {
+    // Check against existing schedules for other classes
+    for (const [key, schedule] of Object.entries(classSchedules)) {
+        if (key === classKey) continue;
+        if (!schedule || !schedule.sessions) continue;
+        
+        for (const session of schedule.sessions) {
+            const existingStart = new Date(session.start);
+            const existingEnd = new Date(session.end);
+            
+            // Check if time overlaps (same day)
+            if (start.toDateString() === existingStart.toDateString()) {
+                if ((start < existingEnd && end > existingStart)) {
+                    return true; // Conflict!
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// ============================================================
+// NOTIFICATION SYSTEM
+// ============================================================
+
+function sendHighFlagAlert(classKey, studentName) {
+    console.log(`🔴 HIGH FLAG ALERT: ${studentName} paid for ${classKey} training!`);
+    console.log(`📧 Email notification sent to admin@det.com`);
+    console.log(`📱 WhatsApp notification sent to +263...`);
+    
+    // In production, this would send real notifications
+    const alertData = {
+        type: 'HIGH_FLAG',
+        class: classKey,
+        student: studentName,
+        timestamp: new Date().toISOString(),
+        message: `⚠️ ${studentName} has just enrolled in ${classKey} Training. Current enrollment: ${paidStudents[classKey].length}/5`
+    };
+    
+    // Store alert for admin panel
+    const alerts = JSON.parse(localStorage.getItem('det_alerts') || '[]');
+    alerts.push(alertData);
+    localStorage.setItem('det_alerts', JSON.stringify(alerts));
+    
+    return alertData;
+}
+
+function sendLessonNotifications(classKey, schedule) {
+    if (!schedule || !schedule.sessions) return;
+    
+    schedule.sessions.forEach((session, index) => {
+        const date = new Date(session.start);
+        const dateStr = date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+        const timeStr = date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        // Day before notification
+        const dayBefore = new Date(date);
+        dayBefore.setDate(dayBefore.getDate() - 1);
+        console.log(`📅 [SCHEDULED] ${classKey} - Session ${index+1}: ${dateStr} at ${timeStr}`);
+        
+        // In production, these would be actual notifications:
+        // - 1 day before: "Reminder: Your ${classKey} training starts tomorrow at 8:00 AM"
+        // - 1 hour before: "Your ${classKey} training starts in 1 hour"
+        // - 15 minutes before: "Your ${classKey} training starts in 15 minutes"
+        // - Start: "Your ${classKey} training is starting now!"
+        // - End: "Your ${classKey} training session has ended"
+    });
+}
+
+// ============================================================
+// UI UPDATE FUNCTIONS
+// ============================================================
+
+function updateUI() {
+    const classes = ['ECD', 'Beginner', 'Advanced', 'Specialized'];
+    
+    classes.forEach(key => {
+        const count = paidStudents[key].length;
+        const config = trainingClasses[key];
+        const schedule = generateSchedule(key, count);
+        classSchedules[key] = schedule;
+        
+        // Update count
+        document.getElementById(`${key.toLowerCase()}-count`).textContent = count;
+        
+        // Update status
+        const statusEl = document.getElementById(`${key.toLowerCase()}-status`);
+        if (count >= 10) {
+            statusEl.textContent = 'Full';
+            statusEl.className = 'status-badge full';
+        } else if (count >= config.minStudents) {
+            statusEl.textContent = 'Scheduled';
+            statusEl.className = 'status-badge scheduled';
+        } else if (count > 0) {
+            statusEl.textContent = `Waiting (${count}/${config.minStudents})`;
+            statusEl.className = 'status-badge waiting';
+        } else {
+            statusEl.textContent = 'Waiting';
+            statusEl.className = 'status-badge waiting';
+        }
+        
+        // Update next date
+        const dateEl = document.getElementById(`${key.toLowerCase()}-date`);
+        if (schedule) {
+            const startDate = new Date(schedule.startDate);
+            const dateStr = startDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            dateEl.textContent = dateStr;
+        } else {
+            dateEl.textContent = 'Pending';
+        }
+        
+        // Send notifications if class is now ready
+        if (schedule && schedule.isReady && !schedule._notified) {
+            schedule._notified = true;
+            sendLessonNotifications(key, schedule);
+            // Send class ready alert
+            console.log(`🎓 CLASS READY: ${key} has reached ${count} students!`);
+        }
+    });
+}
+
+function handleTrainingPayment(classKey) {
+    // Simulate student enrollment
+    const studentName = prompt('Enter your name to enroll:', 'Student');
+    if (!studentName) return;
+    
+    // Check if one-on-one or group
+    const isOneOnOne = confirm(`Click OK for One-on-One ($${trainingClasses[classKey].oneOnOnePrice}) or Cancel for Group ($${trainingClasses[classKey].price})`);
+    const price = isOneOnOne ? trainingClasses[classKey].oneOnOnePrice : trainingClasses[classKey].price;
+    
+    // Add student
+    paidStudents[classKey].push({ name: studentName, oneOnOne: isOneOnOne, price: price });
+    
+    // Send high flag alert
+    sendHighFlagAlert(classKey, studentName);
+    
+    // Update UI
+    updateUI();
+    
+    alert(`✅ ${studentName} enrolled in ${classKey} training!\n💰 Amount: $${price}${isOneOnOne ? ' (One-on-One)' : ' (Group)'}\n📧 Notifications will be sent to admin and tutor.`);
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+// Simulate some existing students for demo
+// In production, this would come from the database
+window.addEventListener('DOMContentLoaded', function() {
+    // Add some demo students
+    paidStudents.ECD = [
+        { name: 'John D.', oneOnOne: false, price: 300 },
+        { name: 'Sarah M.', oneOnOne: false, price: 300 }
+    ];
+    paidStudents.Beginner = [
+        { name: 'Michael T.', oneOnOne: false, price: 500 }
+    ];
+    
+    updateUI();
+    
+    // Auto-refresh every 30 seconds (simulate real-time updates)
+    setInterval(updateUI, 30000);
+});
+
+// Expose for console testing
+window.trainingSystem = {
+    paidStudents,
+    trainingClasses,
+    classSchedules,
+    updateUI,
+    handleTrainingPayment,
+    sendHighFlagAlert
+};
+
+console.log('🎓 D.E.T Training System initialized!');
+console.log('📋 Test with: window.trainingSystem.handleTrainingPayment("ECD")');
+console.log('📊 Current enrollment:', paidStudents);
+</script>

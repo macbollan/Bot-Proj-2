@@ -76,6 +76,16 @@ function isAdmin(req, res, next) {
     res.redirect("/dashboard");
 }
 
+// Add this middleware after passport initialization
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    // --- ADD THIS LINE ---
+    res.locals.currentPath = req.path;
+    next();
+});
+
 // ==========================================
 // 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
@@ -177,6 +187,18 @@ app.get("/pricing", (req, res) => {
     res.render("pricing", { tiers: pricingTiers });
 });
 
+
+// --- NEW NAVIGATION ROUTES ---
+
+// 1. Render the new Training page
+app.get("/training", (req, res) => {
+    res.render("training");
+});
+
+// 2. Placeholder for Affiliate Page
+app.get("/affiliate", (req, res) => {
+    res.send("<h2 style='color: #B0BF96; text-align: center; margin-top: 50px; font-family: sans-serif;'>Affiliate Network Architecture Pending Deployment</h2>");
+});
 // ==========================================
 // PAYNOW INTEGRATION & THE INTELLIGENT CHECKOUT
 // ==========================================
@@ -359,13 +381,198 @@ app.get("/dashboard", isLoggedIn, (req, res) => {
     res.render("dashboard", { currentUser: req.user });
 });
 
+// ==========================================
+// PROFILE MANAGEMENT ROUTES
+// ==========================================
+
+// Edit Profile (email / whatsapp / country)
+app.post("/profile/update", isLoggedIn, async (req, res) => {
+    try {
+        const { email, whatsapp, country } = req.body;
+
+        if (!email || !email.trim()) {
+            req.flash("error", "Email address is required.");
+            return res.redirect("/dashboard");
+        }
+
+        const user = await User.findById(req.user._id);
+        user.email = email.trim();
+        user.whatsapp = whatsapp ? whatsapp.trim() : "";
+        user.country = country ? country.trim() : "";
+        await user.save();
+
+        req.flash("success", "Profile updated successfully.");
+        res.redirect("/dashboard");
+    } catch (err) {
+        req.flash("error", err.message || "Could not update profile.");
+        res.redirect("/dashboard");
+    }
+});
+
+// Change Password
+app.post("/profile/change-password", isLoggedIn, async (req, res) => {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        req.flash("error", "Please fill in all password fields.");
+        return res.redirect("/dashboard");
+    }
+
+    if (newPassword.length < 6) {
+        req.flash("error", "New password must be at least 6 characters long.");
+        return res.redirect("/dashboard");
+    }
+
+    if (newPassword !== confirmPassword) {
+        req.flash("error", "New password and confirmation do not match.");
+        return res.redirect("/dashboard");
+    }
+
+    // req.user.changePassword is provided by passport-local-mongoose,
+    // it verifies currentPassword internally before applying newPassword.
+    req.user.changePassword(currentPassword, newPassword, (err) => {
+        if (err) {
+            req.flash("error", err.message.includes("Incorrect") ? "Current password is incorrect." : "Could not change password.");
+            return res.redirect("/dashboard");
+        }
+        req.flash("success", "Password changed successfully.");
+        res.redirect("/dashboard");
+    });
+});
+
 
 // ==========================================
 // 3. ADMIN PANEL ROUTES
 // ==========================================
 app.get("/admin", isAdmin, async (req, res) => {
-    const allUsers = await User.find({ username: { $ne: "admin" } });
-    res.render("admin", { users: allUsers });
+    const allUsers = await User.find({ username: { $ne: "admin" } }).sort({ _id: -1 });
+    const now = new Date();
+
+    // ------------------------------------------------------------------
+    // CORE ACCOUNT COUNTS + REVENUE + REGION TALLY
+    // (single pass over allUsers — all figures below are 100% derived
+    //  from real documents in Mongo, nothing here is hardcoded)
+    // ------------------------------------------------------------------
+    let activeCount = 0, suspendedCount = 0, lockedCount = 0, expiredCount = 0, unlicensedCount = 0;
+    let totalRevenue = 0;
+    const revenueByTierMap = {};
+    const regionMap = {};
+
+    allUsers.forEach(client => {
+        const hasKey = !!client.licenseKey;
+        const isExpired = client.licenseExpiry ? now > new Date(client.licenseExpiry) : false;
+
+        if (client.accountLocked) {
+            lockedCount++;
+        } else if (client.isSuspended) {
+            suspendedCount++;
+        } else if (hasKey && isExpired) {
+            expiredCount++;
+        } else if (hasKey && !isExpired) {
+            activeCount++;
+        } else {
+            unlicensedCount++;
+        }
+
+        const revenue = Number(client.prepaymentAmount) || 0;
+        totalRevenue += revenue;
+        if (hasKey) {
+            const tierKey = client.currentTier || "Unknown";
+            revenueByTierMap[tierKey] = (revenueByTierMap[tierKey] || 0) + revenue;
+        }
+
+        const region = (client.country && client.country.trim()) ? client.country.trim() : "Unknown";
+        regionMap[region] = (regionMap[region] || 0) + 1;
+    });
+
+    // ------------------------------------------------------------------
+    // REGISTRATION TREND — last 30 days, bucketed from each document's
+    // Mongo ObjectId (which encodes its creation timestamp), so this
+    // works even without an explicit createdAt field on the schema.
+    // ------------------------------------------------------------------
+    const dayBuckets = {};
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        dayBuckets[d.toISOString().slice(0, 10)] = 0;
+    }
+    allUsers.forEach(client => {
+        try {
+            const key = client._id.getTimestamp().toISOString().slice(0, 10);
+            if (key in dayBuckets) dayBuckets[key]++;
+        } catch (e) { /* malformed id, skip */ }
+    });
+    const registrationTrend = Object.keys(dayBuckets).map(date => ({ date, count: dayBuckets[date] }));
+
+    // ------------------------------------------------------------------
+    // REGION BREAKDOWN — top 6 countries, everything else rolls into "Other"
+    // ------------------------------------------------------------------
+    const regionEntries = Object.entries(regionMap).sort((a, b) => b[1] - a[1]);
+    const accountsByRegion = regionEntries.slice(0, 6).map(([region, count]) => ({ region, count }));
+    const otherRegionsCount = regionEntries.slice(6).reduce((sum, [, c]) => sum + c, 0);
+    if (otherRegionsCount > 0) accountsByRegion.push({ region: "Other", count: otherRegionsCount });
+
+    // ------------------------------------------------------------------
+    // REVENUE BY TIER
+    // ------------------------------------------------------------------
+    const revenueByTier = Object.entries(revenueByTierMap)
+        .sort((a, b) => b[1] - a[1])
+        .map(([tier, revenue]) => ({ tier, revenue }));
+
+    // ------------------------------------------------------------------
+    // TOP EARNERS — highest paying licensed accounts
+    // ------------------------------------------------------------------
+    const topEarners = allUsers
+        .filter(c => c.licenseKey)
+        .sort((a, b) => (Number(b.prepaymentAmount) || 0) - (Number(a.prepaymentAmount) || 0))
+        .slice(0, 8)
+        .map(c => ({
+            username: c.username,
+            email: c.email,
+            country: (c.country && c.country.trim()) || "Unknown",
+            tier: c.currentTier || "None",
+            revenue: Number(c.prepaymentAmount) || 0
+        }));
+
+    // ------------------------------------------------------------------
+    // NEGATIVE ACCOUNT LOGOUTS — accounts force-closed by a Zero-Hedge lock
+    // ------------------------------------------------------------------
+    const negativeLogouts = allUsers
+        .filter(c => c.accountLocked)
+        .map(c => ({
+            username: c.username,
+            email: c.email,
+            tier: c.currentTier || "None",
+            startingBalance: Number(c.startingBalance) || 0,
+            targetBalance: Number(c.targetBalance) || 0
+        }));
+
+    // ------------------------------------------------------------------
+    // TOP AFFILIATES — no affiliate engine exists yet (see /affiliate route).
+    // This intentionally stays a real, empty, dynamic array rather than
+    // fake numbers — the panel activates on its own once that system
+    // starts writing affiliate records.
+    // ------------------------------------------------------------------
+    const topAffiliates = [];
+
+    res.render("admin", {
+        users: allUsers,
+        stats: {
+            total: allUsers.length,
+            active: activeCount,
+            suspended: suspendedCount,
+            locked: lockedCount,
+            expired: expiredCount,
+            unlicensed: unlicensedCount,
+            totalRevenue
+        },
+        registrationTrend,
+        accountsByRegion,
+        revenueByTier,
+        topEarners,
+        negativeLogouts,
+        topAffiliates
+    });
 });
 
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
@@ -395,6 +602,54 @@ app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     req.flash("success", "Participant permanently deleted from the network.");
     res.redirect("/admin");
+});
+
+
+
+// ==========================================
+// TRAINING SYSTEM ROUTES
+// ==========================================
+
+// Get training enrollment status (for UI polling)
+app.get("/api/training/status", async (req, res) => {
+    try {
+        // In production, query the database for training enrollments
+        // For now, return mock data (the client-side will manage state)
+        res.json({
+            classes: {
+                ECD: { enrolled: 2, min: 5, status: 'waiting' },
+                Beginner: { enrolled: 1, min: 5, status: 'waiting' },
+                Advanced: { enrolled: 0, min: 5, status: 'waiting' },
+                Specialized: { enrolled: 0, min: 5, status: 'waiting' }
+            },
+            alerts: [] // Would return unread alerts for admin
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin endpoint to view training alerts
+app.get("/admin/training/alerts", isAdmin, async (req, res) => {
+    // In production, query alerts from database
+    // For now, return mock alerts
+    res.json({
+        alerts: [
+            { 
+                type: 'HIGH_FLAG', 
+                class: 'ECD', 
+                student: 'John Doe', 
+                timestamp: new Date(),
+                message: 'John Doe enrolled in ECD Training'
+            }
+        ]
+    });
+});
+
+// Student training dashboard
+app.get("/training/my-classes", isLoggedIn, async (req, res) => {
+    // In production, get user's training enrollments
+    res.render("my-training", { user: req.user });
 });
 
 // ==========================================

@@ -18,7 +18,10 @@
             --det-card: #322C2C;
             --det-border: rgba(176, 191, 150, 0.25);
             --det-red: #ef4444;
-            --sidebar-width: 260px;
+            --det-amber: #f59e0b;
+            --det-blue: #38bdf8;
+            --det-purple: #a78bfa;
+            --sidebar-width: 268px;
         }
 
         body { 
@@ -51,12 +54,13 @@
         .sidebar-nav { padding: 20px 10px; flex-grow: 1; overflow-y: auto; }
         .nav-item { margin-bottom: 5px; }
         .nav-link {
-            display: flex; align-items: center; padding: 12px 15px; color: #cbd5e1 !important;
-            text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.2s;
+            display: flex; align-items: center; padding: 11px 15px; color: #cbd5e1 !important;
+            text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 13.5px; transition: all 0.2s;
         }
-        .nav-link i { margin-right: 12px; font-size: 18px; }
+        .nav-link i { margin-right: 12px; font-size: 17px; width: 18px; text-align: center; }
         .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.05); }
         .nav-link.active { color: var(--det-dark) !important; background: var(--det-green); font-weight: 600; }
+        .nav-link .badge { font-size: 9px; }
 
         .sidebar-nav::-webkit-scrollbar { width: 4px; }
         .sidebar-nav::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
@@ -73,39 +77,80 @@
         }
         .mobile-toggle { display: none; color: var(--det-green); font-size: 24px; cursor: pointer; background: none; border: none; }
 
-        .dashboard-wrapper { padding: 30px; max-width: 1600px; width: 100%; margin: 0 auto; }
+        .dashboard-wrapper { padding: 30px; max-width: 1680px; width: 100%; margin: 0 auto; }
         .glass-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 25px; height: 100%; }
-        
+
+        .section-heading {
+            display: flex; justify-content: between; align-items: center; justify-content: space-between;
+            margin: 38px 0 16px;
+        }
+        .section-heading h6 {
+            font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+            color: #94a3b8 !important; margin: 0; display: flex; align-items: center; gap: 8px;
+        }
+        .section-heading h6 i { color: var(--det-green); }
+        .section-heading:first-of-type { margin-top: 4px; }
+
+        /* KPI Strip */
+        .kpi-card {
+            background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px;
+            padding: 20px; display: flex; align-items: center; gap: 14px; height: 100%;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18); transition: transform 0.2s, border-color 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); border-color: rgba(176, 191, 150, 0.45); }
+        .kpi-icon {
+            width: 46px; height: 46px; min-width: 46px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #94a3b8 !important; font-weight: 600; margin-bottom: 3px; }
+        .kpi-value { font-size: 22px; font-weight: 800; color: #fff !important; line-height: 1.1; }
+        .kpi-sub { font-size: 11px; color: #94a3b8 !important; margin-top: 2px; }
+
         .metric-box { background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; }
         .metric-title { font-size: 11px; color: #cbd5e1 !important; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
         .metric-value { font-size: 24px; font-weight: 800; color: #fff !important; margin: 0; }
         .metric-value.accent { color: var(--det-green) !important; }
 
-        canvas { max-height: 200px; width: 100%; }
+        canvas { max-height: 260px; width: 100%; }
+        .chart-wrap { position: relative; height: 260px; }
+        .chart-wrap.short { height: 210px; }
+
+        /* Empty states for panels without data yet */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 34px 20px; color: #94a3b8;
+        }
+        .empty-state i { font-size: 30px; color: var(--det-border); margin-bottom: 10px; }
+        .empty-state strong { color: #cbd5e1; font-size: 14px; display: block; margin-bottom: 4px; }
+        .empty-state span { font-size: 12.5px; max-width: 320px; }
+
+        /* Mini list rows: Top Earners / Negative Logouts */
+        .mini-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 12px 14px; border-radius: 8px; background: var(--det-dark);
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;
+        }
+        .mini-row:last-child { margin-bottom: 0; }
+        .rank-badge {
+            width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; background: rgba(176,191,150,0.12); color: var(--det-green);
+            flex-shrink: 0;
+        }
+        .rank-badge.rank-1 { background: rgba(176,191,150,0.9); color: var(--det-dark); }
 
         /* =========================================
-           Institutional Table Styling
-           FIX: swipeable / scrollable table on small screens
+           Institutional Table Styling (Ledger)
         ========================================= */
-        .table-responsive-wrapper {
-            border-radius: 8px;
-            border: 1px solid var(--det-border);
-            overflow: hidden; /* keeps the rounded corners clean */
-        }
+        .table-responsive-wrapper { border-radius: 8px; border: 1px solid var(--det-border); overflow: hidden; }
         .table-responsive {
-            /* overflow:hidden here was clipping the table instead of scrolling it —
-               switched to overflow-x:auto so mobile users can swipe sideways */
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch; /* smooth momentum swipe on iOS */
-            scrollbar-width: thin;
-            scrollbar-color: var(--det-green) transparent;
+            overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin; scrollbar-color: var(--det-green) transparent;
         }
         .table-responsive::-webkit-scrollbar { height: 6px; }
         .table-responsive::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
         .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--det-green); }
 
-        .table { margin-bottom: 0; color: #fff !important; min-width: 760px; } /* forces real scroll instead of squished columns */
+        .table { margin-bottom: 0; color: #fff !important; min-width: 760px; }
         .table-dark-custom { background-color: var(--det-dark); }
         .table thead th { 
             background-color: #111; color: #cbd5e1 !important; font-weight: 600; font-size: 12px; 
@@ -114,34 +159,38 @@
         }
         .table tbody td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; background-color: transparent; color: #fff !important; }
         .table tbody tr:hover td { background-color: rgba(176, 191, 150, 0.05); }
+        .table tbody tr.row-hidden { display: none; }
 
-        .swipe-hint {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            color: #cbd5e1;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
-        }
+        .swipe-hint { display: none; align-items: center; gap: 6px; font-size: 11px; color: #cbd5e1; margin-bottom: 10px; letter-spacing: 0.5px; }
         .swipe-hint i { color: var(--det-green); animation: swipeMove 1.4s ease-in-out infinite; }
-        @keyframes swipeMove {
-            0%, 100% { transform: translateX(0); opacity: 0.6; }
-            50% { transform: translateX(6px); opacity: 1; }
-        }
-        @media (max-width: 767px) {
-            .swipe-hint { display: flex; }
-        }
+        @keyframes swipeMove { 0%, 100% { transform: translateX(0); opacity: 0.6; } 50% { transform: translateX(6px); opacity: 1; } }
+        @media (max-width: 767px) { .swipe-hint { display: flex; } }
         
         .code-pill { background: #1a1818; border: 1px solid var(--det-border); color: var(--det-green) !important; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 600; }
         
         .btn-det { background: var(--det-green); color: var(--det-dark) !important; font-weight: 600; transition: all 0.3s; border: none; }
         .btn-det:hover { background: var(--det-green-hover); color: #000 !important; }
 
+        .ledger-search {
+            background: var(--det-dark) !important; border: 1px solid var(--det-border) !important; color: #fff !important;
+            padding: 9px 14px 9px 38px; border-radius: 8px; font-size: 14px; max-width: 320px;
+        }
+        .ledger-search:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.2rem rgba(176,191,150,0.15) !important; }
+        .search-wrap { position: relative; }
+        .search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
         .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .bg-det-green { background: rgba(176, 191, 150, 0.15); color: var(--det-green) !important; border: 1px solid rgba(176, 191, 150, 0.3); }
         .bg-det-red { background: rgba(239, 68, 68, 0.15); color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3); }
         .bg-det-warn { background: rgba(245, 158, 11, 0.15); color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .action-btn {
+            width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--det-border); background: var(--det-dark);
+            color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;
+        }
+        .btn-manage:hover { border-color: var(--det-green); color: var(--det-green); }
+        .btn-ban:hover { border-color: var(--det-amber); color: var(--det-amber); }
+        .btn-delete:hover { border-color: var(--det-red); color: var(--det-red); background: rgba(239,68,68,0.08); }
 
         /* Modal Overrides to Kill Invisible Text */
         .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
@@ -169,7 +218,19 @@
         <div class="sidebar-nav">
             <small class="text-uppercase fw-bold ms-3 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Core Systems</small>
             <div class="nav-item">
-                <a href="/admin" class="nav-link active"><i class="bi bi-cpu"></i> Master Node Console</a>
+                <a href="#overview" class="nav-link active"><i class="bi bi-cpu"></i> Master Node Console</a>
+            </div>
+            <div class="nav-item">
+                <a href="#analytics" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Network Analytics</a>
+            </div>
+            <div class="nav-item">
+                <a href="#live-feed" class="nav-link"><i class="bi bi-broadcast"></i> Live S.M.A.R.T Feed</a>
+            </div>
+            <div class="nav-item">
+                <a href="#negative-logouts" class="nav-link"><i class="bi bi-shield-lock-fill"></i> Negative Account Logouts</a>
+            </div>
+            <div class="nav-item">
+                <a href="#top-earners" class="nav-link"><i class="bi bi-trophy"></i> Top Earners</a>
             </div>
             <div class="nav-item">
                 <a href="#ledger" class="nav-link"><i class="bi bi-people"></i> Participant Ledger</a>
@@ -177,13 +238,13 @@
 
             <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Network Engines (v2.0)</small>
             <div class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-diagram-3"></i> Affiliate Network <span class="badge ms-auto text-dark" style="font-size: 9px; background: #cbd5e1 !important;">LOCKED</span></a>
+                <a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3"></i> Affiliate Network <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">BETA</span></a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-globe"></i> Geo-Block Config <span class="badge ms-auto text-dark" style="font-size: 9px; background: #cbd5e1 !important;">LOCKED</span></a>
+                <a href="#" class="nav-link"><i class="bi bi-globe"></i> Geo-Block Config <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">LOCKED</span></a>
             </div>
             <div class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-shield-lock"></i> Pilot Access Wall <span class="badge ms-auto text-dark" style="font-size: 9px; background: #cbd5e1 !important;">LOCKED</span></a>
+                <a href="#" class="nav-link"><i class="bi bi-shield-lock"></i> Pilot Access Wall <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">LOCKED</span></a>
             </div>
 
             <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">System</small>
@@ -193,7 +254,7 @@
         </div>
         <div class="sidebar-footer d-flex justify-content-between align-items-center">
             <div><span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;"></span>Node Routing</div>
-            <span>v1.1</span>
+            <span>v1.2</span>
         </div>
     </nav>
 
@@ -226,33 +287,133 @@
                 <div class="alert bg-danger bg-opacity-10 border-danger text-danger fw-bold" style="border-radius: 8px;"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> 
             <% } %>
 
-            <div class="row g-3 mb-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="glass-card" style="padding: 20px;">
-                        <h6 class="metric-title"><i class="bi bi-router text-secondary me-2"></i>Active Terminals</h6>
-                        <h3 class="metric-value accent" id="stat-active-users">--</h3>
+            <!-- =========================================
+                 OVERVIEW — KPI STRIP
+            ========================================= -->
+            <div id="overview"></div>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-2">
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);"><i class="bi bi-people-fill"></i></div>
+                        <div>
+                            <div class="kpi-label">Total Accounts</div>
+                            <div class="kpi-value"><%= stats.total %></div>
+                            <div class="kpi-sub">Registered participants</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="glass-card" style="padding: 20px;">
-                        <h6 class="metric-title"><i class="bi bi-shield-check text-secondary me-2"></i>Zero-Hedge Locks</h6>
-                        <h3 class="metric-value text-danger" id="stat-locked-users">--</h3>
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(56,189,248,0.12); color: var(--det-blue);"><i class="bi bi-shield-check"></i></div>
+                        <div>
+                            <div class="kpi-label">Active Licenses</div>
+                            <div class="kpi-value"><%= stats.active %></div>
+                            <div class="kpi-sub"><%= stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0 %>% of network</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="glass-card" style="padding: 20px; opacity: 0.7;">
-                        <h6 class="metric-title"><i class="bi bi-cash-coin text-secondary me-2"></i>Total Commission</h6>
-                        <h3 class="metric-value" style="color: #cbd5e1 !important;">$0.00 <span style="font-size: 12px;" class="badge ms-2 text-dark" style="background: #cbd5e1 !important;">V2 Module</span></h3>
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: var(--det-red);"><i class="bi bi-shield-lock-fill"></i></div>
+                        <div>
+                            <div class="kpi-label">Negative Account Logouts</div>
+                            <div class="kpi-value"><%= stats.locked %></div>
+                            <div class="kpi-sub">Zero-Hedge forced closures</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="glass-card" style="padding: 20px;">
-                        <h6 class="metric-title"><i class="bi bi-activity text-secondary me-2"></i>System Load</h6>
-                        <h3 class="metric-value text-info">Optimal</h3>
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);"><i class="bi bi-cash-stack"></i></div>
+                        <div>
+                            <div class="kpi-label">Total Revenue</div>
+                            <div class="kpi-value">$<%= stats.totalRevenue.toLocaleString() %></div>
+                            <div class="kpi-sub">Verified Paynow receipts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(245,158,11,0.12); color: var(--det-amber);"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <div class="kpi-label">Unlicensed / Pending</div>
+                            <div class="kpi-value"><%= stats.unlicensed %></div>
+                            <div class="kpi-sub"><%= stats.suspended %> banned &middot; <%= stats.expired %> expired</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- =========================================
+                 ANALYTICS — CHARTS
+            ========================================= -->
+            <div id="analytics"></div>
+            <div class="section-heading">
+                <h6><i class="bi bi-graph-up-arrow"></i> Network Analytics</h6>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-xl-8">
+                    <div class="glass-card">
+                        <h6 class="fw-bold mb-1 text-white">Registrations — Last 30 Days</h6>
+                        <p class="text-secondary small mb-3">New accounts created per day, network-wide.</p>
+                        <div class="chart-wrap">
+                            <canvas id="registrationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="glass-card">
+                        <h6 class="fw-bold mb-1 text-white">Account Status Breakdown</h6>
+                        <p class="text-secondary small mb-3">Live standing across every participant.</p>
+                        <div class="chart-wrap">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-xl-6">
+                    <div class="glass-card">
+                        <h6 class="fw-bold mb-1 text-white">Revenue by D.E.T Plan</h6>
+                        <p class="text-secondary small mb-3">Verified Paynow revenue attributed to each tier.</p>
+                        <% if(revenueByTier && revenueByTier.length > 0) { %>
+                            <div class="chart-wrap">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-bar-chart"></i>
+                                <strong>No verified sales yet</strong>
+                                <span>This chart activates automatically the moment a Paynow payment is confirmed for any tier.</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="col-xl-6">
+                    <div class="glass-card">
+                        <h6 class="fw-bold mb-1 text-white">Accounts by Region</h6>
+                        <p class="text-secondary small mb-3">Where your participant base is registered from.</p>
+                        <% if(accountsByRegion && accountsByRegion.length > 0) { %>
+                            <div class="chart-wrap">
+                                <canvas id="regionChart"></canvas>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-globe-americas"></i>
+                                <strong>No region data yet</strong>
+                                <span>Populates automatically once participants register with a country set.</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 LIVE FEED + NEGATIVE ACCOUNT LOGOUTS
+            ========================================= -->
+            <div id="live-feed"></div>
             <div class="row g-4 mb-4">
                 <div class="col-xl-8 col-lg-7">
                     <div class="glass-card">
@@ -298,41 +459,118 @@
                 </div>
 
                 <div class="col-xl-4 col-lg-5">
-                    <div class="glass-card">
-                        <h5 class="fw-bold mb-4 border-bottom pb-3 text-white" style="border-color: var(--det-border) !important;">
-                            <i class="bi bi-terminal text-secondary me-2"></i>Network Alerts
-                        </h5>
-                        
-                        <div class="d-flex flex-column gap-3" style="max-height: 380px; overflow-y: auto;">
-                            <div class="p-3 rounded" style="background: rgba(176,191,150,0.05); border-left: 3px solid var(--det-green);">
-                                <small class="d-block" style="font-size: 10px; color: #cbd5e1 !important;"><i class="bi bi-clock me-1"></i>Just Now</small>
-                                <span class="text-white" style="font-size: 13px;">S.M.A.R.T Engine Ping received successfully.</span>
+                    <div class="glass-card" id="negative-logouts">
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-shield-lock-fill text-danger me-2"></i>Negative Account Logouts</h5>
+                        <p class="text-secondary small mb-3">Accounts force-closed after doubling their starting balance (Zero-Hedge Lock).</p>
+
+                        <% if(negativeLogouts && negativeLogouts.length > 0) { %>
+                            <div style="max-height: 380px; overflow-y: auto;">
+                                <% negativeLogouts.forEach(acc => { %>
+                                    <div class="mini-row">
+                                        <div>
+                                            <div class="fw-bold text-white" style="font-size: 13.5px;"><%= acc.username %></div>
+                                            <small style="color: #94a3b8;"><%= acc.tier %> &middot; $<%= acc.startingBalance.toLocaleString() %> &rarr; $<%= acc.targetBalance.toLocaleString() %></small>
+                                        </div>
+                                        <span class="status-badge bg-det-red">Locked</span>
+                                    </div>
+                                <% }) %>
                             </div>
-                            <div class="p-3 rounded" style="background: rgba(56,189,248,0.05); border-left: 3px solid #38bdf8;">
-                                <small class="d-block" style="font-size: 10px; color: #cbd5e1 !important;"><i class="bi bi-clock me-1"></i>2 mins ago</small>
-                                <span class="text-white" style="font-size: 13px;">New dummy participant <strong class="text-accent">DevTester</strong> verified.</span>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-shield-check"></i>
+                                <strong>No forced closures</strong>
+                                <span>No participant has triggered a Zero-Hedge lock yet. This list updates in real time.</span>
                             </div>
-                            <div class="p-3 rounded" style="background: rgba(239,68,68,0.05); border-left: 3px solid #ef4444;">
-                                <small class="d-block" style="font-size: 10px; color: #cbd5e1 !important;"><i class="bi bi-clock me-1"></i>14 mins ago</small>
-                                <span class="text-white" style="font-size: 13px;">Zero-Hedge lock triggered for Account #29381.</span>
-                            </div>
-                            <div class="p-3 rounded" style="background: rgba(245,158,11,0.05); border-left: 3px solid #f59e0b;">
-                                <small class="d-block" style="font-size: 10px; color: #cbd5e1 !important;"><i class="bi bi-clock me-1"></i>1 hour ago</small>
-                                <span class="text-white" style="font-size: 13px;">Geo-Block rejected ping from unauthorized region.</span>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
 
+            <!-- =========================================
+                 TOP EARNERS + TOP AFFILIATES
+            ========================================= -->
+            <div class="row g-4 mb-4">
+                <div class="col-xl-6" id="top-earners">
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-trophy text-accent me-2"></i>Top Earners</h5>
+                        <p class="text-secondary small mb-3">Highest verified revenue per licensed account.</p>
+
+                        <% if(topEarners && topEarners.length > 0) { %>
+                            <div>
+                                <% topEarners.forEach((earner, i) => { %>
+                                    <div class="mini-row">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="rank-badge <%= i === 0 ? 'rank-1' : '' %>">#<%= i + 1 %></span>
+                                            <div>
+                                                <div class="fw-bold text-white" style="font-size: 13.5px;"><%= earner.username %></div>
+                                                <small style="color: #94a3b8;"><%= earner.tier %> &middot; <%= earner.country %></small>
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold text-accent">$<%= earner.revenue.toLocaleString() %></span>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-trophy"></i>
+                                <strong>No revenue-generating accounts yet</strong>
+                                <span>The leaderboard fills in automatically as Paynow payments are confirmed.</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="col-xl-6" id="affiliates">
+                    <div class="glass-card">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-diagram-3 text-accent me-2"></i>Top Affiliates</h5>
+                            <span class="badge text-dark" style="background: #cbd5e1 !important; font-size: 10px;">ENGINE v2</span>
+                        </div>
+                        <p class="text-secondary small mb-3">Referral performance, once the affiliate program goes live.</p>
+
+                        <% if(topAffiliates && topAffiliates.length > 0) { %>
+                            <div>
+                                <% topAffiliates.forEach((aff, i) => { %>
+                                    <div class="mini-row">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="rank-badge <%= i === 0 ? 'rank-1' : '' %>">#<%= i + 1 %></span>
+                                            <div>
+                                                <div class="fw-bold text-white" style="font-size: 13.5px;"><%= aff.username %></div>
+                                                <small style="color: #94a3b8;"><%= aff.referrals %> referrals</small>
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold text-accent">$<%= aff.commission.toLocaleString() %></span>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-diagram-3"></i>
+                                <strong>Affiliate Architecture Pending Deployment</strong>
+                                <span>This panel is wired for live data and will populate the moment referral tracking is enabled network-wide.</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================
+                 PARTICIPANT LEDGER
+            ========================================= -->
             <div class="row" id="ledger">
                 <div class="col-12">
                     <div class="glass-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3" style="border-color: var(--det-border) !important;">
                             <h5 class="fw-bold m-0 text-white"><i class="bi bi-database text-accent me-2"></i>Participant Ledger</h5>
-                            <button id="exportCsvBtn" class="btn btn-sm btn-outline-light text-white" style="border-color: var(--det-border);">
-                                <i class="bi bi-download me-1"></i> Export CSV
-                            </button>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="search-wrap">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" id="ledgerSearch" class="ledger-search" placeholder="Search username or email...">
+                                </div>
+                                <button id="exportCsvBtn" class="btn btn-sm btn-outline-light text-white" style="border-color: var(--det-border);">
+                                    <i class="bi bi-download me-1"></i> Export CSV
+                                </button>
+                            </div>
                         </div>
 
                         <div class="swipe-hint">
@@ -353,15 +591,8 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <% 
-                                            let activeCount = 0;
-                                            let lockedCount = 0;
-                                            
-                                            users.forEach(client => { 
-                                                if(client.accountLocked) lockedCount++;
-                                                if(client.licenseKey && !client.isSuspended && new Date() < new Date(client.licenseExpiry)) activeCount++;
-                                        %>
-                                            <tr>
+                                        <% users.forEach(client => { %>
+                                            <tr data-search="<%= (client.username + ' ' + (client.email || '')).toLowerCase() %>">
                                                 <td>
                                                     <div class="fw-bold text-white fs-6"><%= client.username %></div>
                                                     <small style="color: #cbd5e1 !important;"><%= client.email %></small>
@@ -470,14 +701,14 @@
                                 </table>
                             </div>
                         </div>
+                        <div id="noResultsMsg" class="empty-state" style="display: none;">
+                            <i class="bi bi-search"></i>
+                            <strong>No matches found</strong>
+                            <span>Try a different username or email.</span>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <script>
-                document.getElementById('stat-active-users').innerText = "<%= activeCount %>";
-                document.getElementById('stat-locked-users').innerText = "<%= lockedCount %>";
-            </script>
 
         </div>
     </main>
@@ -489,11 +720,30 @@
             document.getElementById('sidebar').classList.toggle('show');
         });
 
+        // ==========================================
+        // LEDGER SEARCH / FILTER
+        // ==========================================
+        const ledgerSearchInput = document.getElementById('ledgerSearch');
+        const ledgerRows = Array.from(document.querySelectorAll('#participantTable tbody tr[data-search]'));
+        const noResultsMsg = document.getElementById('noResultsMsg');
+
+        ledgerSearchInput.addEventListener('input', function() {
+            const term = this.value.trim().toLowerCase();
+            let visibleCount = 0;
+            ledgerRows.forEach(row => {
+                const matches = row.getAttribute('data-search').includes(term);
+                row.classList.toggle('row-hidden', !matches);
+                if (matches) visibleCount++;
+            });
+            noResultsMsg.style.display = (term.length > 0 && visibleCount === 0) ? 'flex' : 'none';
+        });
+
         // CSV Export Function
         document.getElementById('exportCsvBtn').addEventListener('click', function() {
             let csv = [];
             let rows = document.querySelectorAll("#participantTable tr");
             for (let i = 0; i < rows.length; i++) {
+                if (rows[i].classList.contains('row-hidden')) continue;
                 let row = [], cols = rows[i].querySelectorAll("td, th");
                 for (let j = 0; j < cols.length - 1; j++) { 
                     let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
@@ -511,9 +761,117 @@
             document.body.removeChild(downloadLink);
         });
 
-        // Chart Initialization
-        const ctx = document.getElementById('equityChart').getContext('2d');
-        const equityChart = new Chart(ctx, {
+        // ==========================================
+        // CHART.JS GLOBAL DEFAULTS (dark theme)
+        // ==========================================
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+
+        // ==========================================
+        // SERVER-DERIVED DATA (100% dynamic, computed in /admin route)
+        // ==========================================
+        const registrationTrend = <%- JSON.stringify(registrationTrend) %>;
+        const revenueByTier = <%- JSON.stringify(revenueByTier) %>;
+        const accountsByRegion = <%- JSON.stringify(accountsByRegion) %>;
+        const statusBreakdown = [
+            { label: 'Active', value: <%= stats.active %>, color: '#B0BF96' },
+            { label: 'Banned', value: <%= stats.suspended %>, color: '#f59e0b' },
+            { label: 'Zero-Hedge Locked', value: <%= stats.locked %>, color: '#ef4444' },
+            { label: 'Expired', value: <%= stats.expired %>, color: '#94a3b8' },
+            { label: 'Unlicensed', value: <%= stats.unlicensed %>, color: '#38bdf8' }
+        ];
+
+        // --- Registration Trend (Line) ---
+        new Chart(document.getElementById('registrationChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: registrationTrend.map(d => new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                datasets: [{
+                    label: 'New Accounts',
+                    data: registrationTrend.map(d => d.count),
+                    borderColor: '#B0BF96',
+                    backgroundColor: 'rgba(176, 191, 150, 0.12)',
+                    borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { precision: 0 } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // --- Account Status Breakdown (Doughnut) ---
+        new Chart(document.getElementById('statusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: statusBreakdown.map(d => d.label),
+                datasets: [{
+                    data: statusBreakdown.map(d => d.value),
+                    backgroundColor: statusBreakdown.map(d => d.color),
+                    borderColor: '#322C2C', borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '68%',
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } } }
+            }
+        });
+
+        // --- Revenue by Tier (Bar) ---
+        <% if(revenueByTier && revenueByTier.length > 0) { %>
+        new Chart(document.getElementById('revenueChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: revenueByTier.map(t => t.tier),
+                datasets: [{
+                    label: 'Revenue (USD)',
+                    data: revenueByTier.map(t => t.revenue),
+                    backgroundColor: 'rgba(176, 191, 150, 0.75)',
+                    borderRadius: 6, maxBarThickness: 42
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v.toLocaleString() } }
+                },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString() } } }
+            }
+        });
+        <% } %>
+
+        // --- Accounts by Region (Horizontal Bar) ---
+        <% if(accountsByRegion && accountsByRegion.length > 0) { %>
+        new Chart(document.getElementById('regionChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: accountsByRegion.map(r => r.region),
+                datasets: [{
+                    label: 'Accounts',
+                    data: accountsByRegion.map(r => r.count),
+                    backgroundColor: ['#B0BF96', '#38bdf8', '#f59e0b', '#a78bfa', '#94a3b8', '#ef4444', '#96a67c'],
+                    borderRadius: 6, maxBarThickness: 26
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { precision: 0 } },
+                    y: { grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+        <% } %>
+
+        // --- Live Equity Curve ---
+        const equityChart = new Chart(document.getElementById('equityChart').getContext('2d'), {
             type: 'line',
             data: { 
                 labels: Array(50).fill(''), 
