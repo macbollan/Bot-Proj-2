@@ -34,7 +34,7 @@ let eaBrainState = {
     }
 };
 
-// --- DATABASE CONNECTION (Legacy String to bypass ISP block) ---
+// --- DATABASE CONNECTION ---
 mongoose.connect("mongodb://nyctech002:macb@ac-urmttwh-shard-00-00.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-01.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-02.o6scueg.mongodb.net:27017/bot-project?ssl=true&replicaSet=atlas-1gew6o-shard-0&authSource=admin&appName=INVESTMENTNETWORK")
   .then(() => console.log("MongoDB Connected to bot-project"))
   .catch(err => console.log("Mongo Error:", err));
@@ -76,12 +76,11 @@ function isAdmin(req, res, next) {
     res.redirect("/dashboard");
 }
 
-// Add this middleware after passport initialization
+// Current path for navigation
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
-    // --- ADD THIS LINE ---
     res.locals.currentPath = req.path;
     next();
 });
@@ -90,7 +89,7 @@ app.use((req, res, next) => {
 // 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
 
-// A. Master EA Endpoint (Receives the master trades & UI State)
+// A. Master EA Endpoint
 app.post("/api/master/update", (req, res) => {
     const { masterPassword, analysis, trades, uiState } = req.body;
     
@@ -119,7 +118,7 @@ app.post("/api/master/update", (req, res) => {
 // B. Public Endpoint for the Web Dashboard Charts
 app.get("/api/public/ea-state", (req, res) => res.json(eaBrainState));
 
-// C. S.M.A.R.T CLIENT SYNC ENDPOINT (The single connection for the Client EA)
+// C. S.M.A.R.T CLIENT SYNC ENDPOINT
 app.post("/api/client/sync", async (req, res) => {
     const { licenseKey, currentBalance, currentEquity } = req.body;
     
@@ -164,22 +163,21 @@ app.post("/api/client/sync", async (req, res) => {
     }
 });
 
-
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
-    { name: "Amber", range: "$0 to $49", rate: "No Trading", amount: "N/A", color: "text-secondary" },
-    { name: "Amethyst", range: "$50 to $199", rate: "$1 Per Day", amount: "$30", color: "text-primary" },
-    { name: "Topaz", range: "$200 to $1,000", rate: "11% Per 30 Days", amount: "$22 to $111", color: "text-info" },
-    { name: "Tanzanite", range: "$1,000 to $10,000", rate: "10% Per 30 Days", amount: "$100 to $1,000", color: "text-success" },
-    { name: "Sapphire", range: "$10,001 to $100K", rate: "9% Per 7 Months", amount: "$900 to $9,000", color: "text-primary" },
-    { name: "Emerald", range: "$100K to $1M", rate: "8% Per 7 Months", amount: "$8,000 to $80K", color: "text-success" },
-    { name: "Diamond", range: "$1M to $10M", rate: "7% Per 7 Months", amount: "$70K to $700K", color: "text-info" },
-    { name: "Rhodium", range: "$10M to $100M", rate: "5% Per 12 Months", amount: "$500K to $5M", color: "text-warning" },
-    { name: "Platinum", range: "$100M to $1B", rate: "4% Per 12 Months", amount: "$4M to $40M", color: "text-secondary" },
-    { name: "Uranium", range: "$1B to $10B", rate: "3% Per 12 Months", amount: "$30M to $300M", color: "text-success" },
-    { name: "Atomic", range: "$10B to $100B", rate: "2% Per 12 Months", amount: "$200M to $2B", color: "text-danger" },
-    { name: "Nuclear", range: "$100B to $1T", rate: "1% Per 12 Months", amount: "$1B to $10B", color: "text-warning" },
-    { name: "Solomonic", range: "$1T+", rate: "0.5% Per 12 Months", amount: "$5B+", color: "text-warning" }
+    { name: "Amber", designation: "Level", float: "$0 to $49", percentage: "N/A", period: "No Trading", minSub: "N/A", maxSub: "N/A" },
+    { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "Fixed $1 Rate", period: "Per Day", minSub: "$1", maxSub: "$30" },
+    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "Per 30 Days", minSub: "$22", maxSub: "$111" },
+    { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 30 Days", minSub: "$100", maxSub: "$1,000" },
+    { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 7 Months", minSub: "$900", maxSub: "$9,000" },
+    { name: "Emerald", designation: "Level", float: "$100K to $1M", percentage: "8%", period: "Per 7 Months", minSub: "$8,000", maxSub: "$80K" },
+    { name: "Diamond", designation: "Level", float: "$1M to $10M", percentage: "7%", period: "Per 7 Months", minSub: "$70K", maxSub: "$700K" },
+    { name: "Rhodium", designation: "Grade", float: "$10M to $100M", percentage: "5%", period: "Per 12 Months", minSub: "$500K", maxSub: "$5M" },
+    { name: "Platinum", designation: "Grade", float: "$100M to $1B", percentage: "4%", period: "Per 12 Months", minSub: "$4M", maxSub: "$40M" },
+    { name: "Uranium", designation: "Grade", float: "$1B to $10B", percentage: "3%", period: "Per 12 Months", minSub: "$30M", maxSub: "$300M" },
+    { name: "Atomic", designation: "Grade", float: "$10B to $100B", percentage: "2%", period: "Per 12 Months", minSub: "$200M", maxSub: "$2B" },
+    { name: "Nuclear", designation: "Grade", float: "$100B to $1T", percentage: "1%", period: "Per 12 Months", minSub: "$1B", maxSub: "$10B" },
+    { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "Per 12 Months", minSub: "$5B", maxSub: "No Limit" }
 ];
 
 // --- PRICING PAGE ROUTE ---
@@ -187,73 +185,109 @@ app.get("/pricing", (req, res) => {
     res.render("pricing", { tiers: pricingTiers });
 });
 
-
-// --- NEW NAVIGATION ROUTES ---
-
-// 1. Render the new Training page
+// --- NAVIGATION ROUTES ---
 app.get("/training", (req, res) => {
     res.render("training");
 });
 
-// 2. Placeholder for Affiliate Page
 app.get("/affiliate", (req, res) => {
     res.send("<h2 style='color: #B0BF96; text-align: center; margin-top: 50px; font-family: sans-serif;'>Affiliate Network Architecture Pending Deployment</h2>");
 });
+
 // ==========================================
-// PAYNOW INTEGRATION & THE INTELLIGENT CHECKOUT
+// PAYNOW INTEGRATION & DYNAMIC CHECKOUT
 // ==========================================
 
-const paynow = new Paynow(process.env.PAYNOW_INTEGRATION_ID || "YOUR_INTEGRATION_ID", process.env.PAYNOW_INTEGRATION_KEY || "YOUR_INTEGRATION_KEY");
+const paynow = new Paynow(
+    process.env.PAYNOW_INTEGRATION_ID || "YOUR_INTEGRATION_ID", 
+    process.env.PAYNOW_INTEGRATION_KEY || "YOUR_INTEGRATION_KEY"
+);
 
 const LIVE_DOMAIN = "https://bot-proj-2-1.onrender.com";
 paynow.resultUrl = `${LIVE_DOMAIN}/api/paynow/update`; 
 paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`; 
 
+// DYNAMIC TIER CONFIG WITH MIN/MAX RANGES
 const tierConfig = {
-    "Amethyst": { price: 30, durationDays: 30 },
-    "Topaz": { price: 22, durationDays: 30 },
-    "Tanzanite": { price: 100, durationDays: 30 },
-    "Sapphire": { price: 900, durationDays: 210 }, 
-    "Emerald": { price: 8000, durationDays: 210 },
-    "Diamond": { price: 70000, durationDays: 210 },
-    "Rhodium": { price: 500000, durationDays: 365 }, 
-    "Platinum": { price: 4000000, durationDays: 365 },
-    "Uranium": { price: 30000000, durationDays: 365 },
-    "Atomic": { price: 200000000, durationDays: 365 },
-    "Nuclear": { price: 1000000000, durationDays: 365 },
-    "Solomonic": { price: 5000000000, durationDays: 365 }
+    "Amethyst": { min: 1, max: 30, durationDays: 30 },
+    "Topaz": { min: 22, max: 111, durationDays: 30 },
+    "Tanzanite": { min: 100, max: 1000, durationDays: 30 },
+    "Sapphire": { min: 900, max: 9000, durationDays: 210 }, 
+    "Emerald": { min: 8000, max: 80000, durationDays: 210 },
+    "Diamond": { min: 70000, max: 700000, durationDays: 210 },
+    "Rhodium": { min: 500000, max: 5000000, durationDays: 365 }, 
+    "Platinum": { min: 4000000, max: 40000000, durationDays: 365 },
+    "Uranium": { min: 30000000, max: 300000000, durationDays: 365 },
+    "Atomic": { min: 200000000, max: 2000000000, durationDays: 365 },
+    "Nuclear": { min: 1000000000, max: 10000000000, durationDays: 365 },
+    "Solomonic": { min: 5000000000, max: 999999999999, durationDays: 365 }
 };
 
 // 1. Intercept users coming from Pricing Page Modal
 app.post("/checkout/initialize", (req, res) => {
     const selectedTier = req.body.selectedTier;
-    // SEQUENCE FIX: If already logged in, skip registration, go straight to secure checkout portal
+    // If already logged in, skip registration, go straight to checkout
     if (req.isAuthenticated()) {
         return res.redirect(`/checkout?tier=${encodeURIComponent(selectedTier)}`);
     }
-    // Else, send to Registration Form (it will forward them to checkout after)
+    // Send to Registration Form (it will forward them to checkout after)
     res.render("register", { error: null, selectedTier: selectedTier });
 });
 
-// 2. The New Secure Payment Portal (EcoCash UI + Visa Fallback)
+
+// 2. The Dynamic Checkout Portal with full tier details
 app.get("/checkout", isLoggedIn, (req, res) => {
     const tier = req.query.tier;
     if(!tierConfig[tier]) return res.redirect("/pricing");
-    res.render("checkout", { tier: tier, config: tierConfig[tier] });
+    
+    // Get tier details from pricingTiers array
+    const tierDetails = pricingTiers.find(t => t.name === tier);
+    
+    // Calculate the percentage rate as a decimal for coverage estimation
+    let percentageRate = 0;
+    if (tierDetails) {
+        // Extract numeric percentage from string like "11%" or "Fixed $1 Rate"
+        const pctMatch = tierDetails.percentage.match(/(\d+\.?\d*)%/);
+        if (pctMatch) {
+            percentageRate = parseFloat(pctMatch[1]);
+        } else if (tierDetails.percentage.includes("Fixed")) {
+            // For Amethyst, use a default rate
+            percentageRate = 2; // $1/$50 = 2% equivalent
+        }
+    }
+    
+    res.render("checkout", { 
+        tier: tier, 
+        config: tierConfig[tier],
+        tierDesignation: tierDetails ? tierDetails.designation : "Level",
+        tierFloat: tierDetails ? tierDetails.float : "N/A",
+        tierPercentage: tierDetails ? tierDetails.percentage : "N/A",
+        tierPeriod: tierDetails ? tierDetails.period : "N/A",
+        tierMinSub: tierDetails ? tierDetails.minSub : "N/A",
+        tierMaxSub: tierDetails ? tierDetails.maxSub : "N/A",
+        tierPercentageRate: percentageRate
+    });
 });
 
-// 3. API: Trigger EcoCash/OneMoney USSD Push to User's Phone
+
+
+// 3. API: Trigger EcoCash/OneMoney USSD Push with custom amount
 app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
-    const { tier, phone, method } = req.body;
+    const { tier, phone, method, customAmount } = req.body;
     const config = tierConfig[tier];
-    if(!config) return res.json({ success: false, error: "Invalid tier" });
+    const amount = parseFloat(customAmount);
+
+    // Validate amount is within tier range
+    if(!config || isNaN(amount) || amount < config.min || amount > config.max) {
+        return res.json({ success: false, error: "Invalid payment amount for this tier." });
+    }
 
     const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
     let payment = paynow.createPayment(invoiceRef, req.user.email);
-    payment.add(`${tier} Grade D.E.T Activation`, config.price);
+    payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
-        const response = await paynow.sendMobile(payment, phone, method); // 'ecocash' or 'onemoney'
+        const response = await paynow.sendMobile(payment, phone, method);
         if(response.success) {
             res.json({ success: true, instructions: response.instructions });
         } else {
@@ -264,13 +298,19 @@ app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
     }
 });
 
-// 4. API: Fallback to standard Paynow Gateway (For Visa/InnBucks)
+// 4. Standard gateway with custom amount
 app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
     const tier = req.query.tier;
     const config = tierConfig[tier];
+    const amount = parseFloat(req.query.amount);
+
+    if(!config || isNaN(amount) || amount < config.min || amount > config.max) {
+        return res.redirect("/pricing");
+    }
+
     const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
     let payment = paynow.createPayment(invoiceRef, req.user.email);
-    payment.add(`${tier} Grade D.E.T Activation`, config.price);
+    payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
         const response = await paynow.send(payment);
@@ -280,13 +320,13 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
 });
 
 app.get("/checkout/return", isLoggedIn, (req, res) => {
-    req.flash("success", "Payment processing! Your 9-Digit ID will generate automatically once the network confirms receipt.");
+    req.flash("success", "Payment processing! Your 9-Digit ID will generate automatically once network confirms.");
     res.redirect("/dashboard");
 });
 
-// 5. The Silent Webhook
+// 5. The Silent Webhook - Now reads EXACT amount paid
 app.post("/api/paynow/update", async (req, res) => {
-    const { reference, status } = req.body;
+    const { reference, status, amount } = req.body;
     
     if (status === "Paid" || status === "Awaiting Delivery") {
         const parts = reference.split("-");
@@ -302,14 +342,14 @@ app.post("/api/paynow/update", async (req, res) => {
                 user.licenseKey = generateDET_ID();
                 user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
                 user.currentTier = tierName;
-                user.prepaymentAmount = config.price;
+                user.prepaymentAmount = parseFloat(amount) || config.min; // Secures exact paid amount
                 user.termsAgreed = true;
                 user.isSuspended = false; 
                 user.accountLocked = false;
                 user.mt5AccountNumber = null; 
                 
                 await user.save();
-                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName})`);
+                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
             }
         } catch (err) {
             console.error("Webhook database update failed:", err);
@@ -344,7 +384,7 @@ app.post("/register", async (req, res) => {
         whatsapp: req.body.whatsapp || "",
         country: req.body.country || "",
         currentTier: req.body.selectedTier || "None",
-        licenseKey: null, // Key stays null until payment webhook confirms success
+        licenseKey: null,
         startingBalance: 0,
         targetBalance: 0,
         accountLocked: false,
@@ -358,8 +398,11 @@ app.post("/register", async (req, res) => {
             req.flash("error", "Auto login session failure.");
             return res.redirect("/login");
         }
-        // SEQUENCE FIX: Redirect user straight to live paynow checkout portal
-        res.redirect(`/checkout?tier=${encodeURIComponent(req.body.selectedTier || "None")}`);
+        // SMART REDIRECT: If coming from pricing, go to checkout. Otherwise dashboard
+        const redirectTo = req.body.selectedTier ? 
+            `/checkout?tier=${encodeURIComponent(req.body.selectedTier)}` : 
+            "/dashboard";
+        res.redirect(redirectTo);
     });
   } catch (err) {
     req.flash("error", err.message);
@@ -367,10 +410,32 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/login", (req, res) => res.render("login"));
-app.post("/login", passport.authenticate("local", {
-  successRedirect: "/dashboard", failureRedirect: "/login", failureFlash: true
-}));
+app.get("/login", (req, res) => {
+    // Check if there's a pending tier selection (coming from pricing)
+    const pendingTier = req.query.tier;
+    res.render("login", { pendingTier: pendingTier || null, error: req.flash("error") });
+});
+
+app.post("/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+        if (err) return next(err);
+        if (!user) {
+            req.flash("error", info.message || "Invalid credentials");
+            return res.redirect("/login");
+        }
+        req.logIn(user, (err) => {
+            if (err) return next(err);
+            
+            // SMART REDIRECT: Check if they were trying to purchase
+            const pendingTier = req.body.pendingTier;
+            if (pendingTier && pendingTier !== "None" && pendingTier !== "") {
+                return res.redirect(`/checkout?tier=${encodeURIComponent(pendingTier)}`);
+            }
+            // Regular login goes to dashboard
+            return res.redirect("/dashboard");
+        });
+    })(req, res, next);
+});
 
 app.get("/logout", (req, res) => {
   req.logout((err) => res.redirect("/"));
@@ -385,22 +450,18 @@ app.get("/dashboard", isLoggedIn, (req, res) => {
 // PROFILE MANAGEMENT ROUTES
 // ==========================================
 
-// Edit Profile (email / whatsapp / country)
 app.post("/profile/update", isLoggedIn, async (req, res) => {
     try {
         const { email, whatsapp, country } = req.body;
-
         if (!email || !email.trim()) {
             req.flash("error", "Email address is required.");
             return res.redirect("/dashboard");
         }
-
         const user = await User.findById(req.user._id);
         user.email = email.trim();
         user.whatsapp = whatsapp ? whatsapp.trim() : "";
         user.country = country ? country.trim() : "";
         await user.save();
-
         req.flash("success", "Profile updated successfully.");
         res.redirect("/dashboard");
     } catch (err) {
@@ -409,27 +470,20 @@ app.post("/profile/update", isLoggedIn, async (req, res) => {
     }
 });
 
-// Change Password
 app.post("/profile/change-password", isLoggedIn, async (req, res) => {
     const { currentPassword, newPassword, confirmPassword } = req.body;
-
     if (!currentPassword || !newPassword || !confirmPassword) {
         req.flash("error", "Please fill in all password fields.");
         return res.redirect("/dashboard");
     }
-
     if (newPassword.length < 6) {
         req.flash("error", "New password must be at least 6 characters long.");
         return res.redirect("/dashboard");
     }
-
     if (newPassword !== confirmPassword) {
         req.flash("error", "New password and confirmation do not match.");
         return res.redirect("/dashboard");
     }
-
-    // req.user.changePassword is provided by passport-local-mongoose,
-    // it verifies currentPassword internally before applying newPassword.
     req.user.changePassword(currentPassword, newPassword, (err) => {
         if (err) {
             req.flash("error", err.message.includes("Incorrect") ? "Current password is incorrect." : "Could not change password.");
@@ -444,17 +498,24 @@ app.post("/profile/change-password", isLoggedIn, async (req, res) => {
 // ==========================================
 // 3. ADMIN PANEL ROUTES
 // ==========================================
+
+// --- Simple visitor counter (in-memory, resets on server restart) ---
+let totalVisitorCount = 0;
+app.use((req, res, next) => {
+    // Only count page views, not API calls or static assets
+    if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/checkout/') && !req.path.includes('.')) {
+        totalVisitorCount++;
+    }
+    next();
+});
+
 app.get("/admin", isAdmin, async (req, res) => {
     const allUsers = await User.find({ username: { $ne: "admin" } }).sort({ _id: -1 });
     const now = new Date();
 
-    // ------------------------------------------------------------------
-    // CORE ACCOUNT COUNTS + REVENUE + REGION TALLY
-    // (single pass over allUsers — all figures below are 100% derived
-    //  from real documents in Mongo, nothing here is hardcoded)
-    // ------------------------------------------------------------------
     let activeCount = 0, suspendedCount = 0, lockedCount = 0, expiredCount = 0, unlicensedCount = 0;
     let totalRevenue = 0;
+    let totalAffiliatePayouts = 0;
     const revenueByTierMap = {};
     const regionMap = {};
 
@@ -462,20 +523,19 @@ app.get("/admin", isAdmin, async (req, res) => {
         const hasKey = !!client.licenseKey;
         const isExpired = client.licenseExpiry ? now > new Date(client.licenseExpiry) : false;
 
-        if (client.accountLocked) {
-            lockedCount++;
-        } else if (client.isSuspended) {
-            suspendedCount++;
-        } else if (hasKey && isExpired) {
-            expiredCount++;
-        } else if (hasKey && !isExpired) {
-            activeCount++;
-        } else {
-            unlicensedCount++;
-        }
+        if (client.accountLocked) lockedCount++;
+        else if (client.isSuspended) suspendedCount++;
+        else if (hasKey && isExpired) expiredCount++;
+        else if (hasKey && !isExpired) activeCount++;
+        else unlicensedCount++;
 
         const revenue = Number(client.prepaymentAmount) || 0;
         totalRevenue += revenue;
+        
+        // Track affiliate payouts (commission from affiliateEngine)
+        const commission = Number(client.affiliateCommission) || 0;
+        totalAffiliatePayouts += commission;
+
         if (hasKey) {
             const tierKey = client.currentTier || "Unknown";
             revenueByTierMap[tierKey] = (revenueByTierMap[tierKey] || 0) + revenue;
@@ -485,11 +545,6 @@ app.get("/admin", isAdmin, async (req, res) => {
         regionMap[region] = (regionMap[region] || 0) + 1;
     });
 
-    // ------------------------------------------------------------------
-    // REGISTRATION TREND — last 30 days, bucketed from each document's
-    // Mongo ObjectId (which encodes its creation timestamp), so this
-    // works even without an explicit createdAt field on the schema.
-    // ------------------------------------------------------------------
     const dayBuckets = {};
     for (let i = 29; i >= 0; i--) {
         const d = new Date(now);
@@ -500,28 +555,19 @@ app.get("/admin", isAdmin, async (req, res) => {
         try {
             const key = client._id.getTimestamp().toISOString().slice(0, 10);
             if (key in dayBuckets) dayBuckets[key]++;
-        } catch (e) { /* malformed id, skip */ }
+        } catch (e) {}
     });
     const registrationTrend = Object.keys(dayBuckets).map(date => ({ date, count: dayBuckets[date] }));
 
-    // ------------------------------------------------------------------
-    // REGION BREAKDOWN — top 6 countries, everything else rolls into "Other"
-    // ------------------------------------------------------------------
     const regionEntries = Object.entries(regionMap).sort((a, b) => b[1] - a[1]);
-    const accountsByRegion = regionEntries.slice(0, 6).map(([region, count]) => ({ region, count }));
+    const topAccountsByRegion = regionEntries.slice(0, 6).map(([region, count]) => ({ region, count }));
     const otherRegionsCount = regionEntries.slice(6).reduce((sum, [, c]) => sum + c, 0);
-    if (otherRegionsCount > 0) accountsByRegion.push({ region: "Other", count: otherRegionsCount });
+    if (otherRegionsCount > 0) topAccountsByRegion.push({ region: "Other", count: otherRegionsCount });
 
-    // ------------------------------------------------------------------
-    // REVENUE BY TIER
-    // ------------------------------------------------------------------
     const revenueByTier = Object.entries(revenueByTierMap)
         .sort((a, b) => b[1] - a[1])
         .map(([tier, revenue]) => ({ tier, revenue }));
 
-    // ------------------------------------------------------------------
-    // TOP EARNERS — highest paying licensed accounts
-    // ------------------------------------------------------------------
     const topEarners = allUsers
         .filter(c => c.licenseKey)
         .sort((a, b) => (Number(b.prepaymentAmount) || 0) - (Number(a.prepaymentAmount) || 0))
@@ -534,9 +580,6 @@ app.get("/admin", isAdmin, async (req, res) => {
             revenue: Number(c.prepaymentAmount) || 0
         }));
 
-    // ------------------------------------------------------------------
-    // NEGATIVE ACCOUNT LOGOUTS — accounts force-closed by a Zero-Hedge lock
-    // ------------------------------------------------------------------
     const negativeLogouts = allUsers
         .filter(c => c.accountLocked)
         .map(c => ({
@@ -547,27 +590,37 @@ app.get("/admin", isAdmin, async (req, res) => {
             targetBalance: Number(c.targetBalance) || 0
         }));
 
-    // ------------------------------------------------------------------
-    // TOP AFFILIATES — no affiliate engine exists yet (see /affiliate route).
-    // This intentionally stays a real, empty, dynamic array rather than
-    // fake numbers — the panel activates on its own once that system
-    // starts writing affiliate records.
-    // ------------------------------------------------------------------
-    const topAffiliates = [];
+    // Top Affiliates (if affiliateEngine exists and has data)
+    let topAffiliates = [];
+    try {
+        const Affiliate = require("./models/Affiliate.model");
+        const affiliates = await Affiliate.find({}).sort({ totalEarnings: -1 }).limit(8);
+        if (affiliates && affiliates.length > 0) {
+            topAffiliates = affiliates.map(a => ({
+                username: a.username,
+                referrals: a.referralCount || 0,
+                commission: Number(a.totalEarnings) || 0
+            }));
+        }
+    } catch (e) {
+        // Affiliate model doesn't exist yet, leave empty
+    }
 
     res.render("admin", {
         users: allUsers,
         stats: {
+            totalVisitors: totalVisitorCount,
             total: allUsers.length,
             active: activeCount,
             suspended: suspendedCount,
             locked: lockedCount,
             expired: expiredCount,
             unlicensed: unlicensedCount,
-            totalRevenue
+            totalRevenue,
+            totalAffiliatePayouts
         },
         registrationTrend,
-        accountsByRegion,
+        topAccountsByRegion,
         revenueByTier,
         topEarners,
         negativeLogouts,
@@ -575,16 +628,47 @@ app.get("/admin", isAdmin, async (req, res) => {
     });
 });
 
+// ==========================================
+// NEGATIVE ACCOUNT OFFER SERVICE
+// ==========================================
+app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            req.flash("error", "Participant not found.");
+            return res.redirect("/admin");
+        }
+        if (!user.accountLocked) {
+            req.flash("error", "This account is not currently locked.");
+            return res.redirect("/admin");
+        }
+        
+        // Unlock account and grant 7-day free access
+        user.accountLocked = false;
+        user.isSuspended = false;
+        user.licenseExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 1 week
+        user.targetBalance = 0; // Reset target so they don't immediately get locked again
+        await user.save();
+        
+        console.log(`[FREE WEEK] Granted 1-week free access to ${user.username} (was Zero-Hedge locked)`);
+        req.flash("success", `Granted 1-week free access to ${user.username}. Their account is now active.`);
+        res.redirect("/admin");
+    } catch (err) {
+        console.error("Free week offer error:", err);
+        req.flash("error", "Could not process free week offer.");
+        res.redirect("/admin");
+    }
+});
+
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
     const days = parseInt(req.body.durationDays) || 30; 
     const tier = req.body.tierLevel || "Unknown"; 
-    
     const user = await User.findById(req.params.id);
     user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
     user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
     user.currentTier = tier; 
     user.isSuspended = false; 
-    
+    user.accountLocked = false; // Unlock when new license is issued
     await user.save();
     req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
     res.redirect("/admin");
@@ -603,18 +687,14 @@ app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
     req.flash("success", "Participant permanently deleted from the network.");
     res.redirect("/admin");
 });
-
-
-
 // ==========================================
 // TRAINING SYSTEM ROUTES
 // ==========================================
 
-// Get training enrollment status (for UI polling)
+
+
 app.get("/api/training/status", async (req, res) => {
     try {
-        // In production, query the database for training enrollments
-        // For now, return mock data (the client-side will manage state)
         res.json({
             classes: {
                 ECD: { enrolled: 2, min: 5, status: 'waiting' },
@@ -622,17 +702,14 @@ app.get("/api/training/status", async (req, res) => {
                 Advanced: { enrolled: 0, min: 5, status: 'waiting' },
                 Specialized: { enrolled: 0, min: 5, status: 'waiting' }
             },
-            alerts: [] // Would return unread alerts for admin
+            alerts: []
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Admin endpoint to view training alerts
 app.get("/admin/training/alerts", isAdmin, async (req, res) => {
-    // In production, query alerts from database
-    // For now, return mock alerts
     res.json({
         alerts: [
             { 
@@ -646,15 +723,14 @@ app.get("/admin/training/alerts", isAdmin, async (req, res) => {
     });
 });
 
-// Student training dashboard
 app.get("/training/my-classes", isLoggedIn, async (req, res) => {
-    // In production, get user's training enrollments
     res.render("my-training", { user: req.user });
 });
 
 // ==========================================
 // DEVELOPER TESTING BACKDOOR
 // ==========================================
+
 app.get("/dev/generate-key", async (req, res) => {
     try {
         await User.deleteOne({ username: "DevTester" });

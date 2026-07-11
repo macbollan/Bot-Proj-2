@@ -3,99 +3,690 @@
 <style>
     .page-heading { text-align: center; padding: 40px 0 20px; }
     .page-heading h2 { color: var(--det-green) !important; font-size: 36px; font-weight: 700; margin-bottom: 15px; }
-    .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--det-green) !important; font-weight: 600; display: block; margin-bottom: 15px; }
+    .page-heading .breadcrumb-nav { font-size: 13px; color: #64748b; }
+    .page-heading .breadcrumb-nav a { color: var(--det-green); text-decoration: none; }
+    .page-heading .breadcrumb-nav a:hover { text-decoration: underline; }
 
-    .checkout-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 40px; width: 100%; max-width: 550px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-    .invoice-box { background: rgba(176, 191, 150, 0.05); border: 1px solid rgba(176, 191, 150, 0.25); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto 60px;
+        align-items: start;
+    }
+
+    /* LEFT COLUMN - Tier Details */
+    .tier-details-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 35px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        position: sticky;
+        top: 20px;
+    }
+    .tier-badge {
+        display: inline-block;
+        background: rgba(176,191,150,0.15);
+        border: 1px solid var(--det-green);
+        color: var(--det-green);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+    }
+    .tier-name-display {
+        font-size: 32px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+    .tier-designation {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    /* Tier Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .stat-box {
+        background: rgba(176,191,150,0.05);
+        border: 1px solid rgba(176,191,150,0.15);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+    }
+    .stat-label {
+        font-size: 10px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+    .stat-value {
+        font-size: 16px;
+        color: #fff;
+        font-weight: 700;
+    }
+    .stat-value.highlight {
+        color: var(--det-green);
+    }
+
+    /* Payment Breakdown */
+    .breakdown-section {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--det-border);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .breakdown-title {
+        color: var(--det-green);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .breakdown-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .breakdown-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .breakdown-label {
+        font-size: 13px;
+        color: #cbd5e1;
+    }
+    .breakdown-value {
+        font-size: 13px;
+        color: #fff;
+        font-weight: 600;
+    }
+    .breakdown-value.green {
+        color: var(--det-green);
+    }
+    .breakdown-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid var(--det-green);
+    }
+    .breakdown-total-label {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 700;
+    }
+    .breakdown-total-value {
+        font-size: 20px;
+        color: var(--det-green);
+        font-weight: 800;
+    }
+
+    .what-you-get {
+        margin-top: 25px;
+    }
+    .what-you-get h6 {
+        color: var(--det-green);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+    }
+    .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 13px;
+        color: #cbd5e1;
+    }
+    .feature-item i {
+        color: var(--det-green);
+        font-size: 16px;
+        margin-top: 2px;
+    }
+
+    .view-more-btn {
+        display: block;
+        width: 100%;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #94a3b8;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 20px;
+        text-align: center;
+        text-decoration: none;
+    }
+    .view-more-btn:hover {
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+        border-color: var(--det-green);
+    }
+
+    /* RIGHT COLUMN - Payment */
+    .checkout-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
     
-    .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; text-align: center; }
-    .form-control { background: rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 15px; border-radius: 6px; font-size: 18px; text-align: center; letter-spacing: 2px; width: 100%; margin-bottom: 15px; }
-    .form-control:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
+    .form-label {
+        color: var(--det-green) !important;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+        text-align: center;
+    }
+    .form-control {
+        background: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
+        padding: 15px;
+        border-radius: 6px;
+        font-size: 18px;
+        text-align: center;
+        letter-spacing: 2px;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .form-control:focus {
+        border-color: var(--det-green) !important;
+        box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important;
+    }
+
+    .amount-input-group { position: relative; margin-top: 15px; }
+    .amount-currency {
+        position: absolute;
+        left: 20px;
+        top: 15px;
+        font-size: 24px;
+        color: var(--det-green);
+        font-weight: 700;
+    }
+    .amount-input {
+        font-size: 28px !important;
+        font-weight: 800;
+        color: var(--det-green) !important;
+        text-align: center;
+        padding-left: 40px !important;
+    }
+    
+    .range-slider-container { position: relative; width: 100%; margin: 20px 0; }
+    .range-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(to right, var(--det-green), #728352);
+        border-radius: 5px;
+        outline: none;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+    .range-slider:hover { opacity: 1; }
+    .range-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: var(--det-dark);
+        border: 2px solid var(--det-green);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .range-slider::-webkit-slider-thumb:hover {
+        background: var(--det-green);
+        transform: scale(1.1);
+    }
+
+    .amount-presets {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .preset-btn {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #94a3b8;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .preset-btn:hover {
+        background: rgba(176,191,150,0.15);
+        border-color: var(--det-green);
+        color: var(--det-green);
+    }
+    .preset-btn.active {
+        background: rgba(176,191,150,0.2);
+        border-color: var(--det-green);
+        color: var(--det-green);
+    }
 
     .payment-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .payment-tab { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; flex: 1; text-align: center; }
+    .payment-tab {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #cbd5e1;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.2s;
+        flex: 1;
+        text-align: center;
+    }
     .payment-tab:hover { background: rgba(255,255,255,0.05); }
-    .payment-tab.active { background: rgba(176,191,150,0.15); border-color: var(--det-green); color: var(--det-green); }
+    .payment-tab.active {
+        background: rgba(176,191,150,0.15);
+        border-color: var(--det-green);
+        color: var(--det-green);
+    }
 
-    .btn-secure { background: var(--det-green); color: var(--det-dark) !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; margin-top: 5px; cursor: pointer; }
+    .btn-secure {
+        background: var(--det-green);
+        color: var(--det-dark) !important;
+        border: none;
+        border-radius: 6px;
+        padding: 14px 20px;
+        font-weight: 700;
+        font-size: 16px;
+        width: 100%;
+        transition: all 0.3s;
+        margin-top: 5px;
+        cursor: pointer;
+    }
     .btn-secure:hover { background: var(--det-green-hover); transform: translateY(-2px); }
     
-    .btn-outline { background: transparent; color: #cbd5e1 !important; border: 1px solid #64748b; border-radius: 6px; padding: 14px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; display: block; text-align: center; cursor: pointer;}
-    .btn-outline:hover { background: rgba(255,255,255,0.05); color: #fff !important; border-color: var(--det-green); }
+    .btn-outline {
+        background: transparent;
+        color: #cbd5e1 !important;
+        border: 1px solid #64748b;
+        border-radius: 6px;
+        padding: 14px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        width: 100%;
+        transition: all 0.3s;
+        display: block;
+        text-align: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-outline:hover {
+        background: rgba(255,255,255,0.05);
+        color: #fff !important;
+        border-color: var(--det-green);
+    }
 
     #loader { display: none; text-align: center; margin-top: 30px; }
     .spinner-border { color: var(--det-green); width: 3rem; height: 3rem; border-width: 0.3em; }
 
-    .checkmark { width: 56px; height: 56px; border-radius: 50%; display: block; stroke-width: 4; stroke: #fff; stroke-miterlimit: 10; margin: 10% auto; box-shadow: inset 0px 0px 0px var(--det-green); animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both; }
-    .checkmark__circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 4; stroke-miterlimit: 10; stroke: var(--det-green); fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
-    .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
+    .checkmark {
+        width: 56px; height: 56px; border-radius: 50%;
+        display: block; stroke-width: 4; stroke: #fff;
+        stroke-miterlimit: 10; margin: 10% auto;
+        box-shadow: inset 0px 0px 0px var(--det-green);
+        animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+    }
+    .checkmark__circle {
+        stroke-dasharray: 166; stroke-dashoffset: 166;
+        stroke-width: 4; stroke-miterlimit: 10;
+        stroke: var(--det-green); fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+    .checkmark__check {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48; stroke-dashoffset: 48;
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    }
     @keyframes stroke { 100% { stroke-dashoffset: 0; } }
     @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
     @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px var(--det-green); } }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+        .tier-details-card {
+            position: static;
+        }
+    }
 </style>
 
 <div class="container flex-grow-1">
     <div class="page-heading">
-        <span class="step-indicator">Step 3 of 4</span>
-        <h2>Secure Payment Gateway</h2>
+        <div class="breadcrumb-nav mb-2">
+            <a href="/pricing">Pricing</a> <i class="bi bi-chevron-right mx-1"></i> 
+            <span style="color: #cbd5e1;">Checkout</span>
+        </div>
+        <h2>Complete Your Activation</h2>
     </div>
 
-    <div class="checkout-card">
-        <div class="invoice-box">
-            <span style="font-size: 12px; color: #cbd5e1; text-transform: uppercase; font-weight: 600;">Selected Activation</span>
-            <h3 style="color: #fff; font-weight: 700; margin: 5px 0;"><%= tier %> Level</h3>
-            <h2 style="color: var(--det-green); font-weight: 800; margin: 0;">$<%= config.price %> USD</h2>
-        </div>
+    <div class="checkout-grid">
+        <!-- LEFT COLUMN - Tier Details & Breakdown -->
+        <div class="tier-details-card">
+            <div class="tier-badge"><%= tierDesignation %></div>
+            <h1 class="tier-name-display"><%= tier %></h1>
+            <p class="tier-designation">
+                <i class="bi bi-graph-up-arrow me-1"></i>
+                <%= tierFloat %>
+            </p>
 
-        <div id="payment-ui">
-            <div class="payment-tabs">
-                <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">EcoCash</div>
-                <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">OneMoney</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Subscription Rate</div>
+                    <div class="stat-value highlight"><%= tierPercentage %></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Duration</div>
+                    <div class="stat-value"><%= tierPeriod %></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Min Payment</div>
+                    <div class="stat-value">$<%= config.min.toLocaleString() %></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Max Payment</div>
+                    <div class="stat-value">$<%= config.max.toLocaleString() %></div>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
-                <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
-                <input type="hidden" id="selectedMethod" value="ecocash">
-                
-                <button class="btn-secure" onclick="triggerMobilePush()">
-                    Send Prompt to Phone <i class="bi bi-phone-vibrate ms-1"></i>
-                </button>
+            <div class="breakdown-section">
+                <div class="breakdown-title">
+                    <i class="bi bi-calculator"></i> Payment Structure
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Pricing Model</span>
+                    <span class="breakdown-value green">Percentage-Based</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Rate Applied</span>
+                    <span class="breakdown-value"><%= tierPercentage %> of Float</span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Coverage Period</span>
+                    <span class="breakdown-value"><%= tierPeriod %></span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Min Guarantee</span>
+                    <span class="breakdown-value">$<%= config.min.toLocaleString() %></span>
+                </div>
+                <div class="breakdown-row">
+                    <span class="breakdown-label">Max Exposure</span>
+                    <span class="breakdown-value">$<%= config.max.toLocaleString() %></span>
+                </div>
+                <div class="breakdown-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                    <span class="breakdown-label" style="font-size: 12px; color: #94a3b8;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        You pay based on your trading capital. Pay more for higher float coverage, pay less for smaller accounts.
+                    </span>
+                </div>
             </div>
 
-            <div class="text-center mt-4 mb-4">
-                <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
+            <div class="what-you-get">
+                <h6><i class="bi bi-check2-circle me-2"></i>What You Get</h6>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Full D.E.T S.M.A.R.T Engine access for <%= tierPeriod.toLowerCase() %></span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Automated trade execution for your entire float</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Real-time risk management & zero-hedge protection</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Secure 9-digit D.E.T ID generation upon payment</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>No profit sharing - 100% of gains are yours</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Custodial control remains with you at all times</span>
+                </div>
             </div>
 
-            <a href="/checkout/standard-gateway?tier=<%= tier %>" class="btn-outline">
-                Pay with Visa / MasterCard <i class="bi bi-credit-card ms-1"></i>
+            <a href="/pricing" class="view-more-btn">
+                <i class="bi bi-grid-3x3-gap me-2"></i>View All Tiers & Plans
             </a>
         </div>
 
-        <div id="loader">
-            <div id="spinner-container">
-                <div class="spinner-border mb-4" role="status"></div>
-                <h4 style="color: var(--det-green); font-weight: 700;">Check your phone!</h4>
-                <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
+        <!-- RIGHT COLUMN - Payment Interface -->
+        <div class="checkout-card">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+                    Step 2 of 3
+                </span>
+                <h3 style="color: #fff; font-weight: 700; margin: 10px 0 5px;">Choose Your Amount</h3>
+                <p style="color: #94a3b8; font-size: 13px;">
+                    Select how much you want to prepay for <%= tier %> activation
+                </p>
             </div>
             
-            <div id="success-container" style="display: none;">
-                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                </svg>
-                <h4 style="color: var(--det-green); font-weight: 700;">Payment Successful!</h4>
-                <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
+            <label class="form-label mb-1" style="font-size: 11px;">
+                Your Prepayment Amount (USD)
+            </label>
+            <div class="amount-input-group">
+                <span class="amount-currency">$</span>
+                <input type="number" id="customAmount" class="form-control amount-input" 
+                       min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
+                       oninput="syncFromInput()">
+            </div>
+            
+            <!-- Preset Amounts -->
+            <div class="amount-presets" id="presetButtons">
+                <!-- Generated dynamically -->
+            </div>
+            
+            <!-- Range Slider -->
+            <div class="range-slider-container">
+                <input type="range" id="amountSlider" class="range-slider"
+                       min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
+                       oninput="syncFromSlider()">
+            </div>
+            
+            <div class="d-flex justify-content-between mt-1 px-2 mb-4">
+                <small style="color: #94a3b8; font-size: 11px;">Min: $<%= config.min.toLocaleString() %></small>
+                <small style="color: #94a3b8; font-size: 11px;">Max: $<%= config.max.toLocaleString() %></small>
+            </div>
+
+            <!-- Dynamic Coverage Indicator -->
+            <div style="background: rgba(176,191,150,0.08); border: 1px solid rgba(176,191,150,0.2); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Estimated Float Coverage</span>
+                <div style="font-size: 18px; color: var(--det-green); font-weight: 700; margin-top: 5px;" id="coverageEstimate">
+                    $<%= Math.round(config.min / (parseFloat(tierPercentageRate) / 100)).toLocaleString() %>
+                </div>
+            </div>
+
+            <div id="payment-ui">
+                <div class="payment-tabs">
+                    <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">
+                        <i class="bi bi-phone me-1"></i>EcoCash
+                    </div>
+                    <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">
+                        <i class="bi bi-phone me-1"></i>OneMoney
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
+                    <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
+                    <input type="hidden" id="selectedMethod" value="ecocash">
+                    
+                    <button class="btn-secure" onclick="triggerMobilePush()">
+                        <i class="bi bi-phone-vibrate me-2"></i>Send Payment Prompt
+                    </button>
+                </div>
+
+                <div class="text-center mt-4 mb-4">
+                    <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
+                </div>
+
+                <a href="#" id="standardGatewayBtn" class="btn-outline" onclick="triggerStandardGateway(event)">
+                    <i class="bi bi-credit-card me-2"></i>Pay with Visa / MasterCard
+                </a>
+
+                <p style="text-align: center; margin-top: 20px; font-size: 11px; color: #64748b;">
+                    <i class="bi bi-shield-lock me-1"></i>
+                    Secured by Paynow SSL Encryption
+                </p>
+            </div>
+
+            <div id="loader">
+                <div id="spinner-container">
+                    <div class="spinner-border mb-4" role="status"></div>
+                    <h4 style="color: var(--det-green); font-weight: 700;">Check your phone!</h4>
+                    <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
+                </div>
+                
+                <div id="success-container" style="display: none;">
+                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                    <h4 style="color: var(--det-green); font-weight: 700;">Payment Successful!</h4>
+                    <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<%- include('partials/footer') %>
+
 <script>
-    document.getElementById('mobile-toggle').addEventListener('click', function() {
-        document.getElementById('nav-menu').classList.toggle('active');
-    });
+    // Tier data from server
+    const tierConfig = {
+        min: <%= config.min %>,
+        max: <%= config.max %>,
+        percentageRate: <%= tierPercentageRate %>
+    };
+
+    // Generate preset buttons based on tier range
+    function generatePresets() {
+        const container = document.getElementById('presetButtons');
+        const range = tierConfig.max - tierConfig.min;
+        const presets = [];
+        
+        // Create smart presets based on range
+        presets.push(tierConfig.min); // Minimum
+        
+        if (range > 0) {
+            const quarter = Math.round(tierConfig.min + (range * 0.25));
+            const half = Math.round(tierConfig.min + (range * 0.5));
+            const threeQuarter = Math.round(tierConfig.min + (range * 0.75));
+            
+            if (quarter > tierConfig.min) presets.push(quarter);
+            if (half > quarter) presets.push(half);
+            if (threeQuarter > half) presets.push(threeQuarter);
+        }
+        
+        presets.push(tierConfig.max); // Maximum
+        
+        // Remove duplicates and sort
+        const uniquePresets = [...new Set(presets)].sort((a, b) => a - b);
+        
+        container.innerHTML = uniquePresets.map((amount, index) => {
+            const isFirst = index === 0;
+            return `<button type="button" class="preset-btn ${isFirst ? 'active' : ''}" 
+                    onclick="setPresetAmount(${amount}, this)" data-amount="${amount}">
+                    $${amount.toLocaleString()}
+                    ${index === 0 ? '(Min)' : index === uniquePresets.length - 1 ? '(Max)' : ''}
+                    </button>`;
+        }).join('');
+    }
+
+    function setPresetAmount(amount, btn) {
+        document.getElementById('customAmount').value = amount;
+        document.getElementById('amountSlider').value = amount;
+        updateCoverageEstimate(amount);
+        
+        // Update active state
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function syncFromInput() {
+        const input = document.getElementById('customAmount');
+        const slider = document.getElementById('amountSlider');
+        let val = parseInt(input.value);
+        
+        if (isNaN(val)) val = tierConfig.min;
+        if (val > tierConfig.max) val = tierConfig.max;
+        if (val < tierConfig.min) val = tierConfig.min;
+        
+        input.value = val;
+        slider.value = val;
+        updateCoverageEstimate(val);
+        updatePresetActive(val);
+    }
+    
+    function syncFromSlider() {
+        const slider = document.getElementById('amountSlider');
+        const input = document.getElementById('customAmount');
+        const val = parseInt(slider.value);
+        input.value = val;
+        updateCoverageEstimate(val);
+        updatePresetActive(val);
+    }
+
+    function updateCoverageEstimate(amount) {
+        const coverageEl = document.getElementById('coverageEstimate');
+        const rate = tierConfig.percentageRate / 100;
+        const estimatedFloat = amount / rate;
+        coverageEl.textContent = '$' + Math.round(estimatedFloat).toLocaleString();
+    }
+
+    function updatePresetActive(val) {
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            const btnAmount = parseInt(btn.dataset.amount);
+            btn.classList.toggle('active', btnAmount === val);
+        });
+    }
 
     function selectMobileMethod(method) {
         document.getElementById('tab-ecocash').classList.remove('active');
@@ -109,11 +700,20 @@
         input.placeholder = method === 'ecocash' ? '077XXXXXXX' : '071XXXXXXX';
     }
 
+    function triggerStandardGateway(e) {
+        e.preventDefault();
+        const amount = document.getElementById('customAmount').value;
+        if(!amount) return alert("Please specify an amount.");
+        window.location.href = `/checkout/standard-gateway?tier=<%= tier %>&amount=${amount}`;
+    }
+
     async function triggerMobilePush() {
         const phone = document.getElementById('mobileNumber').value;
         const method = document.getElementById('selectedMethod').value;
+        const amount = document.getElementById('customAmount').value;
         
         if(!phone || phone.length < 9) return alert("Please enter a valid mobile number.");
+        if(!amount) return alert("Please specify an amount.");
 
         document.getElementById('payment-ui').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
@@ -122,7 +722,12 @@
             const response = await fetch('/api/checkout/mobile-push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tier: '<%= tier %>', phone: phone, method: method })
+                body: JSON.stringify({ 
+                    tier: '<%= tier %>', 
+                    phone: phone, 
+                    method: method, 
+                    customAmount: amount 
+                })
             });
             const data = await response.json();
             
@@ -151,6 +756,12 @@
             window.location.reload();
         }
     }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        generatePresets();
+        updateCoverageEstimate(<%= config.min %>);
+    });
 </script>
 </body>
 </html>

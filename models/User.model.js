@@ -19,6 +19,9 @@ const UserSchema = new mongoose.Schema({
     mt5AccountNumber: Number,
     prepaymentAmount: Number,
     termsAgreed: { type: Boolean, default: false },
+
+    // In models/User.model.js, add:
+affiliateCommission: { type: Number, default: 0 },
     
     // --- S.M.A.R.T INTEGRATION (DOUBLING RULE) ---
     creditWalletBalance: { type: Number, default: 0 }, 

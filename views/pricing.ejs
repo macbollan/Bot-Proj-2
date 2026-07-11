@@ -1,194 +1,209 @@
-<%- include('partials/header', { title: 'Choose Your Trading Level | D.E.T System', page: 'pricing' }) %>
+<%- include('partials/header', { title: 'Trading Levels | D.E.T System', page: 'pricing' }) %>
 
 <style>
-    .page-heading { text-align: center; padding: 40px 0; }
-    .page-heading h2 { color: var(--det-green); font-size: 36px; font-weight: 700; margin-bottom: 10px; }
-    .step-indicator { text-transform: uppercase; letter-spacing: 2px; font-size: 13px; color: var(--det-green); font-weight: 600; display: block; margin-bottom: 15px; }
-
-    .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; padding-bottom: 40px; }
-    .tier-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 35px 25px; width: 100%; max-width: 350px; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    .tier-card:hover { border-color: var(--det-green); transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-    .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--det-green), #728352); opacity: 0; transition: opacity 0.3s; }
+    .page-heading { text-align: center; padding: 30px 0 10px; }
+    .page-heading h2 { color: var(--det-green); font-size: 32px; font-weight: 700; margin-bottom: 5px; }
+    
+    /* Elegant Grid Layout */
+    .pricing-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+        gap: 25px; 
+        padding-bottom: 60px; 
+    }
+    
+    .tier-card { 
+        background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; 
+        padding: 25px 20px; width: 100%; transition: all 0.3s ease; 
+        position: relative; overflow: hidden; display: flex; flex-direction: column; 
+    }
+    .tier-card:hover { border-color: var(--det-green); transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--det-green), #728352); opacity: 0; transition: opacity 0.3s; }
     .tier-card:hover::before { opacity: 1; }
 
-    .tier-name { color: #ffffff !important; font-size: 22px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-    .tier-float { color: #cbd5e1 !important; font-size: 13px; margin-bottom: 12px; font-weight: 400; }
-    .tier-price { color: var(--det-green) !important; font-size: 38px; font-weight: 700; margin-bottom: 2px; line-height: 1; }
-    .tier-rate { color: #cbd5e1 !important; font-size: 14px; margin-bottom: 18px; }
+    /* The Info Icon embedded in every card */
+    .card-info-icon {
+        position: absolute; top: 15px; right: 15px; color: #64748b; font-size: 18px; cursor: pointer; transition: color 0.3s;
+    }
+    .card-info-icon:hover { color: var(--det-green); }
+
+    /* Crisp Data Rows */
+    .tier-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left;
+    }
+    .tier-row:last-of-type { border-bottom: none; margin-bottom: 20px; }
     
-    .tier-details { background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 8px; margin-bottom: 18px; text-align: left; }
-    .tier-details span { display: block; font-size: 12px; color: #cbd5e1 !important; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .tier-details strong { color: #fff !important; font-size: 15px; }
+    .tier-label { font-size: 11px; color: #cbd5e1; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; width: 60%; line-height: 1.3; }
+    .tier-val { font-size: 13px; color: #f8fafc; font-weight: 600; width: 40%; text-align: right; }
+    .tier-val.highlight { color: var(--det-green); font-size: 15px; font-weight: 800; }
 
-    .tier-prepaid {
-        background: rgba(176, 191, 150, 0.08);
-        border: 1px solid rgba(176, 191, 150, 0.15);
-        border-radius: 6px;
-        padding: 10px 12px;
-        margin-bottom: 18px;
-        text-align: left;
-    }
-    .tier-prepaid span { 
-        display: block; 
-        font-size: 11px; 
-        color: #cbd5e1 !important; 
-        text-transform: uppercase; 
-        letter-spacing: 0.5px;
-        margin-bottom: 2px;
-    }
-    .tier-prepaid strong { 
-        color: var(--det-green) !important; 
-        font-size: 16px; 
-        font-weight: 700;
-    }
+    .btn-secure { background: transparent; color: var(--det-green) !important; border: 1px solid var(--det-green); border-radius: 6px; padding: 12px 20px; font-weight: 700; font-size: 13px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: auto; }
+    .btn-secure:not(:disabled):hover { background: var(--det-green); color: var(--det-dark) !important; }
+    .btn-secure:disabled { border-color: #475569; color: #cbd5e1 !important; cursor: not-allowed; }
+    .terms-note { display: block; text-align: center; font-size: 10px; color: #64748b; margin-top: 10px; }
 
-    .btn-secure { background: transparent; color: var(--det-green) !important; border: 1px solid var(--det-green); border-radius: 6px; padding: 12px 20px; font-weight: 600; font-size: 14px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: auto; }
-    .btn-secure:hover { background: var(--det-green); color: var(--det-dark) !important; }
+    /* Disclaimers Section at Bottom */
+    .disclaimer-section { background: rgba(0,0,0,0.2); border-top: 1px solid var(--det-border); padding: 40px 0; margin-top: 40px; }
+    .warning-box { background: rgba(240, 192, 64, 0.05); border-left: 3px solid #f0c040; padding: 12px 15px; border-radius: 6px; margin-bottom: 12px; }
+    .warning-box p { margin-bottom: 0; font-size: 12px; color: #cbd5e1 !important; line-height: 1.6; }
+    .warning-box strong { color: #f0c040; }
 
+    /* Modals */
     .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
     .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
     .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
     .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
-    
     .terms-box { background: var(--det-dark); border: 1px solid var(--det-border); border-radius: 8px; padding: 15px; height: 180px; overflow-y: auto; font-size: 12px; color: #cbd5e1 !important; margin-bottom: 15px; text-align: left;}
     .terms-box::-webkit-scrollbar { width: 6px; }
     .terms-box::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
-    
     .form-check-input { background-color: var(--det-dark); border: 1px solid var(--det-green); width: 18px; height: 18px; cursor: pointer; }
     .form-check-input:checked { background-color: var(--det-green); border-color: var(--det-green); }
-    .form-check-input:focus { box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.25); }
-
     .btn-det-modal { background-color: var(--det-green) !important; color: var(--det-dark) !important; font-weight: 700 !important; border: none !important; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
     .btn-det-modal:disabled { background-color: #475569 !important; color: #cbd5e1 !important; cursor: not-allowed; opacity: 1 !important; }
-
-    /* Full Disclaimer Section */
-    .disclaimer-section {
-        background: var(--det-card);
-        border: 1px solid var(--det-border);
-        border-radius: 12px;
-        padding: 35px 40px;
-        margin: 20px 0 60px;
-    }
-    .disclaimer-section h4 {
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 16px;
-    }
-    .disclaimer-section h4.text-accent {
-        color: var(--det-green);
-    }
-    .disclaimer-section p {
-        color: #cbd5e1 !important;
-        font-size: 14px;
-        line-height: 1.8;
-        margin-bottom: 12px;
-    }
-    .disclaimer-section .warning-box {
-        background: rgba(176, 191, 150, 0.06);
-        border-left: 4px solid #f0c040;
-        padding: 14px 18px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-    }
-    .disclaimer-section .warning-box p {
-        margin-bottom: 0;
-        font-size: 14px;
-    }
-    .disclaimer-section .warning-box strong {
-        color: #f0c040;
-    }
-    .disclaimer-section .divider {
-        border-top: 1px solid var(--det-border);
-        margin: 20px 0;
-    }
-    @media (max-width: 768px) {
-        .disclaimer-section {
-            padding: 24px 18px;
-        }
-        .disclaimer-section p {
-            font-size: 13px;
-        }
-    }
 </style>
 
 <div class="container flex-grow-1">
     <div class="page-heading">
-        <span class="step-indicator">Step 1 of 4</span>
         <h2>Choose Your Trading Level</h2>
-        <p class="text-secondary">Select the D.E.T tier that aligns with your custodial account float size.</p>
+    </div>
+
+    <!-- The Top Info Button -->
+    <div class="text-center mb-5">
+        <button data-bs-toggle="modal" data-bs-target="#manifestoModal" class="btn btn-outline-light rounded-pill px-4" style="font-size: 13px; font-weight: 600;">
+            <i class="bi bi-info-circle me-2 text-accent"></i>How Pricing Works
+        </button>
     </div>
 
     <% if(error && error.length > 0) { %> 
-        <div class="alert alert-danger text-center mx-auto mb-4" style="background: rgba(255,0,0,0.1); border-color: red; color: #ff6b6b; max-width: 600px; border-radius: 8px;">
+        <div class="alert alert-danger text-center mx-auto mb-4" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; max-width: 600px; border-radius: 8px;">
             <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
         </div> 
     <% } %>
 
+    <!-- ===== SVELTE PRICING GRID ===== -->
     <div class="pricing-grid">
         <% tiers.forEach(function(tier) { %>
             <div class="tier-card">
-                <h3 class="tier-name"><%= tier.name %></h3>
-                <div class="tier-float"><%= tier.range %></div>
-                <div class="tier-price"><%= tier.amount %></div>
-                <div class="tier-rate"><%= tier.rate %></div>
-                <div class="tier-details">
-                    <span>Approved Trading Float</span>
-                    <strong><%= tier.range %></strong>
+                <!-- Info Icon on every card -->
+                <i class="bi bi-info-circle card-info-icon" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
+                
+                <div class="tier-row pt-0">
+                    <span class="tier-label">Grade / Level</span>
+                    <span class="tier-val highlight"><%= tier.name %> <%= tier.designation %></span>
                 </div>
-                <div class="tier-prepaid">
-                    <span>Prepayment Amount</span>
-                    <strong><%= tier.prepaid %></strong>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Estimated Trading Float in your account</span>
+                    <span class="tier-val"><%= tier.float %></span>
                 </div>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Subscription Percentage</span>
+                    <span class="tier-val"><%= tier.percentage %></span>
+                </div>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Subscription Period</span>
+                    <span class="tier-val"><%= tier.period %></span>
+                </div>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Minimum Subscription</span>
+                    <span class="tier-val"><%= tier.minSub %></span>
+                </div>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Maximum Subscription</span>
+                    <span class="tier-val"><%= tier.maxSub %></span>
+                </div>
+
                 <% if(tier.name === "Amber") { %>
-                    <button type="button" class="btn-secure mt-auto" disabled style="border-color: #444; color: #555 !important; cursor: not-allowed;">Not Available</button>
+                    <button type="button" class="btn-secure mt-auto" disabled>Not Available</button>
                 <% } else { %>
-                    <button type="button" class="btn-secure mt-auto" onclick="openCheckoutModal('<%= tier.name %>')">Select <%= tier.name %> Level</button>
+                    <button type="button" class="btn-secure mt-auto" onclick="openCheckoutModal('<%= tier.name %>')">Subscribe to <%= tier.name %></button>
+                    <span class="terms-note">Click to agree to terms and conditions</span>
                 <% } %>
             </div>
         <% }); %>
     </div>
+</div>
 
-    <!-- ===== FULL DISCLAIMER SECTION ===== -->
-    <div class="disclaimer-section">
-        <h4>Terms and Conditions</h4>
-        <p>When the float size doubles using D.E.T System – thus 100% (one hundred percent) increase of float size in user's trading account after D.E.T activation – automatically we log out the user from D.E.T, regardless of remaining log-in time. After we log out the user, behind the scenes D.E.T will manage the current open trades until they close by the preset Take-Profit or by Stop-Loss. Account User won't be able to enter new trades before these pending trades close, unless if user voluntarily closes all of them.</p>
-
-        <div class="divider"></div>
-
-        <h4 class="text-accent">Disclaimer: We shall not be held responsible for your loss</h4>
-        <p>Caveat Subscriptor, we are "NOT an Advisory Institution" "NOT an Investment Institution", "NOT an Investment Advisor" we offer "NO Guarantees" these are just our opinions and in High-Risk trading you ACTUALLY may lose all your capital.</p>
-
+<!-- ===== DISCLAIMERS ONLY AT BOTTOM ===== -->
+<div class="disclaimer-section">
+    <div class="container" style="max-width: 900px;">
+        <h5 class="text-white fw-bold mb-3"><i class="bi bi-shield-exclamation text-accent me-2"></i>Terms and Legal Disclaimers</h5>
+        
+        <div class="warning-box">
+            <p><strong>⚠️ Automatic Disconnect:</strong> When the float size doubles using D.E.T System – thus 100% (one hundred percent) increase of float size in user's trading account after D.E.T activation – automatically we log out the user from D.E.T, regardless of remaining log-in time. After we log out the user, behind the scenes D.E.T will manage the current open trades until they close by the preset Take-Profit or by Stop-Loss. Account User won't be able to enter new trades before these pending trades close, unless if user voluntarily closes all of them.</p>
+        </div>
+        <div class="warning-box">
+            <p><strong>⚠️ No Guarantees:</strong> Caveat Subscriptor, we are "NOT an Advisory Institution" "NOT an Investment Institution", "NOT an Investment Advisor" we offer "NO Guarantees" these are just our opinions and in High-Risk trading you ACTUALLY may lose all your capital.</p>
+        </div>
         <div class="warning-box">
             <p><strong>⚠️ Warning:</strong> There is NO Top-up option.</p>
         </div>
-
         <div class="warning-box">
-            <p><strong>⚠️ Warning:</strong> When your account is diverted to a lower designated Grade/Level, if there is any remaining balance on your prepaid amount, it will be activated at another designated lower Grade/Level, when your current login time expires, until your total prepayment amount is fully utilised accordingly. As a prerequisite you agree to only withdraw from earned amount from your account.</p>
+            <p><strong>⚠️ Diverted Accounts:</strong> When your account is diverted to a lower designated Grade/Level, if there is any remaining balance on your prepaid amount, it will be activated at another designated lower Grade/Level, when your current login time expires, until your total prepayment amount is fully utilised accordingly. As a prerequisite you agree to only withdraw from earned amount from your account.</p>
         </div>
-
         <div class="warning-box">
-            <p><strong>⚠️ Warning:</strong> D.E.T will do a Zero-Hedging when the account doubles (100% gain). Meaning all positive and negative trades in the entire account will be combined, such that when these open trades neutralise each other to a Breakeven, D.E.T will instantaneously close all trades, at the minimalistic loss as possible.<br><em>N.B: To avoid this, make a quick prepayment to reactivate D.E.T.</em></p>
+            <p><strong>⚠️ Zero-Hedging:</strong> D.E.T will do a Zero-Hedging when the account doubles (100% gain). Meaning all positive and negative trades in the entire account will be combined, such that when these open trades neutralise each other to a Breakeven, D.E.T will instantaneously close all trades, at the minimalistic loss as possible. <em>N.B: To avoid this, make a quick prepayment to reactivate D.E.T.</em></p>
         </div>
-
         <div class="warning-box">
-            <p><strong>⚠️ Warning:</strong> If you make any withdrawals from your account, the equivalent amount will be withdrawn from your expected "double profit" gain.</p>
+            <p><strong>⚠️ Withdrawals:</strong> If you make any withdrawals from your account, the equivalent amount will be withdrawn from your expected "double profit" gain.</p>
         </div>
-
         <div class="warning-box">
-            <p><strong>⚠️ Warning:</strong> If you upload D.E.T onto an active account with open trades, you run the risk of all trades being taken over by D.E.T. Some trades may be closed. Others may be trailed. While others put on preset SL or TP.</p>
+            <p><strong>⚠️ Active Trades:</strong> If you upload D.E.T onto an active account with open trades, you run the risk of all trades being taken over by D.E.T. Some trades may be closed. Others may be trailed. While others put on preset SL or TP.</p>
         </div>
     </div>
 </div>
 
+<!-- ===== TRANSPARENCY MANIFESTO MODAL ===== -->
+<div class="modal fade" id="manifestoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-book text-accent me-2"></i>D.E.T Pricing Transparency</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="fw-bold mb-4" style="color: var(--det-green); font-size: 16px;">"You only pay according to your trading capital."</p>
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.7;">D.E.T Pricing Page exists to explain to you the participant, the subscription structure with complete transparency.</p>
+                
+                <h6 class="text-white mt-4 fw-bold">Designed To Grow With You</h6>
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.7;">D.E.T is designed to support traders at every stage of your journey. Whether you are starting with a modest trading account or managing institutional-scale capital, every subscription tier provides access to the D.E.T architecture. The only difference is the trading capital being supported.</p>
+                
+                <h6 class="text-white mt-4 fw-bold">Why Percentage-Based Pricing?</h6>
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.7;">Traditional software often charges every client exactly the same amount regardless of the value received. D.E.T follows a different philosophy. As your trading capital grows, the scale of responsibility, risk management, data processing and decision support also grows. Our pricing therefore aligns with the trading capital being supported, creating a fair and scalable structure for every trader.</p>
+
+                <h6 class="text-white mt-4 fw-bold">How It Works</h6>
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.7;">Your subscription level is determined by your trading float. After activation, D.E.T verifies the trading capital connected to your account. If your prepaid subscription does not match the detected trading float, the system automatically aligns your account to the correct designated level. This ensures fairness across the entire D.E.T ecosystem while maintaining the integrity of every subscription tier.</p>
+                
+                <h6 class="text-white mt-4 fw-bold">Transparency Matters</h6>
+                <p style="color: #cbd5e1; font-size: 13px; line-height: 1.7;">
+                    • No hidden charges.<br>
+                    • No profit sharing.<br>
+                    • No access to your trading account.<br>
+                    • No access to your money.<br>
+                    • No access to your login credentials.<br><br>
+                    <strong class="text-white">Your trading capital always remains under your custody. You remain in complete control throughout your trading journey.</strong>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light text-white w-100" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CHECKOUT MODAL ===== -->
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock text-accent me-2"></i>D.E.T Agreement</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            
             <form action="/checkout/initialize" method="POST" id="tierForm">
                 <div class="modal-body">
                     <input type="hidden" name="selectedTier" id="modalTierInput" value="">
@@ -203,8 +218,7 @@
                         <p style="color: inherit;">1. D.E.T System is NOT an Investment Institution, nor an Investment Advisor.</p>
                         <p style="color: inherit;">2. Caveat Subscriptor: There are NO guarantees of profit. Trading carries a high level of risk.</p>
                         <p style="color: inherit;">3. Zero-Hedge Protocol: If your account reaches 100% gain, the D.E.T connection will suspend.</p>
-                        <p style="color: inherit;">4. The System executes purely on logic and data analytics without human intervention.</p>
-                        <p style="color: inherit; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;"><strong style="color: #f0c040;">⚠️ Warning:</strong> No Top-up option. Account may be diverted to lower grade.</p>
+                        <p style="color: inherit;">4. Diverted Account Warning: Account may be diverted to lower grade if prepaid subscription differs from trading float.</p>
                     </div>
 
                     <div class="form-check mt-3 d-flex align-items-center gap-2 text-start">
@@ -223,29 +237,32 @@
     </div>
 </div>
 
-<footer role="contentinfo" style="background: var(--det-card); padding: 30px 0; border-top: 1px solid var(--det-border); text-align: center; margin-top: auto;">
-    <div class="container">
-        <p style="color: #cbd5e1 !important; font-size: 14px; margin: 0;">Copyright © 2026 D.E.T System. All Rights Reserved.</p>
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Modal Script - Place this at the end of pricing.ejs -->
 <script>
-    document.getElementById('mobile-toggle').addEventListener('click', function() {
-        document.getElementById('nav-menu').classList.toggle('active');
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkoutModalEl = document.getElementById('checkoutModal');
+        // Initialize Bootstrap Modal only if it exists on the page
+        const checkoutModal = checkoutModalEl ? new bootstrap.Modal(checkoutModalEl) : null;
+        const termsCheck = document.getElementById('termsCheck');
+        const proceedBtn = document.getElementById('proceedBtn');
+
+        // Define function globally so the button onclick can find it
+        window.openCheckoutModal = function(tierName) {
+            if (!checkoutModal) return;
+            termsCheck.checked = false; 
+            proceedBtn.disabled = true;
+            document.getElementById('modalTierDisplay').innerText = tierName;
+            document.getElementById('modalTierInput').value = tierName;
+            checkoutModal.show();
+        };
+
+        // Enable/Disable button
+        if (termsCheck) {
+            termsCheck.addEventListener('change', function() {
+                proceedBtn.disabled = !this.checked;
+            });
+        }
     });
-
-    const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
-    const termsCheck = document.getElementById('termsCheck');
-    const proceedBtn = document.getElementById('proceedBtn');
-
-    function openCheckoutModal(tierName) {
-        termsCheck.checked = false; proceedBtn.disabled = true;
-        document.getElementById('modalTierDisplay').innerText = tierName;
-        document.getElementById('modalTierInput').value = tierName;
-        checkoutModal.show();
-    }
-    termsCheck.addEventListener('change', function() { proceedBtn.disabled = !this.checked; });
 </script>
-</body>
-</html>
+
+<%- include('partials/footer') %>

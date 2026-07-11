@@ -1,620 +1,651 @@
-<%- include('partials/header', { title: 'Client Dashboard | D.E.T System', page: 'dashboard', hideNav: true }) %>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<%- include('partials/header', { title: 'Dashboard | D.E.T System', page: 'dashboard' }) %>
 
 <style>
-        /* Dashboard uses its own fixed sidebar for navigation, so cancel out
-           the top-navbar spacing that partials/header applies by default. */
-        body {
-            padding-top: 0 !important;
-            display: block !important;
-        }
+    :root {
+        --det-border: rgba(176, 191, 150, 0.15);
+    }
 
-        :root {
-            --det-border: rgba(176, 191, 150, 0.15);
-            --sidebar-width: 260px;
-        }
+    /* =========================================
+       DASHBOARD LAYOUT
+    ========================================= */
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
 
-        /* =========================================
-           INSTITUTIONAL SIDEBAR
-        ========================================= */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background-color: var(--det-card);
-            border-right: 1px solid var(--det-border);
-            z-index: 1050;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
-        }
-        .sidebar-header {
-            padding: 25px 20px;
-            border-bottom: 1px solid var(--det-border);
-        }
-        .text-logo {
-            color: var(--det-green);
-            font-size: 22px;
-            font-weight: 800;
-            text-decoration: none;
-            letter-spacing: 1px;
-        }
-        .text-logo span { color: #ffffff; font-weight: 300; }
-        
-        .sidebar-nav {
-            padding: 20px 10px;
-            flex-grow: 1;
-        }
-        .nav-item {
-            margin-bottom: 5px;
-        }
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .nav-link i { margin-right: 12px; font-size: 18px; }
-        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .nav-link.active {
-            color: var(--det-dark);
-            background: var(--det-green);
-            font-weight: 600;
-        }
+    /* Quick Navigation Bar */
+    .quick-nav {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 8px 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .quick-nav-label {
+        color: #94a3b8;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+    .quick-nav a {
+        color: #cbd5e1;
+        text-decoration: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+    }
+    .quick-nav a:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.05);
+        border-color: var(--det-border);
+    }
+    .quick-nav a.active-page {
+        background: rgba(176, 191, 150, 0.15);
+        color: var(--det-green);
+        border-color: rgba(176, 191, 150, 0.3);
+        font-weight: 600;
+    }
+    .quick-nav a i { font-size: 13px; }
 
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--det-border);
-            font-size: 12px;
-            color: #94a3b8;
-        }
+    /* Welcome Hero */
+    .welcome-hero {
+        background: linear-gradient(135deg, var(--det-card) 0%, #241f1f 100%);
+        border: 1px solid var(--det-border);
+        border-radius: 16px;
+        padding: 30px 35px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+    .welcome-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(176,191,150,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+    }
+    .welcome-hero h1 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+    }
+    .welcome-hero .subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-bottom: 0;
+    }
 
-        /* =========================================
-           MAIN CONTENT AREA
-        ========================================= */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: margin-left 0.3s ease;
-        }
+    /* Status Cards Grid */
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .status-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .status-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(176, 191, 150, 0.3);
+    }
+    .status-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .status-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 3px;
+    }
+    .status-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+    }
 
-        /* Top Bar */
-        .top-bar {
-            background-color: var(--det-dark);
-            padding: 15px 30px;
-            border-bottom: 1px solid var(--det-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1040;
-        }
-        .mobile-toggle {
-            display: none;
-            color: var(--det-green);
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
+    /* Integration Card */
+    .integration-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 14px;
+        padding: 28px;
+        margin-bottom: 28px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .key-display {
+        background: var(--det-dark);
+        border: 1px dashed var(--det-green);
+        border-radius: 8px;
+        padding: 14px 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 20px;
+        letter-spacing: 3px;
+        color: var(--det-green);
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    .key-display.blurred {
+        filter: blur(6px);
+        border-color: #475569;
+        color: #94a3b8;
+        user-select: none;
+    }
+    .key-display:hover { border-style: solid; }
 
-        /* Cards & Widgets */
-        .dashboard-wrapper {
-            padding: 30px;
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        .glass-card { 
-            background: var(--det-card); 
-            border: 1px solid var(--det-border); 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-            padding: 25px; 
-            height: 100%; 
-        }
-        .text-accent { color: var(--det-green) !important; }
-        
-        .key-box { 
-            background: var(--det-dark); border: 1px dashed var(--det-green); border-radius: 8px; 
-            font-family: 'Courier New', monospace; letter-spacing: 2px; 
-            transition: all 0.3s; cursor: pointer; color: var(--det-green);
-        }
-        .key-box:hover { border-style: solid; background: rgba(176, 191, 150, 0.1); }
-        .key-hidden { filter: blur(5px); user-select: none; color: #fff; border-color: #475569; }
+    /* Live Feed Card */
+    .feed-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .metric-mini {
+        background: var(--det-dark);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+    }
+    .metric-mini .label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    .metric-mini .value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+    }
+    .metric-mini .value.accent { color: var(--det-green); }
 
-        canvas { max-height: 250px; width: 100%; }
+    /* Buttons */
+    .btn-det {
+        background: var(--det-green);
+        color: var(--det-dark);
+        font-weight: 600;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-det:hover {
+        background: var(--det-green-hover);
+        color: #000;
+        transform: translateY(-1px);
+    }
+    .btn-outline-det {
+        background: transparent;
+        color: var(--det-green);
+        border: 1px solid var(--det-green);
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-outline-det:hover {
+        background: rgba(176, 191, 150, 0.1);
+        color: #fff;
+        border-color: #fff;
+    }
 
-        .btn-det {
-            background: var(--det-green); color: var(--det-dark); font-weight: 600;
-            transition: all 0.3s; border: none;
-        }
-        .btn-det:hover { background: var(--det-green-hover); color: #000; }
+    /* Alerts */
+    .alert-custom {
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        /* Mobile Adjustments */
-        @media (max-width: 991px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.show { transform: translateX(0); }
-            .main-content { margin-left: 0; }
-            .mobile-toggle { display: block; }
-            .top-bar { padding: 15px 20px; }
-            .dashboard-wrapper { padding: 20px 15px; }
-        }
-
-        /* =========================================
-           WELCOME BANNER
-        ========================================= */
-        .welcome-banner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .welcome-banner h3 { font-weight: 700; margin: 0; }
-        .welcome-banner p { color: #cbd5e1; margin: 4px 0 0; font-size: 14px; }
-        .status-pill {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);
-            color: var(--det-green); padding: 8px 16px; border-radius: 30px;
-            font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        /* =========================================
-           TOP BAR PROFILE MENU
-        ========================================= */
-        .profile-trigger { cursor: pointer; border: none; background: none; padding: 0; }
-        .profile-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            background-color: var(--det-card) !important; border: 1px solid var(--det-border);
-            transition: border-color 0.2s;
-        }
-        .profile-trigger:hover .profile-avatar { border-color: var(--det-green); }
-        .profile-dropdown-menu {
-            background: var(--det-card); border: 1px solid var(--det-border);
-            border-radius: 10px; padding: 8px; min-width: 210px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
-        .profile-dropdown-menu .dropdown-item {
-            color: #f8fafc; border-radius: 6px; padding: 10px 12px; font-size: 14px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .profile-dropdown-menu .dropdown-item i { color: var(--det-green); width: 16px; }
-        .profile-dropdown-menu .dropdown-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .profile-dropdown-menu .dropdown-item.text-danger i { color: #ef4444; }
-        .profile-dropdown-menu .dropdown-divider { border-color: var(--det-border); margin: 6px 0; }
-
-        /* =========================================
-           INTEGRATION ID — HERO CARD
-        ========================================= */
-        .integration-hero {
-            background: linear-gradient(135deg, var(--det-card) 0%, #241f1f 100%);
-            border: 1px solid var(--det-border);
-            border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-            padding: 28px;
-        }
-
-        /* =========================================
-           MODALS (Dark Theme)
-        ========================================= */
-        .modal-content {
-            background: var(--det-card);
-            border: 1px solid var(--det-border);
-            border-radius: 14px;
-            color: #f8fafc;
-        }
-        .modal-header { border-bottom: 1px solid var(--det-border); }
-        .modal-footer { border-top: 1px solid var(--det-border); }
-        .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-        .modal .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-        .modal .form-control {
-            background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important; padding: 10px 14px; border-radius: 6px; font-size: 14px;
-        }
-        .modal .form-control:focus { background: rgba(0,0,0,0.3) !important; border-color: var(--det-green) !important; box-shadow: 0 0 0 0.2rem rgba(176, 191, 150, 0.15) !important; }
-        .modal .form-text { color: #94a3b8; font-size: 12.5px; }
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-container { padding: 0 12px; }
+        .welcome-hero { padding: 22px 20px; }
+        .welcome-hero h1 { font-size: 22px; }
+        .quick-nav { gap: 4px; padding: 10px 12px; }
+        .quick-nav a { padding: 5px 10px; font-size: 11px; }
+    }
 </style>
 
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="/" class="text-logo">D.E.T <span>SYSTEM</span></a>
-        </div>
-        <div class="sidebar-nav">
-            <div class="nav-item">
-                <a href="/dashboard" class="nav-link active">
-                    <i class="bi bi-grid-1x2-fill"></i> Trading Environment
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/pricing" class="nav-link">
-                    <i class="bi bi-arrow-up-circle"></i> Upgrade D.E.T Plan
-                </a>
-            </div>
-            <div class="nav-item mt-4">
-                <small class="text-uppercase fw-bold text-muted ms-3 mb-2 d-block" style="font-size: 11px;">Settings</small>
-                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="bi bi-person-badge"></i> My Profile
-                </a>
-                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                    <i class="bi bi-shield-lock"></i> Change Password
-                </a>
-                <a href="/logout" class="nav-link text-danger mt-2">
-                    <i class="bi bi-power"></i> Secure Logout
-                </a>
-            </div>
-        </div>
-        <div class="sidebar-footer">
-            <div class="d-flex align-items-center">
-                <span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;"></span>
-                Node Server Online
-            </div>
-        </div>
-    </nav>
+<div class="dashboard-container" style="margin-top: 30px; margin-bottom: 60px;">
 
-    <main class="main-content">
-        
-        <header class="top-bar">
-            <button class="mobile-toggle" id="sidebarToggle">
-                <i class="bi bi-list"></i>
-            </button>
-            <h4 class="mb-0 fw-bold d-none d-md-block" style="color: #fff;">Terminal Dashboard</h4>
-            
-            <div class="d-flex align-items-center gap-3">
-                <div class="text-end d-none d-sm-block">
-                    <small class="text-muted d-block" style="font-size: 11px; line-height: 1;">Logged in as</small>
-                    <span class="fw-bold" style="font-size: 14px;"><%= currentUser.username.toUpperCase() %></span>
-                </div>
-                <div class="dropdown">
-                    <button class="profile-trigger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="list-style: none;">
-                        <div class="profile-avatar rounded-circle">
-                            <i class="bi bi-person-fill text-accent"></i>
-                        </div>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-person-badge"></i> Edit Profile</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-shield-lock"></i> Change Password</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-power"></i> Secure Logout</a></li>
-                    </ul>
-                </div>
-            </div>
-        </header>
+    <!-- =========================================
+         FLASH MESSAGES
+    ========================================= -->
+    <% if(success && success.length > 0) { %>
+        <div class="alert-custom" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e;">
+            <i class="bi bi-check-circle-fill"></i> <%= success %>
+        </div>
+    <% } %>
+    <% if(error && error.length > 0) { %>
+        <div class="alert-custom" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444;">
+            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+        </div>
+    <% } %>
 
-        <div class="dashboard-wrapper">
-            
-            <% if(success && success.length > 0) { %> 
-                <div class="alert bg-success bg-opacity-10 border-success text-success fw-bold" style="border-radius: 8px;">
-                    <i class="bi bi-check-circle me-2"></i><%= success %>
-                </div> 
-            <% } %>
-            <% if(error && error.length > 0) { %> 
-                <div class="alert bg-danger bg-opacity-10 border-danger text-danger fw-bold" style="border-radius: 8px;">
-                    <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
-                </div> 
-            <% } %>
+    <!-- =========================================
+         QUICK NAVIGATION BAR
+    ========================================= -->
+    <div class="quick-nav">
+        <span class="quick-nav-label">Navigate:</span>
+        <a href="/" class=""><i class="bi bi-house"></i> Home</a>
+        <a href="/dashboard" class="active-page"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/pricing"><i class="bi bi-tags"></i> Pricing Plans</a>
+        <a href="/training"><i class="bi bi-mortarboard"></i> Training</a>
+        <a href="/affiliate"><i class="bi bi-diagram-3"></i> Affiliate</a>
+        <a href="/logout" style="color: #ef4444; margin-left: auto;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
 
-            <div class="welcome-banner">
+    <!-- =========================================
+         WELCOME HERO
+    ========================================= -->
+    <div class="welcome-hero">
+        <div class="welcome-content">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
-                    <h3>Welcome back, <%= currentUser.username %></h3>
-                    <p>Here's the current state of your D.E.T trading environment.</p>
+                    <h1 style="color: #fff;">Welcome, <%= currentUser.username %></h1>
+                    <p class="subtitle">Your D.E.T trading environment is ready. Monitor your license and live market data below.</p>
                 </div>
-                <div class="status-pill">
-                    <span class="spinner-grow spinner-grow-sm" style="width: 8px; height: 8px; color: var(--det-green);"></span>
-                    Node Server Online
+                <div style="display: flex; align-items: center; gap: 8px; background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 8px 18px; border-radius: 30px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                    <span style="color: var(--det-green); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Node Online</span>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="row g-4 mb-1">
-                <div class="col-12">
-                    <div class="integration-hero">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
-                            <h5 class="fw-bold m-0"><i class="bi bi-key text-accent me-2"></i>Integration ID</h5>
-                            <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
-                                <span class="badge" style="background: rgba(176, 191, 150, 0.15); color: var(--det-green); border: 1px solid rgba(176, 191, 150, 0.3); padding: 6px 14px; border-radius: 20px;">Key Active</span>
-                            <% } %>
-                        </div>
+    <!-- =========================================
+         STATUS CARDS
+    ========================================= -->
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
+                <i class="bi bi-award"></i>
+            </div>
+            <div>
+                <div class="status-label">D.E.T Plan</div>
+                <div class="status-value"><%= currentUser.currentTier || 'None' %></div>
+            </div>
+        </div>
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="status-label">Days Remaining</div>
+                <div class="status-value">
+                    <% 
+                        let daysLeft = 0;
+                        if(currentUser.licenseExpiry) {
+                            daysLeft = Math.ceil((new Date(currentUser.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+                            if(daysLeft < 0) daysLeft = 0;
+                        }
+                    %>
+                    <%= daysLeft %> Days
+                </div>
+            </div>
+        </div>
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+                <div class="status-label">Account Status</div>
+                <div class="status-value">
+                    <% if(currentUser.accountLocked) { %>
+                        <span style="color: #ef4444;">Locked</span>
+                    <% } else if(currentUser.isSuspended) { %>
+                        <span style="color: #f59e0b;">Suspended</span>
+                    <% } else if(currentUser.licenseKey && daysLeft > 0) { %>
+                        <span style="color: #22c55e;">Active</span>
+                    <% } else { %>
+                        <span style="color: #94a3b8;">Inactive</span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(167,139,250,0.12); color: #a78bfa;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <div class="status-label">License Expires</div>
+                <div class="status-value" style="font-size: 14px;">
+                    <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <% if(currentUser.licenseKey && !currentUser.isSuspended && new Date() < new Date(currentUser.licenseExpiry)) { %>
-                            <div class="row align-items-center g-4">
-                                <div class="col-lg-7">
-                                    <p class="text-secondary small mb-3">Click to reveal your unique 9-digit ID. Paste this into the CornerStore EA.</p>
-                                    <div class="key-box p-3 text-center fs-5 fw-bold key-hidden" id="licenseKeyBox" onclick="copyKey()">
-                                        <%= currentUser.licenseKey %>
-                                    </div>
-                                </div>
-                                <div class="col-lg-5">
-                                    <div class="row g-3">
-                                        <div class="col-6">
-                                            <small class="text-secondary text-uppercase fw-bold d-block mb-1">MT5 Lock</small>
-                                            <% if(currentUser.accountLocked) { %>
-                                                <span class="badge bg-danger">ZERO-HEDGE</span>
-                                            <% } else { %>
-                                                <span class="badge" style="background: rgba(176,191,150,0.2); color: var(--det-green);">Awaiting Ping</span>
-                                            <% } %>
-                                        </div>
-                                        <div class="col-6">
-                                            <small class="text-secondary text-uppercase fw-bold d-block mb-1">Installation</small>
-                                            <a href="/det-client.zip" class="btn btn-det btn-sm w-100">
-                                                <i class="bi bi-download me-1"></i> Client EA
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <% } else { %>
-                            <div class="alert bg-warning bg-opacity-10 border-warning text-warning mb-0" style="border-radius: 8px; font-size: 14px;">
-                                <i class="bi bi-exclamation-triangle me-2"></i>No active key. Please subscribe to generate one.
-                            </div>
-                        <% } %>
+    <!-- =========================================
+         INTEGRATION ID CARD
+    ========================================= -->
+    <div class="integration-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #fff;">
+                    <i class="bi bi-key" style="color: var(--det-green); margin-right: 8px;"></i>Integration ID
+                </h5>
+                <p style="color: #94a3b8; font-size: 13px; margin: 0;">Your unique 9‑digit key for the CornerStore EA.</p>
+            </div>
+            <div>
+                <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
+                    <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Active Key
+                    </span>
+                <% } else { %>
+                    <span style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i> No Active Key
+                    </span>
+                <% } %>
+            </div>
+        </div>
+
+        <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <div class="key-display blurred" id="licenseKeyBox" onclick="handleKeyClick()">
+                        <%= currentUser.licenseKey %>
                     </div>
+                    <small style="color: #94a3b8; display: block; text-align: center; margin-top: 8px;">
+                        <i class="bi bi-info-circle me-1"></i> Click to reveal · Click again to copy
+                    </small>
                 </div>
-            </div>
-
-            <div class="row g-4">
-                
-                <div class="col-xl-4 col-lg-5">
-                    
-                    <div class="glass-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h6 class="text-secondary fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Current D.E.T Plan</h6>
-                            <% if(currentUser.isSuspended) { %> 
-                                <span class="badge bg-danger">SUSPENDED</span>
-                            <% } else if(currentUser.licenseKey && new Date() < new Date(currentUser.licenseExpiry)) { %> 
-                                <span class="badge" style="background: var(--det-green); color: var(--det-dark);">ACTIVE</span>
-                            <% } else { %> 
-                                <span class="badge bg-secondary text-light">INACTIVE</span> 
-                            <% } %>
-                        </div>
-                        
-                        <h2 class="fw-bold mb-1"><%= currentUser.currentTier %> Level</h2>
-                        <p class="text-secondary small mb-4">S.M.A.R.T Integration Access</p>
-
-                        <div class="p-3 rounded border mb-4" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                            <div class="d-flex justify-content-between text-secondary small text-uppercase fw-bold mb-2">
-                                <span>Cycle Remaining</span>
-                                <% 
-                                    let daysLeft = 0;
-                                    if(currentUser.licenseExpiry) {
-                                        daysLeft = Math.ceil((new Date(currentUser.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
-                                        if(daysLeft < 0) daysLeft = 0;
-                                    }
-                                %>
-                                <span class="text-white"><%= daysLeft %> Days</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: var(--det-card);">
-                                <div class="progress-bar" style="width: <%= daysLeft > 0 ? '75%' : '0%' %>; background-color: var(--det-green);"></div>
-                            </div>
-                            <div class="text-end text-muted mt-2" style="font-size: 0.75rem;">
-                                Expires: <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString() : 'N/A' %>
-                            </div>
-                        </div>
-                        
-                        <a href="/pricing" class="btn btn-outline-secondary w-100 btn-sm py-2" style="border-color: var(--det-border);">
-                            Manage Plan / Upgrade
+                <div class="col-lg-5">
+                    <div class="d-grid gap-2">
+                        <a href="/det-client.zip" class="btn btn-det">
+                            <i class="bi bi-download me-2"></i> Download Client EA
+                        </a>
+                        <a href="/pricing" class="btn-outline-det text-center text-decoration-none">
+                            <i class="bi bi-arrow-up-circle me-2"></i> Upgrade Plan
                         </a>
                     </div>
                 </div>
+            </div>
+        <% } else { %>
+            <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 20px; text-align: center;">
+                <i class="bi bi-lock-fill" style="font-size: 28px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
+                <p style="color: #f59e0b; font-weight: 600; margin-bottom: 12px;">No active license key found.</p>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 16px;">Subscribe to a D.E.T plan to receive your unique Integration ID.</p>
+                <a href="/pricing" class="btn btn-det">
+                    <i class="bi bi-tags me-2"></i> View Plans
+                </a>
+            </div>
+        <% } %>
+    </div>
 
-                <div class="col-xl-8 col-lg-7">
-                    <div class="glass-card d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
-                            <h5 class="fw-bold m-0"><i class="bi bi-activity text-accent me-2"></i>CornerStore Feed</h5>
-                            <span class="badge" style="background: rgba(176, 191, 150, 0.15); color: var(--det-green); border: 1px solid rgba(176, 191, 150, 0.3); border-radius: 20px; padding: 6px 16px;">
-                                <span class="spinner-grow spinner-grow-sm me-2" style="width: 0.5rem; height: 0.5rem;"></span>Live Sync
-                            </span>
-                        </div>
+    <!-- =========================================
+         LIVE MARKET FEED
+    ========================================= -->
+    <div class="feed-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: #fff;">
+                    <i class="bi bi-activity" style="color: var(--det-green); margin-right: 8px;"></i>CornerStore Live Feed
+                </h5>
+                <p style="color: #94a3b8; font-size: 13px; margin: 0;">Real‑time data from the master trading node.</p>
+            </div>
+            <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 600;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 6px;"></span> LIVE
+            </span>
+        </div>
 
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-3 col-6">
-                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Active Asset</small>
-                                    <h5 id="ea-symbol" class="fw-bold text-white mt-2 mb-0">--</h5>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Live Price</small>
-                                    <h5 id="ea-price" class="text-accent fw-bold mt-2 mb-0">0.00</h5>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">A.I. Trend</small>
-                                    <h5 id="ea-trend" class="fw-bold mt-2 mb-0" style="color: #fff;">--</h5>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="p-3 rounded border h-100" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                                    <small class="text-secondary text-uppercase fw-bold" style="font-size: 11px;">Open Trades</small>
-                                    <h5 id="ea-trades" class="text-white fw-bold mt-2 mb-0">0</h5>
-                                </div>
-                            </div>
-                        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="metric-mini">
+                    <div class="label">Active Asset</div>
+                    <div class="value" id="ea-symbol">--</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="metric-mini">
+                    <div class="label">Live Price</div>
+                    <div class="value accent" id="ea-price">0.00</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="metric-mini">
+                    <div class="label">A.I. Trend</div>
+                    <div class="value" id="ea-trend" style="color: #fff;">--</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="metric-mini">
+                    <div class="label">Open Trades</div>
+                    <div class="value" id="ea-trades" style="color: #fff;">0</div>
+                </div>
+            </div>
+        </div>
 
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <small class="text-secondary text-uppercase fw-bold" style="letter-spacing: 1px;">Live Equity Curve (Master)</small>
-                                <span id="ea-action" class="fw-bold small" style="color: var(--det-green);">Scanning...</span>
-                            </div>
-                            <div class="p-3 rounded border" style="background: var(--det-dark); border-color: var(--det-border) !important;">
-                                <canvas id="equityChart"></canvas>
-                            </div>
-                        </div>
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600;">Equity Curve (Master)</span>
+                <span id="ea-action" style="font-size: 13px; font-weight: 600; color: var(--det-green);">Scanning...</span>
+            </div>
+            <div style="background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                <canvas id="equityChart" style="max-height: 240px;"></canvas>
+            </div>
+        </div>
+    </div>
 
+</div>
+
+<!-- =========================================
+     EDIT PROFILE MODAL
+========================================= -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--det-card); border: 1px solid var(--det-border); border-radius: 14px; color: #f8fafc;">
+            <form action="/profile/update" method="POST">
+                <div class="modal-header" style="border-bottom: 1px solid var(--det-border);">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2" style="color: var(--det-green);"></i>Edit Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Username</label>
+                        <input type="text" class="form-control" value="<%= currentUser.username %>" disabled style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Email Address</label>
+                        <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">WhatsApp</label>
+                        <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Country</label>
+                        <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
                     </div>
                 </div>
-
-            </div>
-        </div>
-    </main>
-
-    <!-- ========================================= -->
-    <!-- EDIT PROFILE MODAL -->
-    <!-- ========================================= -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form action="/profile/update" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-person-badge text-accent me-2"></i>Edit Profile</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" value="<%= currentUser.username %>" disabled>
-                            <div class="form-text">Your username cannot be changed.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" placeholder="you@example.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">WhatsApp Number</label>
-                            <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>" placeholder="+263...">
-                        </div>
-                        <div class="mb-1">
-                            <label class="form-label">Country</label>
-                            <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>" placeholder="Your country">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" style="border-color: var(--det-border); color: #f8fafc;" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-det">Save Changes</button>
-                    </div>
-                </form>
-            </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--det-border);">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-det">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- ========================================= -->
-    <!-- CHANGE PASSWORD MODAL -->
-    <!-- ========================================= -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form action="/profile/change-password" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock text-accent me-2"></i>Change Password</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- =========================================
+     CHANGE PASSWORD MODAL
+========================================= -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--det-card); border: 1px solid var(--det-border); border-radius: 14px; color: #f8fafc;">
+            <form action="/profile/change-password" method="POST">
+                <div class="modal-header" style="border-bottom: 1px solid var(--det-border);">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock me-2" style="color: var(--det-green);"></i>Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Current Password</label>
+                        <input type="password" class="form-control" name="currentPassword" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Current Password</label>
-                            <input type="password" class="form-control" name="currentPassword" placeholder="Enter current password" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">New Password</label>
-                            <input type="password" class="form-control" name="newPassword" placeholder="Enter new password" minlength="6" required>
-                        </div>
-                        <div class="mb-1">
-                            <label class="form-label">Confirm New Password</label>
-                            <input type="password" class="form-control" name="confirmPassword" placeholder="Re-enter new password" minlength="6" required>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">New Password</label>
+                        <input type="password" class="form-control" name="newPassword" minlength="6" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" style="border-color: var(--det-border); color: #f8fafc;" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-det">Update Password</button>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Confirm New Password</label>
+                        <input type="password" class="form-control" name="confirmPassword" minlength="6" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
                     </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--det-border);">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-det">Update Password</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sidebar Toggle for Mobile
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('show');
-        });
-
-        // Copy Key Logic
-        function copyKey() {
-            const box = document.getElementById('licenseKeyBox');
-            if(box.classList.contains('key-hidden')) {
-                box.classList.remove('key-hidden'); 
-            } else {
-                navigator.clipboard.writeText(box.innerText.trim());
-                const originalText = box.innerText;
-                box.innerText = "COPIED TO CLIPBOARD!";
-                box.style.color = "#fff";
-                setTimeout(() => {
-                    box.innerText = originalText;
-                    box.style.color = ""; 
-                    box.classList.add('key-hidden'); 
-                }, 2000);
-            }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // =========================================
+    // INTEGRATION KEY - REVEAL & COPY
+    // =========================================
+    let keyRevealed = false;
+    function handleKeyClick() {
+        const box = document.getElementById('licenseKeyBox');
+        if (!keyRevealed) {
+            // First click: reveal
+            box.classList.remove('blurred');
+            keyRevealed = true;
+        } else {
+            // Second click: copy
+            navigator.clipboard.writeText(box.innerText.trim());
+            const original = box.innerText;
+            box.innerText = '✓ COPIED!';
+            box.style.color = '#22c55e';
+            box.style.borderColor = '#22c55e';
+            setTimeout(() => {
+                box.innerText = original;
+                box.style.color = '';
+                box.style.borderColor = '';
+            }, 1800);
         }
+    }
 
-        // Chart.js Initialization
-        const ctx = document.getElementById('equityChart').getContext('2d');
-        const equityChart = new Chart(ctx, {
-            type: 'line',
-            data: { 
-                labels: Array(50).fill(''), 
-                datasets: [{ 
-                    label: 'Master Equity', 
-                    data: [], 
-                    borderColor: '#B0BF96', 
-                    backgroundColor: 'rgba(176, 191, 150, 0.1)', 
-                    borderWidth: 2, 
-                    fill: true, 
-                    tension: 0.3,
-                    pointRadius: 0 
-                }] 
-            },
-            options: { 
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { 
-                    x: { display: false }, 
-                    y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } 
-                }, 
-                plugins: { legend: { display: false } }, 
-                animation: { duration: 0 } 
-            }
-        });
-
-        // Fetch Live EA Data
-        async function fetchDashboardData() {
-            try {
-                const res = await fetch('/api/public/ea-state');
-                const data = await res.json();
-                
-                document.getElementById('ea-symbol').innerText = data.symbol || '--';
-                document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : "0.00";
-                document.getElementById('ea-trend').innerText = data.trend || '--';
-                document.getElementById('ea-trades').innerText = data.openTrades || 0;
-                document.getElementById('ea-action').innerText = data.action || 'Scanning';
-
-                // Color code the action text
-                const actionEl = document.getElementById('ea-action');
-                if(data.action && data.action.includes("Buy")) actionEl.style.color = "#B0BF96"; 
-                else if(data.action && data.action.includes("Sell")) actionEl.style.color = "#ef4444"; 
-                else actionEl.style.color = "#f59e0b"; 
-                
-                if(data.equityHistory && data.equityHistory.length > 0) {
-                    equityChart.data.datasets[0].data = data.equityHistory;
-                    equityChart.update();
+    // =========================================
+    // LIVE EQUITY CHART
+    // =========================================
+    const ctx = document.getElementById('equityChart').getContext('2d');
+    const equityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(50).fill(''),
+            datasets: [{
+                label: 'Master Equity',
+                data: [],
+                borderColor: '#B0BF96',
+                backgroundColor: 'rgba(176, 191, 150, 0.08)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { display: false },
+                y: {
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.04)' },
+                    ticks: { color: '#94a3b8', font: { size: 10 } }
                 }
-            } catch (e) { console.error("Error fetching EA Data"); }
+            },
+            plugins: { legend: { display: false } },
+            animation: { duration: 0 }
         }
+    });
 
-        setInterval(fetchDashboardData, 2500);
-        fetchDashboardData();
-    </script>
-</body>
-</html>
+    // =========================================
+    // FETCH LIVE MARKET DATA
+    // =========================================
+    async function fetchLiveData() {
+        try {
+            const res = await fetch('/api/public/ea-state');
+            const data = await res.json();
+
+            document.getElementById('ea-symbol').innerText = data.symbol || '--';
+            document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : '0.00';
+            document.getElementById('ea-trend').innerText = data.trend || '--';
+            document.getElementById('ea-trades').innerText = data.openTrades || '0';
+            document.getElementById('ea-action').innerText = data.action || 'Scanning';
+
+            // Color-code the action
+            const actionEl = document.getElementById('ea-action');
+            if (data.action?.includes('Buy')) actionEl.style.color = '#B0BF96';
+            else if (data.action?.includes('Sell')) actionEl.style.color = '#ef4444';
+            else actionEl.style.color = '#f59e0b';
+
+            // Update equity chart
+            if (data.equityHistory?.length > 0) {
+                equityChart.data.datasets[0].data = data.equityHistory;
+                equityChart.update();
+            }
+        } catch (e) {
+            console.error('Live feed error:', e);
+        }
+    }
+
+    setInterval(fetchLiveData, 2500);
+    fetchLiveData();
+</script>
+
+<%- include('partials/footer') %>

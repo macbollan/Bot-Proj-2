@@ -1,71 +1,149 @@
-<%- include('partials/header', { title: 'Client Access | D.E.T System', page: 'login' }) %>
+<%- include('partials/header', { title: 'Login | D.E.T System', page: 'login' }) %>
 
 <style>
-    .page-heading { text-align: center; padding: 40px 0 20px; }
-    .page-heading h2 { color: var(--det-green); font-size: 36px; font-weight: 700; margin-bottom: 15px; }
-    .page-heading p { color: #aaa; font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
-
-    .login-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 40px; width: 100%; max-width: 450px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-    
-    .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .form-control { background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 12px 15px; border-radius: 6px; margin-bottom: 25px; font-size: 15px; }
-    .form-control:focus { background: rgba(0,0,0,0.3) !important; border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
-    
-    .btn-secure { background: var(--det-green); color: var(--det-dark) !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; cursor: pointer; }
-    .btn-secure:hover { background: var(--det-green-hover); transform: translateY(-2px); }
-
-    .ux-safety-net { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 14px; color: #cbd5e1 !important; }
-    .ux-safety-net a { color: var(--det-green) !important; text-decoration: none; font-weight: 700; transition: color 0.3s; display: inline-block; margin-top: 5px;}
-    .ux-safety-net a:hover { color: #ffffff !important; text-decoration: underline; }
+    .auth-container {
+        min-height: calc(100vh - 300px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    .auth-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    .auth-card h2 {
+        color: var(--det-green);
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .auth-subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .form-label {
+        color: var(--det-green);
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .form-control {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        padding: 14px;
+        border-radius: 6px;
+        font-size: 16px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .form-control:focus {
+        border-color: var(--det-green);
+        box-shadow: 0 0 0 0.25rem rgba(176,191,150,0.15);
+        outline: none;
+    }
+    .btn-auth {
+        background: var(--det-green);
+        color: var(--det-dark);
+        border: none;
+        border-radius: 6px;
+        padding: 14px;
+        font-weight: 700;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-auth:hover {
+        background: var(--det-green-hover);
+        transform: translateY(-2px);
+    }
+    .auth-link {
+        color: #64748b;
+        font-size: 14px;
+        text-align: center;
+        margin-top: 20px;
+    }
+    .auth-link a {
+        color: var(--det-green);
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .auth-link a:hover {
+        text-decoration: underline;
+    }
+    .alert-danger {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-align: center;
+    }
+    .purchase-banner {
+        background: rgba(176,191,150,0.1);
+        border: 1px solid var(--det-green);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .purchase-banner p {
+        color: var(--det-green);
+        font-size: 13px;
+        margin: 0;
+        font-weight: 600;
+    }
 </style>
 
-<div class="container flex-grow-1">
-    <div class="page-heading">
-        <h2>Client Access</h2>
-        <p>Access your D.E.T dashboard to manage your trading environment and institutional modules.</p>
-    </div>
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Login to your D.E.T account</p>
 
-    <div class="login-card">
-        <% if(error && error.length > 0) { %> 
-            <div class="alert alert-danger" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; text-align: center; font-size: 14px; border-radius: 8px;">
+        <% if (locals.pendingTier) { %>
+            <div class="purchase-banner">
+                <p><i class="bi bi-cart-check me-2"></i>Login to continue with <strong><%= pendingTier %></strong> subscription</p>
+            </div>
+        <% } %>
+
+        <% if (locals.error && locals.error.length > 0) { %>
+            <div class="alert-danger">
                 <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
-            </div> 
+            </div>
         <% } %>
 
         <form action="/login" method="POST">
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-control" name="username" placeholder="Enter your username" required>
-            </div>
+            <% if (locals.pendingTier) { %>
+                <input type="hidden" name="pendingTier" value="<%= pendingTier %>">
+            <% } %>
             
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label mb-0">Secure Password</label>
-                    <a href="#" style="font-size: 12px; color: #888; text-decoration: none;">Forgot?</a>
-                </div>
-                <input type="password" class="form-control" name="password" placeholder="Enter your password" required>
-            </div>
-
-            <button type="submit" class="btn-secure">Secure Access</button>
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+            
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+            
+            <button type="submit" class="btn-auth">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
         </form>
 
-        <div class="ux-safety-net">
-            Don't have a D.E.T Profile? <br>
-            <a href="/register">Start Your Journey Here</a>
-        </div>
+        <p class="auth-link">Don't have an account? <a href="/register">Create one here</a></p>
     </div>
 </div>
 
-<footer role="contentinfo" style="background: var(--det-card); padding: 30px 0; border-top: 1px solid var(--det-border); text-align: center; margin-top: auto;">
-    <div class="container">
-        <p style="color: #cbd5e1 !important; font-size: 14px; margin: 0;">Copyright © 2026 D.E.T System. All Rights Reserved.</p>
-    </div>
-</footer>
-
-<script>
-    document.getElementById('mobile-toggle').addEventListener('click', function() {
-        document.getElementById('nav-menu').classList.toggle('active');
-    });
-</script>
-</body>
-</html>
+<%- include('partials/footer') %>

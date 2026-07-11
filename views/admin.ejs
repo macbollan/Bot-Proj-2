@@ -32,9 +32,6 @@
             margin: 0;
         }
 
-        /* =========================================
-           NUCLEAR HIGH-CONTRAST OVERRIDES
-        ========================================= */
         p, span, div, h1, h2, h3, h4, h5, h6, label { color: #f8fafc; }
         .text-muted { color: #cbd5e1 !important; } 
         .text-secondary { color: #e2e8f0 !important; }
@@ -76,6 +73,14 @@
             display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1040;
         }
         .mobile-toggle { display: none; color: var(--det-green); font-size: 24px; cursor: pointer; background: none; border: none; }
+        
+        /* Navigation buttons in top bar */
+        .nav-quick-btn {
+            background: var(--det-card); border: 1px solid var(--det-border); color: var(--det-green);
+            padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .nav-quick-btn:hover { background: var(--det-green); color: var(--det-dark); border-color: var(--det-green); }
 
         .dashboard-wrapper { padding: 30px; max-width: 1680px; width: 100%; margin: 0 auto; }
         .glass-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 25px; height: 100%; }
@@ -115,7 +120,7 @@
         .chart-wrap { position: relative; height: 260px; }
         .chart-wrap.short { height: 210px; }
 
-        /* Empty states for panels without data yet */
+        /* Empty states */
         .empty-state {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; padding: 34px 20px; color: #94a3b8;
@@ -124,7 +129,7 @@
         .empty-state strong { color: #cbd5e1; font-size: 14px; display: block; margin-bottom: 4px; }
         .empty-state span { font-size: 12.5px; max-width: 320px; }
 
-        /* Mini list rows: Top Earners / Negative Logouts */
+        /* Mini list rows */
         .mini-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
             padding: 12px 14px; border-radius: 8px; background: var(--det-dark);
@@ -150,7 +155,7 @@
         .table-responsive::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
         .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--det-green); }
 
-        .table { margin-bottom: 0; color: #fff !important; min-width: 760px; }
+        .table { margin-bottom: 0; color: #fff !important; min-width: 900px; }
         .table-dark-custom { background-color: var(--det-dark); }
         .table thead th { 
             background-color: #111; color: #cbd5e1 !important; font-weight: 600; font-size: 12px; 
@@ -179,7 +184,7 @@
         .search-wrap { position: relative; }
         .search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
         .bg-det-green { background: rgba(176, 191, 150, 0.15); color: var(--det-green) !important; border: 1px solid rgba(176, 191, 150, 0.3); }
         .bg-det-red { background: rgba(239, 68, 68, 0.15); color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3); }
         .bg-det-warn { background: rgba(245, 158, 11, 0.15); color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3); }
@@ -191,14 +196,28 @@
         .btn-manage:hover { border-color: var(--det-green); color: var(--det-green); }
         .btn-ban:hover { border-color: var(--det-amber); color: var(--det-amber); }
         .btn-delete:hover { border-color: var(--det-red); color: var(--det-red); background: rgba(239,68,68,0.08); }
+        .btn-details:hover { border-color: var(--det-blue); color: var(--det-blue); }
 
-        /* Modal Overrides to Kill Invisible Text */
+        /* Active terminal indicator */
+        .terminal-active { color: #22c55e !important; }
+        .terminal-inactive { color: #94a3b8 !important; }
+
+        /* Modal Overrides */
         .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
         .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
         .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
         .form-control, .form-select { background-color: var(--det-dark) !important; border: 1px solid var(--det-border) !important; color: #fff !important; padding: 12px; }
         .form-control:focus, .form-select:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.25) !important; color: #fff !important;}
         .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+
+        /* Detail modal specs */
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .detail-value { color: #fff; font-weight: 600; font-size: 14px; }
 
         @media (max-width: 991px) {
             .sidebar { transform: translateX(-100%); }
@@ -230,7 +249,7 @@
                 <a href="#negative-logouts" class="nav-link"><i class="bi bi-shield-lock-fill"></i> Negative Account Logouts</a>
             </div>
             <div class="nav-item">
-                <a href="#top-earners" class="nav-link"><i class="bi bi-trophy"></i> Top Earners</a>
+                <a href="#top-earners" class="nav-link"><i class="bi bi-trophy"></i> Top Earners Awards</a>
             </div>
             <div class="nav-item">
                 <a href="#ledger" class="nav-link"><i class="bi bi-people"></i> Participant Ledger</a>
@@ -247,6 +266,23 @@
                 <a href="#" class="nav-link"><i class="bi bi-shield-lock"></i> Pilot Access Wall <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">LOCKED</span></a>
             </div>
 
+            <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Quick Navigate</small>
+            <div class="nav-item">
+                <a href="/" class="nav-link" target="_blank"><i class="bi bi-house"></i> Public Homepage</a>
+            </div>
+            <div class="nav-item">
+                <a href="/pricing" class="nav-link" target="_blank"><i class="bi bi-tags"></i> Pricing Page</a>
+            </div>
+            <div class="nav-item">
+                <a href="/training" class="nav-link" target="_blank"><i class="bi bi-mortarboard"></i> Training Portal</a>
+            </div>
+            <div class="nav-item">
+                <a href="/affiliate" class="nav-link" target="_blank"><i class="bi bi-diagram-3"></i> Affiliate Page</a>
+            </div>
+            <div class="nav-item">
+                <a href="/dashboard" class="nav-link" target="_blank"><i class="bi bi-speedometer2"></i> User Dashboard</a>
+            </div>
+
             <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">System</small>
             <div class="nav-item">
                 <a href="/logout" class="nav-link text-danger"><i class="bi bi-power"></i> Kill Session</a>
@@ -254,7 +290,7 @@
         </div>
         <div class="sidebar-footer d-flex justify-content-between align-items-center">
             <div><span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;"></span>Node Routing</div>
-            <span>v1.2</span>
+            <span>v2.0</span>
         </div>
     </nav>
 
@@ -266,11 +302,20 @@
                 <h5 class="mb-0 fw-bold d-none d-md-block text-white">Central Command Hub</h5>
             </div>
             
-            <div class="d-flex align-items-center gap-4">
-                <div class="d-none d-lg-flex align-items-center gap-2 px-3 py-1 rounded" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
-                    <span class="spinner-grow spinner-grow-sm text-danger" style="width: 10px; height: 10px;"></span>
-                    <small class="text-danger fw-bold" style="font-size: 12px; letter-spacing: 0.5px;">Global Kill Switch: ARMED</small>
-                </div>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Quick Navigation Buttons -->
+                <a href="/" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Public Homepage">
+                    <i class="bi bi-house"></i> <span>Site</span>
+                </a>
+                <a href="/pricing" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Pricing">
+                    <i class="bi bi-tags"></i> <span>Pricing</span>
+                </a>
+                <a href="/training" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Training">
+                    <i class="bi bi-mortarboard"></i> <span>Training</span>
+                </a>
+                <a href="/dashboard" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="User Dashboard">
+                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                </a>
                 <div class="text-end d-none d-sm-block">
                     <small class="d-block" style="font-size: 11px; line-height: 1; color: #cbd5e1;">Administrator</small>
                     <span class="fw-bold" style="font-size: 14px; color: var(--det-green) !important;"><%= currentUser.username.toUpperCase() %></span>
@@ -288,13 +333,23 @@
             <% } %>
 
             <!-- =========================================
-                 OVERVIEW — KPI STRIP
+                 OVERVIEW — KPI STRIP (with total visitors)
             ========================================= -->
             <div id="overview"></div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-2">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-3 mb-2">
                 <div class="col">
                     <div class="kpi-card">
                         <div class="kpi-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);"><i class="bi bi-people-fill"></i></div>
+                        <div>
+                            <div class="kpi-label">Total Visitors</div>
+                            <div class="kpi-value"><%= stats.totalVisitors.toLocaleString() %></div>
+                            <div class="kpi-sub">All-time site visits</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background: rgba(56,189,248,0.12); color: var(--det-blue);"><i class="bi bi-person-check"></i></div>
                         <div>
                             <div class="kpi-label">Total Accounts</div>
                             <div class="kpi-value"><%= stats.total %></div>
@@ -316,9 +371,9 @@
                     <div class="kpi-card">
                         <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: var(--det-red);"><i class="bi bi-shield-lock-fill"></i></div>
                         <div>
-                            <div class="kpi-label">Negative Account Logouts</div>
+                            <div class="kpi-label">Negative Logouts</div>
                             <div class="kpi-value"><%= stats.locked %></div>
-                            <div class="kpi-sub">Zero-Hedge forced closures</div>
+                            <div class="kpi-sub">Zero-Hedge closures</div>
                         </div>
                     </div>
                 </div>
@@ -328,7 +383,7 @@
                         <div>
                             <div class="kpi-label">Total Revenue</div>
                             <div class="kpi-value">$<%= stats.totalRevenue.toLocaleString() %></div>
-                            <div class="kpi-sub">Verified Paynow receipts</div>
+                            <div class="kpi-sub">Payouts to affiliates: $<%= stats.totalAffiliatePayouts.toLocaleString() %></div>
                         </div>
                     </div>
                 </div>
@@ -338,7 +393,7 @@
                         <div>
                             <div class="kpi-label">Unlicensed / Pending</div>
                             <div class="kpi-value"><%= stats.unlicensed %></div>
-                            <div class="kpi-sub"><%= stats.suspended %> banned &middot; <%= stats.expired %> expired</div>
+                            <div class="kpi-sub"><%= stats.suspended %> banned · <%= stats.expired %> expired</div>
                         </div>
                     </div>
                 </div>
@@ -393,9 +448,9 @@
                 </div>
                 <div class="col-xl-6">
                     <div class="glass-card">
-                        <h6 class="fw-bold mb-1 text-white">Accounts by Region</h6>
+                        <h6 class="fw-bold mb-1 text-white">Top Accounts by Region</h6>
                         <p class="text-secondary small mb-3">Where your participant base is registered from.</p>
-                        <% if(accountsByRegion && accountsByRegion.length > 0) { %>
+                        <% if(topAccountsByRegion && topAccountsByRegion.length > 0) { %>
                             <div class="chart-wrap">
                                 <canvas id="regionChart"></canvas>
                             </div>
@@ -469,7 +524,7 @@
                                     <div class="mini-row">
                                         <div>
                                             <div class="fw-bold text-white" style="font-size: 13.5px;"><%= acc.username %></div>
-                                            <small style="color: #94a3b8;"><%= acc.tier %> &middot; $<%= acc.startingBalance.toLocaleString() %> &rarr; $<%= acc.targetBalance.toLocaleString() %></small>
+                                            <small style="color: #94a3b8;"><%= acc.tier %> · $<%= acc.startingBalance.toLocaleString() %> → $<%= acc.targetBalance.toLocaleString() %></small>
                                         </div>
                                         <span class="status-badge bg-det-red">Locked</span>
                                     </div>
@@ -482,6 +537,15 @@
                                 <span>No participant has triggered a Zero-Hedge lock yet. This list updates in real time.</span>
                             </div>
                         <% } %>
+
+                        <!-- Negative Account Offer Service -->
+                        <div class="mt-4 pt-3 border-top" style="border-color: var(--det-border) !important;">
+                            <h6 class="fw-bold text-white mb-2"><i class="bi bi-gift text-amber me-2" style="color: var(--det-amber);"></i>Negative Account Offer Service</h6>
+                            <p class="text-secondary small mb-3">Grant 1-week free access to accounts blown by D.E.T.</p>
+                            <button class="btn btn-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#negativeOfferModal" style="font-weight: 600;">
+                                <i class="bi bi-gift-fill me-1"></i> View Blown Accounts & Issue Free Week
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -492,7 +556,7 @@
             <div class="row g-4 mb-4">
                 <div class="col-xl-6" id="top-earners">
                     <div class="glass-card">
-                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-trophy text-accent me-2"></i>Top Earners</h5>
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-trophy text-accent me-2"></i>Top Earners Awards</h5>
                         <p class="text-secondary small mb-3">Highest verified revenue per licensed account.</p>
 
                         <% if(topEarners && topEarners.length > 0) { %>
@@ -503,7 +567,7 @@
                                             <span class="rank-badge <%= i === 0 ? 'rank-1' : '' %>">#<%= i + 1 %></span>
                                             <div>
                                                 <div class="fw-bold text-white" style="font-size: 13.5px;"><%= earner.username %></div>
-                                                <small style="color: #94a3b8;"><%= earner.tier %> &middot; <%= earner.country %></small>
+                                                <small style="color: #94a3b8;"><%= earner.tier %> · <%= earner.country %></small>
                                             </div>
                                         </div>
                                         <span class="fw-bold text-accent">$<%= earner.revenue.toLocaleString() %></span>
@@ -523,10 +587,10 @@
                 <div class="col-xl-6" id="affiliates">
                     <div class="glass-card">
                         <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-diagram-3 text-accent me-2"></i>Top Affiliates</h5>
+                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-diagram-3 text-accent me-2"></i>Top Affiliates Awards</h5>
                             <span class="badge text-dark" style="background: #cbd5e1 !important; font-size: 10px;">ENGINE v2</span>
                         </div>
-                        <p class="text-secondary small mb-3">Referral performance, once the affiliate program goes live.</p>
+                        <p class="text-secondary small mb-3">Referral performance & total payouts.</p>
 
                         <% if(topAffiliates && topAffiliates.length > 0) { %>
                             <div>
@@ -550,12 +614,19 @@
                                 <span>This panel is wired for live data and will populate the moment referral tracking is enabled network-wide.</span>
                             </div>
                         <% } %>
+
+                        <div class="mt-3 pt-3 border-top" style="border-color: var(--det-border) !important;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small">Total Affiliate Payouts:</span>
+                                <span class="fw-bold" style="color: var(--det-green);">$<%= stats.totalAffiliatePayouts.toLocaleString() %></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- =========================================
-                 PARTICIPANT LEDGER
+                 PARTICIPANT LEDGER (with terminal status)
             ========================================= -->
             <div class="row" id="ledger">
                 <div class="col-12">
@@ -584,6 +655,7 @@
                                         <tr>
                                             <th>Participant</th>
                                             <th>Status</th>
+                                            <th>Terminal</th>
                                             <th>Integration ID</th>
                                             <th>D.E.T Plan</th>
                                             <th>Cycle Expires</th>
@@ -592,6 +664,15 @@
                                     </thead>
                                     <tbody>
                                         <% users.forEach(client => { %>
+                                            <%
+                                                // Determine terminal active status
+                                                let isTerminalActive = false;
+                                                if (client.licenseKey && !client.isSuspended && !client.accountLocked) {
+                                                    const now = new Date();
+                                                    const expiry = new Date(client.licenseExpiry);
+                                                    if (expiry > now) isTerminalActive = true;
+                                                }
+                                            %>
                                             <tr data-search="<%= (client.username + ' ' + (client.email || '')).toLowerCase() %>">
                                                 <td>
                                                     <div class="fw-bold text-white fs-6"><%= client.username %></div>
@@ -610,6 +691,13 @@
                                                         <span class="status-badge" style="background: #475569; color: #fff !important;">UNLICENSED</span> 
                                                     <% } %>
                                                 </td>
+                                                <td>
+                                                    <% if(isTerminalActive) { %>
+                                                        <span class="terminal-active"><i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i> Active</span>
+                                                    <% } else { %>
+                                                        <span class="terminal-inactive"><i class="bi bi-circle me-1" style="font-size: 8px;"></i> Offline</span>
+                                                    <% } %>
+                                                </td>
                                                 <td><span class="code-pill"><%= client.licenseKey || '---' %></span></td>
                                                 <td><span class="badge border text-white fs-6" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= client.currentTier || 'None' %></span></td>
                                                 <td class="fw-semibold <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : 'text-white' %>">
@@ -618,6 +706,11 @@
                                                 <td class="text-end">
                                                     <div class="d-flex justify-content-end gap-2">
                                                         
+                                                        <!-- DETAILS BUTTON (opens participant detail modal) -->
+                                                        <button class="action-btn btn-details" data-bs-toggle="modal" data-bs-target="#detailModal<%= client._id %>" title="View Details & Equity">
+                                                            <i class="bi bi-info-circle-fill"></i>
+                                                        </button>
+
                                                         <button class="action-btn btn-manage" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" title="Manage License">
                                                             <i class="bi bi-key-fill"></i>
                                                         </button>
@@ -638,6 +731,99 @@
                                                 </td>
                                             </tr>
 
+                                            <!-- PARTICIPANT DETAIL MODAL (Equity & Info) -->
+                                            <div class="modal fade" id="detailModal<%= client._id %>" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title fw-bold text-white"><i class="bi bi-person-badge me-2"></i><%= client.username %> — Participant Dossier</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="row g-4">
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold text-white mb-3">Account Information</h6>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Username</span>
+                                                                        <span class="detail-value"><%= client.username %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Email</span>
+                                                                        <span class="detail-value"><%= client.email || 'N/A' %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">WhatsApp</span>
+                                                                        <span class="detail-value"><%= client.whatsapp || 'N/A' %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Country</span>
+                                                                        <span class="detail-value"><%= (client.country && client.country.trim()) || 'Unknown' %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">D.E.T Plan</span>
+                                                                        <span class="detail-value"><%= client.currentTier || 'None' %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Integration ID</span>
+                                                                        <span class="detail-value"><%= client.licenseKey || 'Not Issued' %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">License Expiry</span>
+                                                                        <span class="detail-value <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : '' %>">
+                                                                            <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %>
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <h6 class="fw-bold text-white mb-3">Equity & Trading Stats</h6>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Starting Balance</span>
+                                                                        <span class="detail-value">$<%= (Number(client.startingBalance) || 0).toLocaleString() %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Target Balance (2x)</span>
+                                                                        <span class="detail-value">$<%= (Number(client.targetBalance) || 0).toLocaleString() %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Prepayment Amount</span>
+                                                                        <span class="detail-value">$<%= (Number(client.prepaymentAmount) || 0).toLocaleString() %></span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Account Locked</span>
+                                                                        <span class="detail-value <%= client.accountLocked ? 'text-danger' : 'text-success' %>">
+                                                                            <%= client.accountLocked ? 'YES — Zero-Hedge' : 'No' %>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Suspended</span>
+                                                                        <span class="detail-value <%= client.isSuspended ? 'text-warning' : 'text-success' %>">
+                                                                            <%= client.isSuspended ? 'BANNED' : 'Clear' %>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Terminal Status</span>
+                                                                        <span class="detail-value <%= isTerminalActive ? 'text-success' : '' %>">
+                                                                            <%= isTerminalActive ? 'Active & Trading' : 'Offline' %>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="detail-row">
+                                                                        <span class="detail-label">Registered</span>
+                                                                        <span class="detail-value"><%= client._id.getTimestamp().toLocaleDateString() %></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Close</button>
+                                                            <button type="button" class="btn btn-det" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" data-bs-dismiss="modal">
+                                                                <i class="bi bi-key-fill me-1"></i> Manage License
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- MANAGE LICENSE MODAL -->
                                             <div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
                                                     <div class="modal-content">
@@ -675,6 +861,7 @@
                                                 </div>
                                             </div>
 
+                                            <!-- DELETE MODAL -->
                                             <div class="modal fade" id="deleteModal<%= client._id %>" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
                                                     <div class="modal-content" style="border-color: #ef4444;">
@@ -712,6 +899,67 @@
 
         </div>
     </main>
+
+    <!-- NEGATIVE ACCOUNT OFFER SERVICE MODAL -->
+    <div class="modal fade" id="negativeOfferModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-gift-fill me-2" style="color: var(--det-amber);"></i>Negative Account Offer Service</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary mb-4">These accounts have been locked by the Zero-Hedge protocol after doubling their starting balance. You can grant them a <strong class="text-white">1-week free access pass</strong> to continue trading.</p>
+                    
+                    <% 
+                    let blownAccounts = users.filter(c => c.accountLocked);
+                    if(blownAccounts.length > 0) { 
+                    %>
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead style="background: #111;">
+                                    <tr>
+                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Participant</th>
+                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Tier</th>
+                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Start → Target</th>
+                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% blownAccounts.forEach(acc => { %>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold text-white"><%= acc.username %></div>
+                                                <small style="color: #94a3b8;"><%= acc.email %></small>
+                                            </td>
+                                            <td><span class="badge border text-white" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= acc.currentTier || 'None' %></span></td>
+                                            <td class="text-white">$<%= (Number(acc.startingBalance) || 0).toLocaleString() %> → $<%= (Number(acc.targetBalance) || 0).toLocaleString() %></td>
+                                            <td>
+                                                <form action="/admin/offer-free-week/<%= acc._id %>" method="POST">
+                                                    <button type="submit" class="btn btn-warning btn-sm" style="font-weight: 600;">
+                                                        <i class="bi bi-gift me-1"></i> Grant 1-Week Free
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="bi bi-shield-check"></i>
+                            <strong>No blown accounts</strong>
+                            <span>When a participant doubles their account, they'll appear here for the free week offer.</span>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -768,11 +1016,11 @@
         Chart.defaults.font.family = "'Poppins', sans-serif";
 
         // ==========================================
-        // SERVER-DERIVED DATA (100% dynamic, computed in /admin route)
+        // SERVER-DERIVED DATA
         // ==========================================
         const registrationTrend = <%- JSON.stringify(registrationTrend) %>;
         const revenueByTier = <%- JSON.stringify(revenueByTier) %>;
-        const accountsByRegion = <%- JSON.stringify(accountsByRegion) %>;
+        const topAccountsByRegion = <%- JSON.stringify(topAccountsByRegion) %>;
         const statusBreakdown = [
             { label: 'Active', value: <%= stats.active %>, color: '#B0BF96' },
             { label: 'Banned', value: <%= stats.suspended %>, color: '#f59e0b' },
@@ -845,15 +1093,15 @@
         });
         <% } %>
 
-        // --- Accounts by Region (Horizontal Bar) ---
-        <% if(accountsByRegion && accountsByRegion.length > 0) { %>
+        // --- Top Accounts by Region (Horizontal Bar) ---
+        <% if(topAccountsByRegion && topAccountsByRegion.length > 0) { %>
         new Chart(document.getElementById('regionChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: accountsByRegion.map(r => r.region),
+                labels: topAccountsByRegion.map(r => r.region),
                 datasets: [{
                     label: 'Accounts',
-                    data: accountsByRegion.map(r => r.count),
+                    data: topAccountsByRegion.map(r => r.count),
                     backgroundColor: ['#B0BF96', '#38bdf8', '#f59e0b', '#a78bfa', '#94a3b8', '#ef4444', '#96a67c'],
                     borderRadius: 6, maxBarThickness: 26
                 }]
