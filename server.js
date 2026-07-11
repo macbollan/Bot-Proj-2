@@ -8,6 +8,9 @@ const flash = require("connect-flash");
 const crypto = require("crypto");
 const path = require("path");
 const { Paynow } = require("paynow");
+
+const Affiliate = require("./models/Affiliate.model");
+
 require("dotenv").config();
 
 const User = require("./models/User.model");
@@ -57,12 +60,6 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use((req, res, next) => {
-  res.locals.currentUser = req.user;
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  next();
-});
 
 // Security Middleware
 function isLoggedIn(req, res, next) {
@@ -190,10 +187,6 @@ app.get("/training", (req, res) => {
     res.render("training");
 });
 
-app.get("/affiliate", (req, res) => {
-    res.send("<h2 style='color: #B0BF96; text-align: center; margin-top: 50px; font-family: sans-serif;'>Affiliate Network Architecture Pending Deployment</h2>");
-});
-
 // ==========================================
 // PAYNOW INTEGRATION & DYNAMIC CHECKOUT
 // ==========================================
@@ -238,7 +231,10 @@ app.post("/checkout/initialize", (req, res) => {
 // 2. The Dynamic Checkout Portal with full tier details
 app.get("/checkout", isLoggedIn, (req, res) => {
     const tier = req.query.tier;
-    if(!tierConfig[tier]) return res.redirect("/pricing");
+    if(!tierConfig[tier]) {
+        req.flash("error", "Invalid tier selected.");
+        return res.redirect("/pricing");
+    }
     
     // Get tier details from pricingTiers array
     const tierDetails = pricingTiers.find(t => t.name === tier);
@@ -305,6 +301,7 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
     const amount = parseFloat(req.query.amount);
 
     if(!config || isNaN(amount) || amount < config.min || amount > config.max) {
+        req.flash("error", "Invalid payment amount for this tier.");
         return res.redirect("/pricing");
     }
 
@@ -314,9 +311,16 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
 
     try {
         const response = await paynow.send(payment);
-        if(response.success) res.redirect(response.redirectUrl);
-        else res.redirect("/pricing");
-    } catch(e) { res.redirect("/pricing"); }
+        if(response.success) {
+            res.redirect(response.redirectUrl);
+        } else {
+            req.flash("error", "Payment initiation failed. Please try again.");
+            res.redirect("/pricing");
+        }
+    } catch(e) {
+        req.flash("error", "Payment gateway error. Please try again.");
+        res.redirect("/pricing");
+    }
 });
 
 app.get("/checkout/return", isLoggedIn, (req, res) => {
@@ -349,6 +353,12 @@ app.post("/api/paynow/update", async (req, res) => {
                 user.mt5AccountNumber = null; 
                 
                 await user.save();
+                
+                // PROCESS AFFILIATE COMMISSION FOR THIS PAYMENT
+                if (user.referredBy) {
+                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
+                }
+                
                 console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
             }
         } catch (err) {
@@ -374,10 +384,21 @@ app.get("/", (req, res) => {
     });
 });
 
-app.get("/register", (req, res) => res.render("register"));
+
+
+app.get("/register", (req, res) => {
+    const referralCode = req.query.ref || '';
+    res.render("register", { 
+        error: null, 
+        selectedTier: null,
+        referralCode: referralCode
+    });
+});
 
 app.post("/register", async (req, res) => {
   try {
+    const referralCode = req.body.ref || req.query.ref || null;
+    
     const newUser = new User({ 
         username: req.body.username, 
         email: req.body.email,
@@ -388,17 +409,49 @@ app.post("/register", async (req, res) => {
         startingBalance: 0,
         targetBalance: 0,
         accountLocked: false,
-        isSuspended: false
+        isSuspended: false,
+        referredBy: referralCode  // ALWAYS save the referral code
     });
 
     const registeredUser = await User.register(newUser, req.body.password);
+    
+    // If user was referred, create a pending referral record
+    if (referralCode) {
+        try {
+            const affiliate = await Affiliate.findOne({ referralCode: referralCode });
+            if (affiliate) {
+                // Check if this user was already tracked
+                const alreadyTracked = affiliate.referrals.some(
+                    r => r.userId && r.userId.toString() === registeredUser._id.toString()
+                );
+                
+                if (!alreadyTracked) {
+                    affiliate.referrals.push({
+                        userId: registeredUser._id,
+                        username: registeredUser.username,
+                        email: registeredUser.email,
+                        tier: 'Pending',
+                        amountPaid: 0,
+                        commissionEarned: 0,
+                        status: 'pending',
+                        referredAt: new Date()
+                    });
+                    affiliate.totalReferrals += 1;
+                    await affiliate.save();
+                    console.log(`[AFFILIATE] New referral tracked: ${registeredUser.username} via ${affiliate.username}'s link`);
+                }
+            }
+        } catch (trackErr) {
+            console.error("Referral tracking error:", trackErr);
+        }
+    }
     
     req.login(registeredUser, (err) => {
         if(err) {
             req.flash("error", "Auto login session failure.");
             return res.redirect("/login");
         }
-        // SMART REDIRECT: If coming from pricing, go to checkout. Otherwise dashboard
+        req.flash("success", "Account created successfully! Welcome to D.E.T System.");
         const redirectTo = req.body.selectedTier ? 
             `/checkout?tier=${encodeURIComponent(req.body.selectedTier)}` : 
             "/dashboard";
@@ -410,21 +463,39 @@ app.post("/register", async (req, res) => {
   }
 });
 
+
+// --- HOW IT WORKS PAGE ---
+app.get("/how-it-works", (req, res) => {
+    res.render("how-it-works");
+});
+
 app.get("/login", (req, res) => {
-    // Check if there's a pending tier selection (coming from pricing)
     const pendingTier = req.query.tier;
-    res.render("login", { pendingTier: pendingTier || null, error: req.flash("error") });
+    const referralCode = req.query.ref || '';
+    res.render("login", { 
+        pendingTier: pendingTier || null, 
+        referralCode: referralCode,
+    });
 });
 
 app.post("/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
-        if (err) return next(err);
+        if (err) {
+            console.log("Login error:", err);
+            return next(err);
+        }
         if (!user) {
-            req.flash("error", info.message || "Invalid credentials");
+            console.log("Login failed - info:", info); // Debug log
+            req.flash("error", "Invalid username or password.");
             return res.redirect("/login");
         }
         req.logIn(user, (err) => {
-            if (err) return next(err);
+            if (err) {
+                console.log("Login session error:", err);
+                return next(err);
+            }
+            
+            req.flash("success", `Welcome back, ${user.username}!`);
             
             // SMART REDIRECT: Check if they were trying to purchase
             const pendingTier = req.body.pendingTier;
@@ -438,7 +509,13 @@ app.post("/login", (req, res, next) => {
 });
 
 app.get("/logout", (req, res) => {
-  req.logout((err) => res.redirect("/"));
+    req.logout((err) => {
+        if (err) {
+            console.error("Logout error:", err);
+        }
+        req.flash("success", "You have been logged out successfully.");
+        res.redirect("/");
+    });
 });
 
 app.get("/dashboard", isLoggedIn, (req, res) => {
@@ -661,37 +738,402 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
 });
 
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
-    const days = parseInt(req.body.durationDays) || 30; 
-    const tier = req.body.tierLevel || "Unknown"; 
-    const user = await User.findById(req.params.id);
-    user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
-    user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
-    user.currentTier = tier; 
-    user.isSuspended = false; 
-    user.accountLocked = false; // Unlock when new license is issued
-    await user.save();
-    req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
-    res.redirect("/admin");
+    try {
+        const days = parseInt(req.body.durationDays) || 30; 
+        const tier = req.body.tierLevel || "Unknown"; 
+        const user = await User.findById(req.params.id);
+        
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin");
+        }
+        
+        user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
+        user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
+        user.currentTier = tier; 
+        user.isSuspended = false; 
+        user.accountLocked = false; // Unlock when new license is issued
+        await user.save();
+        
+        req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
+        res.redirect("/admin");
+    } catch (err) {
+        req.flash("error", "Could not generate license.");
+        res.redirect("/admin");
+    }
 });
 
 app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
-    const user = await User.findById(req.params.id);
-    user.isSuspended = !user.isSuspended;
-    await user.save();
-    req.flash("success", `Participant ${user.isSuspended ? 'Suspended' : 'Restored'}.`);
-    res.redirect("/admin");
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin");
+        }
+        
+        user.isSuspended = !user.isSuspended;
+        await user.save();
+        
+        req.flash("success", `Participant ${user.isSuspended ? 'Suspended' : 'Restored'}.`);
+        res.redirect("/admin");
+    } catch (err) {
+        req.flash("error", "Could not update suspension status.");
+        res.redirect("/admin");
+    }
 });
 
 app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
-    await User.findByIdAndDelete(req.params.id);
-    req.flash("success", "Participant permanently deleted from the network.");
-    res.redirect("/admin");
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/admin");
+        }
+        
+        req.flash("success", "Participant permanently deleted from the network.");
+        res.redirect("/admin");
+    } catch (err) {
+        req.flash("error", "Could not delete user.");
+        res.redirect("/admin");
+    }
 });
+
+
+// ==========================================
+// AFFILIATE SYSTEM ROUTES
+// ==========================================
+
+
+// Generate unique referral code
+function generateReferralCode() {
+    return 'REF' + crypto.randomBytes(4).toString('hex').toUpperCase();
+}
+
+// --- AFFILIATE PAGE ---
+app.get("/affiliate", async (req, res) => {
+    let isAffiliate = false;
+    let affiliateData = null;
+    
+    if (req.user) {
+        affiliateData = await Affiliate.findOne({ userId: req.user._id });
+        isAffiliate = !!affiliateData;
+    }
+    
+    res.render("affiliate", { 
+        currentUser: req.user || null,
+        referralCode: req.query.ref || null,
+        isAffiliate: isAffiliate,
+        affiliate: affiliateData
+    });
+});
+
+// --- JOIN AFFILIATE PROGRAM ---
+app.post("/affiliate/join", isLoggedIn, async (req, res) => {
+    try {
+        // Check if already an affiliate
+        let existingAffiliate = await Affiliate.findOne({ userId: req.user._id });
+        if (existingAffiliate) {
+            req.flash("success", "You're already an affiliate! Here's your dashboard.");
+            return res.redirect("/affiliate/dashboard");
+        }
+
+        // Use the static method to create with auto-generated code
+        const affiliate = await Affiliate.createWithCode({
+            userId: req.user._id,
+            username: req.user.username,
+            email: req.user.email,
+            commissionRate: 20
+        });
+        
+        console.log(`[AFFILIATE] New affiliate: ${affiliate.username} (${affiliate.referralCode})`);
+        
+        req.flash("success", "Welcome to the D.E.T Affiliate Program! Share your link to earn 20% commissions.");
+        res.redirect("/affiliate/dashboard");
+    } catch (err) {
+        console.error("Affiliate join error:", err);
+        req.flash("error", "Could not join affiliate program. Error: " + err.message);
+        res.redirect("/affiliate");
+    }
+});
+
+// --- AFFILIATE DASHBOARD ---
+app.get("/affiliate/dashboard", isLoggedIn, async (req, res) => {
+    try {
+        const affiliate = await Affiliate.findOne({ userId: req.user._id });
+        
+        if (!affiliate) {
+            req.flash("error", "Please join the affiliate program first.");
+            return res.redirect("/affiliate");
+        }
+
+        // Get recent referrals
+        const recentReferrals = affiliate.referrals
+            .sort((a, b) => b.referredAt - a.referredAt)
+            .slice(0, 10);
+
+        // Get click stats for last 30 days
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const recentClicks = affiliate.clickHistory.filter(c => c.clickedAt > thirtyDaysAgo);
+
+        res.render("affiliate-dashboard", {
+            affiliate,
+            recentReferrals,
+            recentClicks: recentClicks.length,
+            currentUser: req.user
+        });
+    } catch (err) {
+        console.error("Affiliate dashboard error:", err);
+        req.flash("error", "Could not load affiliate dashboard.");
+        res.redirect("/dashboard");
+    }
+});
+
+// --- AFFILIATE REQUEST PAYOUT ---
+app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
+    try {
+        const affiliate = await Affiliate.findOne({ userId: req.user._id });
+        
+        if (!affiliate) {
+            req.flash("error", "Affiliate account not found.");
+            return res.redirect("/affiliate/dashboard");
+        }
+
+        const minPayout = 50; // Minimum $50 payout
+        if (affiliate.pendingEarnings < minPayout) {
+            req.flash("error", `Minimum payout is $${minPayout}. You have $${affiliate.pendingEarnings.toFixed(2)} pending.`);
+            return res.redirect("/affiliate/dashboard");
+        }
+
+        // Create payout request
+        const payoutRequest = {
+            amount: affiliate.pendingEarnings,
+            method: req.body.method || 'bank_transfer',
+            reference: 'PAY-' + Date.now(),
+            status: 'pending',
+            requestedAt: new Date()
+        };
+
+        affiliate.paymentHistory.push(payoutRequest);
+        affiliate.pendingEarnings = 0;
+        await affiliate.save();
+
+        req.flash("success", `Payout request of $${payoutRequest.amount.toFixed(2)} submitted successfully!`);
+        res.redirect("/affiliate/dashboard");
+    } catch (err) {
+        console.error("Payout request error:", err);
+        req.flash("error", "Could not process payout request.");
+        res.redirect("/affiliate/dashboard");
+    }
+});
+
+
+
+// --- TRACK AFFILIATE CLICKS ---
+app.get("/affiliate/click/:refCode", async (req, res) => {
+    try {
+        const affiliate = await Affiliate.findOne({ referralCode: req.params.refCode });
+        
+        if (affiliate && affiliate.isActive) {
+            // Track click
+            affiliate.clickHistory.push({
+                ip: req.ip,
+                userAgent: req.get('User-Agent') || 'Unknown',
+                referrer: req.get('Referrer') || 'direct',
+                clickedAt: new Date()
+            });
+            affiliate.totalClicks += 1;
+            await affiliate.save();
+            console.log(`[AFFILIATE] Click tracked for ${affiliate.username} (${affiliate.referralCode})`);
+        }
+
+        // Redirect to registration page with referral code
+        res.redirect(`/register?ref=${req.params.refCode}`);
+    } catch (err) {
+        console.error("Affiliate click tracking error:", err);
+        res.redirect("/register");
+    }
+});
+
+// --- PROCESS AFFILIATE COMMISSION (called after successful payment) ---
+async function processAffiliateCommission(newUserId, amountPaid, tierName) {
+    try {
+        const newUser = await User.findById(newUserId);
+        if (!newUser || !newUser.referredBy) return;
+
+        // Find the affiliate by referral code
+        const affiliate = await Affiliate.findOne({ referralCode: newUser.referredBy });
+        if (!affiliate || !affiliate.isActive) return;
+
+        // Calculate commission
+        const commissionRate = affiliate.commissionRate / 100;
+        const commission = amountPaid * commissionRate;
+
+        // Update affiliate record
+        affiliate.referrals.push({
+            userId: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            tier: tierName,
+            amountPaid: amountPaid,
+            commissionEarned: commission,
+            status: 'confirmed',
+            referredAt: new Date()
+        });
+
+        affiliate.totalReferrals += 1;
+        affiliate.totalEarnings += commission;
+        affiliate.pendingEarnings += commission;
+
+        // Update user's affiliate commission
+        const affiliateUser = await User.findById(affiliate.userId);
+        if (affiliateUser) {
+            affiliateUser.affiliateCommission = (affiliateUser.affiliateCommission || 0) + commission;
+            await affiliateUser.save();
+        }
+
+        await affiliate.save();
+        console.log(`[AFFILIATE] Commission of $${commission.toFixed(2)} credited to ${affiliate.username}`);
+    } catch (err) {
+        console.error("Process affiliate commission error:", err);
+    }
+}
+
+// --- ADMIN: AFFILIATE MANAGEMENT ---
+app.get("/admin/affiliates", isAdmin, async (req, res) => {
+    try {
+        const affiliates = await Affiliate.find({}).sort({ totalEarnings: -1 });
+        
+        let totalCommissions = 0;
+        let totalPending = 0;
+        let totalPaid = 0;
+        
+        affiliates.forEach(a => {
+            totalCommissions += a.totalEarnings;
+            totalPending += a.pendingEarnings;
+            totalPaid += a.paidEarnings;
+        });
+
+        res.render("admin-affiliates", {
+            affiliates,
+            stats: {
+                total: affiliates.length,
+                totalCommissions,
+                totalPending,
+                totalPaid,
+                totalReferrals: affiliates.reduce((sum, a) => sum + a.totalReferrals, 0),
+                totalClicks: affiliates.reduce((sum, a) => sum + a.totalClicks, 0)
+            },
+            currentUser: req.user
+        });
+    } catch (err) {
+        console.error("Admin affiliates error:", err);
+        req.flash("error", "Could not load affiliate data.");
+        res.redirect("/admin");
+    }
+});
+
+// --- ADMIN: APPROVE AFFILIATE PAYOUT ---
+app.post("/admin/affiliates/payout/:id", isAdmin, async (req, res) => {
+    try {
+        const affiliate = await Affiliate.findById(req.params.id);
+        if (!affiliate) {
+            req.flash("error", "Affiliate not found.");
+            return res.redirect("/admin/affiliates");
+        }
+
+        // Find the most recent pending payout request
+        const pendingRequest = affiliate.paymentHistory.find(p => p.status === 'pending');
+        if (pendingRequest) {
+            pendingRequest.status = 'paid';
+            pendingRequest.paidAt = new Date();
+            affiliate.paidEarnings += pendingRequest.amount;
+        }
+
+        await affiliate.save();
+        req.flash("success", `Payout of $${pendingRequest?.amount?.toFixed(2) || '0'} approved for ${affiliate.username}.`);
+        res.redirect("/admin/affiliates");
+    } catch (err) {
+        console.error("Affiliate payout error:", err);
+        req.flash("error", "Could not process payout.");
+        res.redirect("/admin/affiliates");
+    }
+});
+
+// --- ADMIN: TOGGLE AFFILIATE STATUS ---
+app.post("/admin/affiliates/toggle/:id", isAdmin, async (req, res) => {
+    try {
+        const affiliate = await Affiliate.findById(req.params.id);
+        if (!affiliate) {
+            req.flash("error", "Affiliate not found.");
+            return res.redirect("/admin/affiliates");
+        }
+
+        affiliate.isActive = !affiliate.isActive;
+        await affiliate.save();
+
+        req.flash("success", `${affiliate.username}'s affiliate account ${affiliate.isActive ? 'activated' : 'deactivated'}.`);
+        res.redirect("/admin/affiliates");
+    } catch (err) {
+        console.error("Toggle affiliate error:", err);
+        req.flash("error", "Could not update affiliate status.");
+        res.redirect("/admin/affiliates");
+    }
+});
+
+// NEW: Process commission when payment is confirmed
+async function processAffiliateCommissionOnPayment(user, amountPaid, tierName) {
+    try {
+        const affiliate = await Affiliate.findOne({ referralCode: user.referredBy });
+        if (!affiliate || !affiliate.isActive) return;
+
+        const commissionRate = affiliate.commissionRate / 100;
+        const commission = amountPaid * commissionRate;
+
+        // Find the pending referral for this user
+        const pendingReferral = affiliate.referrals.find(
+            r => r.userId && r.userId.toString() === user._id.toString() && r.status === 'pending'
+        );
+
+        if (pendingReferral) {
+            // Update the existing pending referral
+            pendingReferral.tier = tierName;
+            pendingReferral.amountPaid = amountPaid;
+            pendingReferral.commissionEarned = commission;
+            pendingReferral.status = 'confirmed';
+        } else {
+            // Create new referral record
+            affiliate.referrals.push({
+                userId: user._id,
+                username: user.username,
+                email: user.email,
+                tier: tierName,
+                amountPaid: amountPaid,
+                commissionEarned: commission,
+                status: 'confirmed',
+                referredAt: new Date()
+            });
+        }
+
+        affiliate.totalEarnings += commission;
+        affiliate.pendingEarnings += commission;
+
+        // Update user's affiliate commission field
+        const affiliateUser = await User.findById(affiliate.userId);
+        if (affiliateUser) {
+            affiliateUser.affiliateCommission = (affiliateUser.affiliateCommission || 0) + commission;
+            await affiliateUser.save();
+        }
+
+        await affiliate.save();
+        console.log(`[AFFILIATE] Commission of $${commission.toFixed(2)} confirmed for ${affiliate.username} from ${user.username}`);
+    } catch (err) {
+        console.error("Process affiliate commission error:", err);
+    }
+}
+
 // ==========================================
 // TRAINING SYSTEM ROUTES
 // ==========================================
-
-
 
 app.get("/api/training/status", async (req, res) => {
     try {

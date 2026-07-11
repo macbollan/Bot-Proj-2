@@ -21,6 +21,10 @@ const UserSchema = new mongoose.Schema({
     termsAgreed: { type: Boolean, default: false },
 
     // In models/User.model.js, add:
+referredBy: { type: String, default: null }, // Referral code of the affiliate who referred this user
+affiliateCommission: { type: Number, default: 0 },
+
+    // In models/User.model.js, add:
 affiliateCommission: { type: Number, default: 0 },
     
     // --- S.M.A.R.T INTEGRATION (DOUBLING RULE) ---

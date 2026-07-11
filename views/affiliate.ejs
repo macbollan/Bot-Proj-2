@@ -1,0 +1,230 @@
+<%- include('partials/header', { title: 'Affiliate Program | D.E.T System', page: 'affiliate' }) %>
+
+<style>
+    .affiliate-hero {
+        background: linear-gradient(135deg, rgba(176,191,150,0.1) 0%, rgba(50,44,44,0.5) 100%);
+        border: 1px solid var(--det-border);
+        border-radius: 16px;
+        padding: 50px 30px;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .commission-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        height: 100%;
+    }
+    .commission-badge {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--det-green);
+    }
+    .step-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        height: 100%;
+        position: relative;
+    }
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--det-green);
+        color: var(--det-dark);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+        margin: 0 auto 15px;
+    }
+    .btn-affiliate {
+        background: var(--det-green);
+        color: var(--det-dark);
+        font-weight: 700;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+        border: none;
+        display: inline-block;
+        text-decoration: none;
+    }
+    .btn-affiliate:hover {
+        background: var(--det-green-hover);
+        transform: translateY(-2px);
+        color: #000;
+    }
+    .tier-payout {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .tier-payout:last-child {
+        border-bottom: none;
+    }
+    
+    /* Already Affiliate Card */
+    .already-affiliate {
+        background: rgba(176,191,150,0.08);
+        border: 1px solid rgba(176,191,150,0.25);
+        border-radius: 14px;
+        padding: 40px;
+        text-align: center;
+    }
+</style>
+
+<div class="container" style="max-width: 1000px; margin-top: 30px; margin-bottom: 60px;">
+
+    <% if(isAffiliate && affiliate) { %>
+        <!-- ===== ALREADY AN AFFILIATE ===== -->
+        <div class="already-affiliate mb-5">
+            <div style="font-size: 50px; margin-bottom: 15px;">🎯</div>
+            <h2 class="fw-bold mb-2">You're Already an Affiliate!</h2>
+            <p style="color: #cbd5e1; font-size: 16px; margin-bottom: 20px;">
+                You joined on <%= new Date(affiliate.joinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+            </p>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-4">
+                    <div style="background: var(--det-dark); border-radius: 8px; padding: 15px;">
+                        <div style="font-size: 22px; font-weight: 800; color: var(--det-green);"><%= affiliate.totalClicks.toLocaleString() %></div>
+                        <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Clicks</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div style="background: var(--det-dark); border-radius: 8px; padding: 15px;">
+                        <div style="font-size: 22px; font-weight: 800; color: var(--det-green);"><%= affiliate.totalReferrals %></div>
+                        <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Referrals</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div style="background: var(--det-dark); border-radius: 8px; padding: 15px;">
+                        <div style="font-size: 22px; font-weight: 800; color: var(--det-green);">$<%= affiliate.totalEarnings.toFixed(2) %></div>
+                        <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Earned</div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="/affiliate/dashboard" class="btn-affiliate">
+                <i class="bi bi-speedometer2 me-2"></i> Go to Your Affiliate Dashboard
+            </a>
+        </div>
+        
+    <% } else { %>
+        <!-- ===== JOIN AFFILIATE PROGRAM ===== -->
+        <div class="affiliate-hero">
+            <span style="background: rgba(176,191,150,0.15); color: var(--det-green); padding: 6px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">D.E.T Affiliate Program</span>
+            <h1 class="fw-bold mt-3 mb-2" style="font-size: 36px;">Earn 20% Commission<br>on Every Referral</h1>
+            <p style="color: #cbd5e1; font-size: 16px; max-width: 600px; margin: 0 auto 25px;">
+                Share your unique affiliate link and earn passive income when anyone subscribes to D.E.T through you.
+            </p>
+            
+            <% if(currentUser) { %>
+                <form action="/affiliate/join" method="POST">
+                    <button type="submit" class="btn-affiliate">
+                        <i class="bi bi-rocket-takeoff me-2"></i> Join Affiliate Program Now
+                    </button>
+                </form>
+                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Instant activation · Start earning today</p>
+            <% } else { %>
+                <a href="/login" class="btn-affiliate">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Login to Join
+                </a>
+                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="/register" style="color: var(--det-green);">Register here</a></p>
+            <% } %>
+        </div>
+    <% } %>
+
+    <!-- ===== HOW IT WORKS (show to everyone) ===== -->
+    <h3 class="fw-bold text-center mb-4">How It Works</h3>
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <i class="bi bi-link-45deg" style="font-size: 30px; color: var(--det-green); display: block; margin-bottom: 10px;"></i>
+                <h5 class="fw-bold">Get Your Link</h5>
+                <p style="color: #94a3b8; font-size: 13px;">Join the program and receive your unique referral link instantly.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <i class="bi bi-share" style="font-size: 30px; color: var(--det-green); display: block; margin-bottom: 10px;"></i>
+                <h5 class="fw-bold">Share Everywhere</h5>
+                <p style="color: #94a3b8; font-size: 13px;">Share on WhatsApp, Facebook, Telegram — anywhere traders are.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <i class="bi bi-cash-stack" style="font-size: 30px; color: var(--det-green); display: block; margin-bottom: 10px;"></i>
+                <h5 class="fw-bold">Earn 20%</h5>
+                <p style="color: #94a3b8; font-size: 13px;">Get 20% of every subscription payment your referrals make. Forever.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== COMMISSION BREAKDOWN ===== -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="commission-card">
+                <h5 class="fw-bold mb-3">Commission Breakdown</h5>
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Example earnings per tier when someone subscribes:</p>
+                
+                <div class="tier-payout">
+                    <span style="color: #cbd5e1;">Topaz ($200 subscription)</span>
+                    <span class="fw-bold" style="color: var(--det-green);">$40 commission</span>
+                </div>
+                <div class="tier-payout">
+                    <span style="color: #cbd5e1;">Tanzanite ($1,000 subscription)</span>
+                    <span class="fw-bold" style="color: var(--det-green);">$200 commission</span>
+                </div>
+                <div class="tier-payout">
+                    <span style="color: #cbd5e1;">Sapphire ($5,000 subscription)</span>
+                    <span class="fw-bold" style="color: var(--det-green);">$1,000 commission</span>
+                </div>
+                <div class="tier-payout">
+                    <span style="color: #cbd5e1;">Diamond ($70,000 subscription)</span>
+                    <span class="fw-bold" style="color: var(--det-green);">$14,000 commission</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="commission-card">
+                <h5 class="fw-bold mb-3">Why Join?</h5>
+                <ul class="text-start" style="list-style: none; padding: 0;">
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Instant Activation</strong> — Start earning immediately
+                    </li>
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Lifetime Commissions</strong> — Earn on every renewal
+                    </li>
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Real-Time Tracking</strong> — See clicks and conversions instantly
+                    </li>
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Weekly Payouts</strong> — Request payout anytime above $50
+                    </li>
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Marketing Materials</strong> — Get banners and copy to share
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

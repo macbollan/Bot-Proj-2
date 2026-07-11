@@ -1,0 +1,795 @@
+<%- include('partials/header', { title: 'How It Works | D.E.T System', page: 'how-it-works' }) %>
+
+<style>
+    /* Hero Section */
+    .how-hero {
+        background: linear-gradient(135deg, rgba(176,191,150,0.05) 0%, rgba(50,44,44,0.3) 100%);
+        padding: 80px 0 60px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .how-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at center, rgba(176,191,150,0.03) 0%, transparent 70%);
+        animation: heroPulse 8s ease-in-out infinite;
+    }
+    @keyframes heroPulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    .how-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    .how-hero-badge {
+        display: inline-block;
+        background: rgba(176,191,150,0.15);
+        border: 1px solid var(--det-border);
+        border-radius: 50px;
+        padding: 8px 24px;
+        color: var(--det-green);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+    }
+    .how-hero h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+    .how-hero h1 span {
+        background: linear-gradient(135deg, var(--det-green) 0%, #d4e4b0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .how-hero-subtitle {
+        font-size: 18px;
+        color: #94a3b8;
+        max-width: 600px;
+        margin: 0 auto 40px;
+        line-height: 1.6;
+    }
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        margin-top: 40px;
+    }
+    .hero-stat {
+        text-align: center;
+    }
+    .hero-stat-number {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--det-green);
+        display: block;
+    }
+    .hero-stat-label {
+        font-size: 13px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+    }
+
+    /* Process Timeline */
+    .process-section {
+        padding: 80px 0;
+        position: relative;
+    }
+    .section-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    .section-header h2 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+    }
+    .section-header p {
+        color: #94a3b8;
+        font-size: 16px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .timeline {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: calc(100% - 100px);
+        background: linear-gradient(to bottom, var(--det-green), rgba(176,191,150,0.1));
+        top: 50px;
+    }
+    .timeline-step {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 80px;
+        position: relative;
+    }
+    .timeline-step:nth-child(odd) {
+        flex-direction: row;
+    }
+    .timeline-step:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+    .timeline-step:last-child {
+        margin-bottom: 0;
+    }
+    
+    .step-number-container {
+        flex-shrink: 0;
+        width: 60px;
+        height: 60px;
+        position: relative;
+        z-index: 2;
+    }
+    .step-number {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--det-card);
+        border: 2px solid var(--det-green);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--det-green);
+        position: sticky;
+        top: 50%;
+        box-shadow: 0 0 30px rgba(176,191,150,0.2);
+    }
+    
+    .step-content {
+        flex: 1;
+        max-width: 380px;
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 16px;
+        padding: 30px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .step-content:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        border-color: var(--det-green);
+    }
+    .timeline-step:nth-child(odd) .step-content {
+        margin-left: 40px;
+    }
+    .timeline-step:nth-child(even) .step-content {
+        margin-right: 40px;
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: rgba(176,191,150,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: var(--det-green);
+        margin-bottom: 20px;
+    }
+    .step-content h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+    }
+    .step-content p {
+        color: #94a3b8;
+        font-size: 14px;
+        line-height: 1.7;
+        margin-bottom: 16px;
+    }
+    .step-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .step-tag {
+        background: rgba(176,191,150,0.1);
+        border: 1px solid rgba(176,191,150,0.2);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 11px;
+        color: var(--det-green);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .step-image-placeholder {
+        width: 100%;
+        height: 160px;
+        background: rgba(0,0,0,0.3);
+        border: 2px dashed var(--det-border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 12px;
+        margin-top: 16px;
+        transition: all 0.3s;
+    }
+    .step-image-placeholder:hover {
+        border-color: var(--det-green);
+        color: var(--det-green);
+        background: rgba(176,191,150,0.05);
+    }
+    .step-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--det-green);
+        font-weight: 600;
+        font-size: 13px;
+        text-decoration: none;
+        margin-top: 12px;
+        transition: gap 0.3s;
+    }
+    .step-link:hover {
+        gap: 12px;
+        color: var(--det-green-hover);
+    }
+
+    /* Tiers Quick View */
+    .tiers-mini-section {
+        padding: 60px 0;
+        background: rgba(176,191,150,0.02);
+    }
+    .tiers-scroll {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 20px 0;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tiers-scroll::-webkit-scrollbar {
+        height: 4px;
+    }
+    .tiers-scroll::-webkit-scrollbar-track {
+        background: rgba(255,255,255,0.05);
+        border-radius: 2px;
+    }
+    .tiers-scroll::-webkit-scrollbar-thumb {
+        background: var(--det-green);
+        border-radius: 2px;
+    }
+    .tier-mini-card {
+        flex-shrink: 0;
+        width: 240px;
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 24px;
+        scroll-snap-align: start;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: block;
+    }
+    .tier-mini-card:hover {
+        border-color: var(--det-green);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .tier-mini-card.highlight {
+        border-color: var(--det-green);
+        background: rgba(176,191,150,0.05);
+    }
+    .tier-mini-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+    .tier-mini-float {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-bottom: 12px;
+    }
+    .tier-mini-pct {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--det-green);
+    }
+    .tier-mini-period {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .tier-mini-arrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--det-green);
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 16px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: 80px 0;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(176,191,150,0.05) 0%, transparent 100%);
+    }
+    .cta-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 20px;
+        padding: 60px 40px;
+        max-width: 700px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+    }
+    .cta-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--det-green), transparent);
+    }
+    .cta-card h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 16px;
+    }
+    .cta-card p {
+        color: #94a3b8;
+        font-size: 16px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    .cta-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-cta-primary {
+        background: var(--det-green);
+        color: var(--det-dark);
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .btn-cta-primary:hover {
+        background: var(--det-green-hover);
+        transform: translateY(-2px);
+        color: var(--det-dark);
+    }
+    .btn-cta-secondary {
+        background: transparent;
+        color: var(--det-green);
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        border: 1px solid var(--det-green);
+        transition: all 0.3s;
+    }
+    .btn-cta-secondary:hover {
+        background: rgba(176,191,150,0.1);
+        color: var(--det-green);
+    }
+
+    /* FAQ Mini */
+    .faq-mini {
+        max-width: 800px;
+        margin: 60px auto 0;
+        padding: 0 20px;
+    }
+    .faq-mini h3 {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 30px;
+    }
+    .faq-item {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .faq-question {
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        color: #ffffff;
+        user-select: none;
+    }
+    .faq-question i {
+        color: var(--det-green);
+        transition: transform 0.3s;
+        font-size: 12px;
+    }
+    .faq-item.open .faq-question i {
+        transform: rotate(180deg);
+    }
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+        padding: 0 24px;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+    .faq-item.open .faq-answer {
+        max-height: 200px;
+        padding: 0 24px 18px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .how-hero h1 {
+            font-size: 32px;
+        }
+        .hero-stats {
+            gap: 30px;
+        }
+        .hero-stat-number {
+            font-size: 28px;
+        }
+        .timeline::before {
+            left: 30px;
+        }
+        .timeline-step,
+        .timeline-step:nth-child(even) {
+            flex-direction: row !important;
+        }
+        .timeline-step:nth-child(odd) .step-content,
+        .timeline-step:nth-child(even) .step-content {
+            margin-left: 30px;
+            margin-right: 0;
+            max-width: 100%;
+        }
+        .step-number-container {
+            width: 50px;
+            height: 50px;
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+        }
+        .cta-card {
+            padding: 40px 20px;
+        }
+        .cta-card h2 {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<!-- HERO SECTION -->
+<section class="how-hero">
+    <div class="container">
+        <div class="how-hero-content">
+            <div class="how-hero-badge">
+                <i class="bi bi-lightning-charge me-2"></i>Your Journey Starts Here
+            </div>
+            <h1>How The <span>D.E.T System</span> Works</h1>
+            <p class="how-hero-subtitle">
+                From registration to passive income — a simple 4-step process to activate our institutional-grade trading algorithm and watch your equity multiply.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">4</span>
+                    <span class="hero-stat-label">Simple Steps</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">24/7</span>
+                    <span class="hero-stat-label">Automated Trading</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">13</span>
+                    <span class="hero-stat-label">Access Tiers</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PROCESS TIMELINE -->
+<section class="process-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>The 4-Step Process</h2>
+            <p>Everything you need to know to get started with D.E.T</p>
+        </div>
+        
+        <div class="timeline">
+            <!-- STEP 1 -->
+            <div class="timeline-step">
+                <div class="step-number-container">
+                    <div class="step-number">1</div>
+                </div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <h3>Register </h3>
+                    <p>
+                        Create your D.E.T account in under 60 seconds. Already have an account? Simply log in.
+                    </p>
+                    <div class="step-tags">
+                        <span class="step-tag">Free</span>
+                        <span class="step-tag">< 1 Min</span>
+                    </div>
+                    <div class="step-image-placeholder">
+                        <i class="bi bi-image me-2"></i> Registration Page Screenshot
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <a href="/register" class="step-link">Create Account <i class="bi bi-arrow-right"></i></a>
+                        <a href="/login" class="step-link">Login <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div class="timeline-step">
+                <div class="step-number-container">
+                    <div class="step-number">2</div>
+                </div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <h3>Choose Your Tier & Activate</h3>
+                    <p>
+                        Select a tier that matches your equity level. From Amethyst ($50) to Solomonic ($1T+), each tier unlocks institutional-grade execution with fixed percentage returns.
+                    </p>
+                    <div class="step-tags">
+                        <span class="step-tag">13 Tiers</span>
+                        <span class="step-tag">EcoCash</span>
+                        <span class="step-tag">OneMoney</span>
+                        <span class="step-tag">Bank Transfer</span>
+                    </div>
+                    <div class="step-image-placeholder">
+                        <i class="bi bi-image me-2"></i> Pricing / Checkout Page Screenshot
+                    </div>
+                    <a href="/pricing" class="step-link">View Pricing Tiers <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div class="timeline-step">
+                <div class="step-number-container">
+                    <div class="step-number">3</div>
+                </div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <i class="bi bi-download"></i>
+                    </div>
+                    <h3>Download & Install the EA</h3>
+                    <p>
+                        After payment, your unique 9-digit activation code appears in your dashboard. Download the D.E.T Smart Client EA, paste your code into MetaTrader 5, and you're ready.
+                    </p>
+                    <div class="step-tags">
+                        <span class="step-tag">MT5</span>
+                        <span class="step-tag">Windows</span>
+                        <span class="step-tag">Auto-Install</span>
+                    </div>
+                    <div class="step-image-placeholder">
+                        <i class="bi bi-image me-2"></i> MT5 EA Installation Screenshot
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">
+                            <strong style="color: var(--det-green);">Quick MT5 EA Install Guide:</strong>
+                        </p>
+                        <ol style="font-size: 12px; color: #94a3b8; padding-left: 18px; line-height: 2;">
+                            <li>Open MetaTrader 5 → <strong>File</strong> → <strong>Open Data Folder</strong></li>
+                            <li>Navigate to <code style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:3px;">MQL5/Experts/</code></li>
+                            <li>Paste the downloaded <strong>.ex5</strong> file</li>
+                            <li>Restart MT5 → Drag EA onto your chart</li>
+                            <li>Enter your <strong>9-Digit Activation Code</strong></li>
+                            <li>Click <strong>OK</strong> — the algorithm begins scanning immediately</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4 -->
+            <div class="timeline-step">
+                <div class="step-number-container">
+                    <div class="step-number">4</div>
+                </div>
+                <div class="step-content">
+                    <div class="step-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h3>Sit Back & Watch Your Equity Grow</h3>
+                    <p>
+                        The S.M.A.R.T. Engine takes over — executing precision trades 24/7 with zero manual intervention. Monitor your performance in real-time from your dashboard.
+                    </p>
+                    <div class="step-tags">
+                        <span class="step-tag">Fully Automated</span>
+                        <span class="step-tag">Real-Time Analytics</span>
+                        <span class="step-tag">Zero Hedge Lock</span>
+                    </div>
+                    <div class="step-image-placeholder">
+                        <i class="bi bi-image me-2"></i> Dashboard / Performance Chart Screenshot
+                    </div>
+                    <a href="/dashboard" class="step-link">View Dashboard <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TIERS QUICK VIEW -->
+<section class="tiers-mini-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Find Your Tier</h2>
+            <p>Choose based on your current equity level</p>
+        </div>
+        <div class="tiers-scroll">
+            <a href="/pricing" class="tier-mini-card">
+                <div class="tier-mini-name">Amethyst</div>
+                <div class="tier-mini-float">$50 – $199</div>
+                <div class="tier-mini-pct">$1/Day</div>
+                <div class="tier-mini-period">Fixed Rate</div>
+                <div class="tier-mini-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+            </a>
+            <a href="/pricing" class="tier-mini-card highlight">
+                <div class="tier-mini-name">Topaz</div>
+                <div class="tier-mini-float">$200 – $1,000</div>
+                <div class="tier-mini-pct">11%</div>
+                <div class="tier-mini-period">Per 30 Days</div>
+                <div class="tier-mini-arrow">Most Popular <i class="bi bi-arrow-right"></i></div>
+            </a>
+            <a href="/pricing" class="tier-mini-card">
+                <div class="tier-mini-name">Tanzanite</div>
+                <div class="tier-mini-float">$1,000 – $10,000</div>
+                <div class="tier-mini-pct">10%</div>
+                <div class="tier-mini-period">Per 30 Days</div>
+                <div class="tier-mini-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+            </a>
+            <a href="/pricing" class="tier-mini-card">
+                <div class="tier-mini-name">Sapphire</div>
+                <div class="tier-mini-float">$10K – $100K</div>
+                <div class="tier-mini-pct">9%</div>
+                <div class="tier-mini-period">Per 7 Months</div>
+                <div class="tier-mini-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+            </a>
+            <a href="/pricing" class="tier-mini-card">
+                <div class="tier-mini-name">Emerald</div>
+                <div class="tier-mini-float">$100K – $1M</div>
+                <div class="tier-mini-pct">8%</div>
+                <div class="tier-mini-period">Per 7 Months</div>
+                <div class="tier-mini-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+            </a>
+            <a href="/pricing" class="tier-mini-card">
+                <div class="tier-mini-name">Diamond</div>
+                <div class="tier-mini-float">$1M – $10M</div>
+                <div class="tier-mini-pct">7%</div>
+                <div class="tier-mini-period">Per 7 Months</div>
+                <div class="tier-mini-arrow">Get Started <i class="bi bi-arrow-right"></i></div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <h2>Ready to Start Your Journey?</h2>
+            <p>
+                Join thousands of traders who have automated their income with the D.E.T System. No trading experience required — our algorithm does all the work.
+            </p>
+            <div class="cta-buttons">
+                <a href="/register" class="btn-cta-primary">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Create Free Account
+                </a>
+                <a href="/pricing" class="btn-cta-secondary">
+                    <i class="bi bi-grid me-2"></i>View All Tiers
+                </a>
+            </div>
+        </div>
+
+        <!-- FAQ Mini -->
+        <div class="faq-mini">
+            <h3>Frequently Asked Questions</h3>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    Do I need trading experience to use D.E.T?
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    No. The D.E.T System is fully automated. Once you install the EA and enter your activation code, the algorithm handles everything — from market analysis to trade execution and risk management.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    What happens if my account doubles?
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Our built-in <strong>Zero-Hedge Protocol</strong> automatically locks your account when your equity doubles, securing your profits. You can then withdraw your initial capital and continue trading with pure profit, or upgrade to a higher tier.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    Which payment methods are accepted?
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    We accept EcoCash, OneMoney, and standard bank transfers through Paynow — Zimbabwe's leading payment gateway. All transactions are secure and processed instantly.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    Can I switch tiers later?
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Absolutely. As your equity grows, you can upgrade to higher tiers to access better rates. Simply purchase a new activation for your desired tier from the pricing page.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                    Is my money safe?
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Your trading capital stays in your own MT5 broker account. The D.E.T EA only executes trades — it never has access to withdraw funds. Plus, our Zero-Hedge Protocol locks profits automatically when your account doubles.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// FAQ accordion is handled by inline onclick above
+</script>
+
+<%- include('partials/footer') %>
