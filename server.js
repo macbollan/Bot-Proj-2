@@ -192,8 +192,8 @@ app.get("/training", (req, res) => {
 // ==========================================
 
 const paynow = new Paynow(
-    process.env.PAYNOW_INTEGRATION_ID || "YOUR_INTEGRATION_ID", 
-    process.env.PAYNOW_INTEGRATION_KEY || "YOUR_INTEGRATION_KEY"
+    process.env.PAYNOW_INTEGRATION_ID || "21038", 
+    process.env.PAYNOW_INTEGRATION_KEY || "b5bd8cc5-4797-4435-961e-7bb7e93e2cc8"
 );
 
 const LIVE_DOMAIN = "https://bot-proj-2-1.onrender.com";
