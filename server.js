@@ -162,7 +162,7 @@ app.post("/api/client/sync", async (req, res) => {
 
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
-    { name: "Amber", designation: "Level", float: "$0 to $49", percentage: "N/A", period: "No Trading", minSub: "N/A", maxSub: "N/A" },
+    { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Week", period: "4 Weeks Promo", minSub: "$1", maxSub: "$4" },
     { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "Fixed $1 Rate", period: "Per Day", minSub: "$1", maxSub: "$30" },
     { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "Per 30 Days", minSub: "$22", maxSub: "$111" },
     { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 30 Days", minSub: "$100", maxSub: "$1,000" },
@@ -202,6 +202,7 @@ paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 
 // DYNAMIC TIER CONFIG WITH MIN/MAX RANGES
 const tierConfig = {
+    "Amber": { min: 1, max: 4, durationDays: 7 },
     "Amethyst": { min: 1, max: 30, durationDays: 30 },
     "Topaz": { min: 22, max: 111, durationDays: 30 },
     "Tanzanite": { min: 100, max: 1000, durationDays: 30 },

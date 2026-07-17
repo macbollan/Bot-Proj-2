@@ -85,6 +85,66 @@
         display: inline-block; margin: 10px 0;
     }
     .expand-terms-link:hover { color: #fff; }
+
+    .promo-badge {
+    position: absolute;
+    top: 12px;
+    left: -4px;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff !important;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 12px 4px 16px;
+    border-radius: 0 4px 4px 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+    animation: promoGlow 2s ease-in-out infinite;
+}
+.promo-badge::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #fff;
+    border-radius: 2px 0 0 2px;
+}
+@keyframes promoGlow {
+    0%, 100% { box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+    50% { box-shadow: 0 2px 16px rgba(245,158,11,0.6); }
+}
+.promo-card {
+    border-color: rgba(245,158,11,0.4) !important;
+    background: linear-gradient(180deg, rgba(245,158,11,0.05) 0%, var(--det-card) 30%) !important;
+}
+.promo-card:hover {
+    border-color: #f59e0b !important;
+}
+.promo-countdown {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 11px;
+    color: #f59e0b;
+    font-weight: 600;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+.promo-price {
+    text-decoration: line-through;
+    color: #64748b !important;
+    font-size: 12px;
+}
+.promo-price-new {
+    color: #f59e0b !important;
+    font-size: 15px;
+    font-weight: 800;
+}
 </style>
 
 <div class="container flex-grow-1">
@@ -106,7 +166,10 @@
 
     <div class="pricing-grid">
         <% tiers.forEach(function(tier) { %>
-            <div class="tier-card">
+            <div class="tier-card <%= tier.name === 'Amber' ? 'promo-card' : '' %>">
+    <% if(tier.name === 'Amber') { %>
+        <span class="promo-badge">🔥 Promo</span>
+    <% } %>
                 <i class="bi bi-info-circle card-info-icon" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
                 
                 <div class="tier-row pt-0">
@@ -114,19 +177,32 @@
                     <span class="tier-val highlight"><%= tier.name %> <%= tier.designation %></span>
                 </div>
                 
-                <div class="tier-row">
-                    <span class="tier-label">Estimated Trading Float in your account</span>
-                    <span class="tier-val"><%= tier.float %></span>
-                </div>
+<% if(tier.name === 'Amber') { %>
+    <div class="promo-countdown">
+        <i class="bi bi-alarm me-1"></i> Promo ends 25 December 2026
+    </div>
+<% } %>
                 
                 <div class="tier-row">
                     <span class="tier-label">Subscription Percentage</span>
-                    <span class="tier-val"><%= tier.percentage %></span>
+                    <span class="tier-val">
+                        <% if(tier.name === 'Amber') { %>
+                            <span class="promo-price">N/A</span> <span class="promo-price-new">$1/week</span>
+                        <% } else { %>
+                            <%= tier.percentage %>
+                        <% } %>
+                    </span>
                 </div>
-                
+
                 <div class="tier-row">
                     <span class="tier-label">Subscription Period</span>
-                    <span class="tier-val"><%= tier.period %></span>
+                    <span class="tier-val">
+                        <% if(tier.name === 'Amber') { %>
+                            <span style="color: #f59e0b !important;">4 Weeks ($4/month)</span>
+                        <% } else { %>
+                            <%= tier.period %>
+                        <% } %>
+                    </span>
                 </div>
                 
                 <div class="tier-row">
@@ -139,12 +215,15 @@
                     <span class="tier-val"><%= tier.maxSub %></span>
                 </div>
 
-                <% if(tier.name === "Amber") { %>
-                    <button type="button" class="btn-secure mt-auto" disabled>Not Available</button>
-                <% } else { %>
-                    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('<%= tier.name %>')">Subscribe to <%= tier.name %> Level</button>
-                    <span class="terms-note">Click to agree to terms and conditions</span>
-                <% } %>
+<% if(tier.name === "Amber") { %>
+    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('Amber')" style="border-color: #f59e0b; color: #f59e0b !important;">
+        <i class="bi bi-fire me-1"></i> Claim Promo Offer
+    </button>
+    <span class="terms-note" style="color: #f59e0b;">Limited time · Until 25 Dec 2026</span>
+<% } else { %>
+    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('<%= tier.name %>')">Subscribe to <%= tier.name %> Level</button>
+    <span class="terms-note">Click to agree to terms and conditions</span>
+<% } %>
             </div>
         <% }); %>
     </div>
