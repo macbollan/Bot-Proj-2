@@ -666,6 +666,19 @@ app.get("/admin", isAdmin, async (req, res) => {
             startingBalance: Number(c.startingBalance) || 0,
             targetBalance: Number(c.targetBalance) || 0
         }));
+    
+
+    // Positive Logouts - accounts that hit 100% gain profitably
+    const positiveLogouts = allUsers
+        .filter(c => c.accountLocked && Number(c.startingBalance) > 0)
+        .map(c => ({
+            username: c.username,
+            email: c.email,
+            tier: c.currentTier || "None",
+            startingBalance: Number(c.startingBalance) || 0,
+            targetBalance: Number(c.targetBalance) || 0,
+            profit: (Number(c.targetBalance) || 0) - (Number(c.startingBalance) || 0)
+        }));    
 
     // Top Affiliates (if affiliateEngine exists and has data)
     let topAffiliates = [];
@@ -701,6 +714,7 @@ app.get("/admin", isAdmin, async (req, res) => {
         revenueByTier,
         topEarners,
         negativeLogouts,
+          positiveLogouts,
         topAffiliates
     });
 });
