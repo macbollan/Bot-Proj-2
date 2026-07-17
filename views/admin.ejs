@@ -1115,6 +1115,7 @@
         const registrationTrend = <%- JSON.stringify(registrationTrend) %>;
         const revenueByTier = <%- JSON.stringify(revenueByTier) %>;
         const topAccountsByRegion = <%- JSON.stringify(topAccountsByRegion) %>;
+        const totalAccounts = <%= stats.total %>;
         const statusBreakdown = [
             { label: 'Active', value: <%= stats.active %>, color: '#B0BF96' },
             { label: 'Banned', value: <%= stats.suspended %>, color: '#f59e0b' },
@@ -1122,7 +1123,6 @@
             { label: 'Expired', value: <%= stats.expired %>, color: '#94a3b8' },
             { label: 'Unlicensed', value: <%= stats.unlicensed %>, color: '#38bdf8' }
         ];
-
         // --- Registration Trend (Line) ---
         new Chart(document.getElementById('registrationChart').getContext('2d'), {
             type: 'line',
