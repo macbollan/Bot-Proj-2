@@ -248,7 +248,9 @@
                 <button type="button" class="btn-affiliate" data-bs-toggle="modal" data-bs-target="#affiliateAgreementModal">
                     <i class="bi bi-box-arrow-in-right me-2"></i> Login to Join
                 </button>
-                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="/register" style="color: var(--det-green);">Register here</a></p>
+
+ 
+                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="//register?redirect=affiliateregister" style="color: var(--det-green);">Register here</a></p>
             <% } %>
         </div>
     <% } %>
@@ -461,7 +463,7 @@
                 <button type="button" class="btn-det-modal" id="agreeProceedBtn" disabled onclick="handleAgreementProceed()">
                     Review All Clauses <i class="bi bi-arrow-right ms-1"></i>
                 </button>
-                <a href="/login" id="finalLoginLink" class="btn-det-modal" style="display: none; text-decoration: none;">
+                <a href="/login?redirect=affiliate" id="finalLoginLink" class="btn-det-modal" style="display: none; text-decoration: none;">
                     <i class="bi bi-check-circle me-1"></i> I Agree — Proceed to Login
                 </a>
             </div>

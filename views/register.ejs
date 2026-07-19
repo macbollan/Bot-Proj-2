@@ -22,6 +22,21 @@
     .ux-safety-net { text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: #cbd5e1 !important; }
     .ux-safety-net a { color: var(--det-green) !important; font-weight: 700; text-decoration: none; letter-spacing: 0.5px; transition: 0.3s; display: inline-block; margin-top: 5px;}
     .ux-safety-net a:hover { color: #fff !important; text-decoration: underline; }
+
+    .affiliate-banner {
+        background: rgba(245,158,11,0.1);
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .affiliate-banner p {
+        color: #f59e0b;
+        font-size: 13px;
+        margin: 0;
+        font-weight: 600;
+    }
 </style>
 
 <div class="container flex-grow-1">
@@ -38,13 +53,21 @@
             </div> 
         <% } %>
 
+        <% if(typeof redirect !== 'undefined' && redirect === 'affiliate') { %>
+            <div class="affiliate-banner">
+                <p><i class="bi bi-diagram-3 me-2"></i>Create your account to join the <strong>Affiliate Program</strong></p>
+            </div>
+        <% } %>
+
         <form action="/register" method="POST">
 
-                    <!-- Add this at the top of the form -->
             <% if(typeof referralCode !== 'undefined' && referralCode) { %>
                 <input type="hidden" name="ref" value="<%= referralCode %>">
             <% } %>
             
+            <% if(typeof redirect !== 'undefined' && redirect) { %>
+                <input type="hidden" name="redirect" value="<%= redirect %>">
+            <% } %>
 
             <input type="hidden" name="selectedTier" value="<%= typeof selectedTier !== 'undefined' ? selectedTier : 'None' %>">
             <div class="mb-3">
@@ -73,13 +96,12 @@
                 <p><strong>Verification Notice:</strong> Your 9-Digit D.E.T ID will be linked directly to these credentials upon payment completion.</p>
             </div>
 
- 
             <button type="submit" class="btn-secure">Confirm Details & Continue to Pay</button>
         </form>
 
         <div class="ux-safety-net">
             Already have a profile? <br>
-            <a href="/login">Login to bypass Setup</a>
+            <a href="/login<%= typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '' %>">Login to bypass Setup</a>
         </div>
     </div>
 </div>

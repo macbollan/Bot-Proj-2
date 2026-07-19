@@ -386,13 +386,14 @@ app.get("/", (req, res) => {
 });
 
 
-
 app.get("/register", (req, res) => {
     const referralCode = req.query.ref || '';
+    const redirect = req.query.redirect || '';
     res.render("register", { 
         error: null, 
         selectedTier: null,
-        referralCode: referralCode
+        referralCode: referralCode,
+        redirect: redirect
     });
 });
 
@@ -455,7 +456,7 @@ app.post("/register", async (req, res) => {
         req.flash("success", "Account created successfully! Welcome to D.E.T System.");
         const redirectTo = req.body.selectedTier ? 
             `/checkout?tier=${encodeURIComponent(req.body.selectedTier)}` : 
-            "/dashboard";
+            (req.body.redirect === 'affiliate' ? "/affiliate" : "/dashboard");
         res.redirect(redirectTo);
     });
   } catch (err) {
@@ -470,12 +471,15 @@ app.get("/how-it-works", (req, res) => {
     res.render("how-it-works");
 });
 
+
 app.get("/login", (req, res) => {
     const pendingTier = req.query.tier;
     const referralCode = req.query.ref || '';
+    const redirect = req.query.redirect || '';
     res.render("login", { 
         pendingTier: pendingTier || null, 
         referralCode: referralCode,
+        redirect: redirect
     });
 });
 
@@ -502,6 +506,11 @@ app.post("/login", (req, res, next) => {
             const pendingTier = req.body.pendingTier;
             if (pendingTier && pendingTier !== "None" && pendingTier !== "") {
                 return res.redirect(`/checkout?tier=${encodeURIComponent(pendingTier)}`);
+            }
+            // Check if they came from affiliate page
+            const redirect = req.body.redirect;
+            if (redirect === 'affiliate') {
+                return res.redirect("/affiliate");
             }
             // Regular login goes to dashboard
             return res.redirect("/dashboard");

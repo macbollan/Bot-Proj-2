@@ -107,6 +107,20 @@
         margin: 0;
         font-weight: 600;
     }
+    .affiliate-banner {
+        background: rgba(245,158,11,0.1);
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .affiliate-banner p {
+        color: #f59e0b;
+        font-size: 13px;
+        margin: 0;
+        font-weight: 600;
+    }
 </style>
 
 <div class="auth-container">
@@ -120,6 +134,12 @@
             </div>
         <% } %>
 
+        <% if (typeof redirect !== 'undefined' && redirect === 'affiliate') { %>
+            <div class="affiliate-banner">
+                <p><i class="bi bi-diagram-3 me-2"></i>Login to join the <strong>Affiliate Program</strong></p>
+            </div>
+        <% } %>
+
         <% if (locals.error && locals.error.length > 0) { %>
             <div class="alert-danger">
                 <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
@@ -129,6 +149,9 @@
         <form action="/login" method="POST">
             <% if (locals.pendingTier) { %>
                 <input type="hidden" name="pendingTier" value="<%= pendingTier %>">
+            <% } %>
+            <% if (typeof redirect !== 'undefined' && redirect) { %>
+                <input type="hidden" name="redirect" value="<%= redirect %>">
             <% } %>
             
             <label class="form-label">Username</label>
@@ -142,7 +165,7 @@
             </button>
         </form>
 
-        <p class="auth-link">Don't have an account? <a href="/register">Create one here</a></p>
+        <p class="auth-link">Don't have an account? <a href="/register<%= typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '' %>">Create one here</a></p>
     </div>
 </div>
 

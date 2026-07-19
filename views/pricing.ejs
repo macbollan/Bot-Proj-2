@@ -4,6 +4,7 @@
     .page-heading { text-align: center; padding: 30px 0 10px; }
     .page-heading h2 { color: var(--det-green); font-size: 32px; font-weight: 700; margin-bottom: 5px; }
     
+    /* Elegant Grid Layout */
     .pricing-grid { 
         display: grid; 
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
@@ -20,11 +21,17 @@
     .tier-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--det-green), #728352); opacity: 0; transition: opacity 0.3s; }
     .tier-card:hover::before { opacity: 1; }
 
+    /* The Info Icon embedded in standard cards */
     .card-info-icon {
         position: absolute; top: 15px; right: 15px; color: #64748b; font-size: 18px; cursor: pointer; transition: color 0.3s;
     }
     .card-info-icon:hover { color: var(--det-green); }
 
+    /* Static Info Icon for the Promo Card */
+    .card-info-icon-static { color: #64748b; font-size: 18px; cursor: pointer; transition: color 0.3s; }
+    .card-info-icon-static:hover { color: var(--det-green); }
+
+    /* Crisp Data Rows */
     .tier-row {
         display: flex; justify-content: space-between; align-items: center;
         padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left;
@@ -40,6 +47,79 @@
     .btn-secure:disabled { border-color: #475569; color: #cbd5e1 !important; cursor: not-allowed; }
     .terms-note { display: block; text-align: center; font-size: 10px; color: #64748b; margin-top: 10px; }
 
+    /* =========================================
+       NEW: AMBER PROMO SPECIFIC STYLES
+    ========================================= */
+    .amber-promo-card {
+        border: 1px solid var(--det-green);
+        box-shadow: 0 0 15px rgba(176, 191, 150, 0.15);
+        background: linear-gradient(180deg, #252222 0%, var(--det-card) 100%);
+    }
+    .promo-header-container {
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    .promo-main-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.6); /* Red glowing shadow */
+        margin-bottom: 2px;
+        letter-spacing: 0.5px;
+    }
+    .promo-sub-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ef4444; /* Bright Red */
+        margin-bottom: 15px;
+    }
+    
+    /* White "Price Tag" Pointer Boxes */
+    .tag-box {
+        background: #ffffff;
+        color: #1a1818;
+        padding: 5px 12px;
+        border-radius: 4px;
+        position: relative;
+        font-weight: 800;
+        display: inline-block;
+        min-width: 105px;
+        text-align: center;
+        font-size: 13px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .tag-box::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-right: 6px solid #ffffff;
+    }
+
+    /* Select Amber Button */
+    .btn-amber-select {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #4ade80; /* Bright Neon Green */
+        font-size: 20px;
+        font-weight: 700;
+        padding: 12px;
+        border-radius: 8px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+    }
+    .btn-amber-select:hover {
+        border-color: #4ade80;
+        background: rgba(74, 222, 128, 0.05);
+    }
+
+    /* Disclaimers Section at Bottom */
     .disclaimer-section { background: rgba(0,0,0,0.2); border-top: 1px solid var(--det-border); padding: 40px 0; margin-top: 40px; }
     .warning-box { background: rgba(240, 192, 64, 0.05); border-left: 3px solid #f0c040; padding: 12px 15px; border-radius: 6px; margin-bottom: 12px; }
     .warning-box p { margin-bottom: 0; font-size: 12px; color: #cbd5e1 !important; line-height: 1.6; }
@@ -51,100 +131,26 @@
     .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
     .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
     
-    .terms-box { 
-        background: var(--det-dark); border: 1px solid var(--det-border); border-radius: 8px; 
-        padding: 15px; height: 180px; overflow-y: auto; font-size: 12px; color: #cbd5e1 !important; 
-        margin-bottom: 15px; text-align: left;
-    }
-    .terms-box::-webkit-scrollbar { width: 6px; }
-    .terms-box::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
-    
     .full-terms-box { 
         background: var(--det-dark); border: 1px solid var(--det-border); border-radius: 8px; 
-        padding: 20px; height: 350px; overflow-y: auto; font-size: 11px; color: #cbd5e1 !important; 
-        margin-bottom: 15px; text-align: left; line-height: 1.6;
+        padding: 20px; height: 280px; overflow-y: auto; font-size: 11px; color: #cbd5e1 !important; 
+        margin-bottom: 20px; text-align: left; line-height: 1.6;
     }
     .full-terms-box::-webkit-scrollbar { width: 6px; }
     .full-terms-box::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
     .full-terms-box h6 { color: var(--det-green); font-size: 12px; font-weight: 700; margin-top: 12px; margin-bottom: 6px; }
     .full-terms-box .clause-number { color: var(--det-green); font-weight: 700; }
     
-    .biblical-reference { 
-        text-align: center; margin-top: 15px; padding-top: 15px; 
-        border-top: 1px solid rgba(176,191,150,0.2); color: var(--det-green); font-style: italic; 
-    }
+    .biblical-reference { text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(176,191,150,0.2); color: var(--det-green); font-style: italic; }
 
     .form-check-input { background-color: var(--det-dark); border: 1px solid var(--det-green); width: 18px; height: 18px; cursor: pointer; }
     .form-check-input:checked { background-color: var(--det-green); border-color: var(--det-green); }
     
     .btn-det-modal { background-color: var(--det-green) !important; color: var(--det-dark) !important; font-weight: 700 !important; border: none !important; padding: 10px 20px; border-radius: 6px; transition: all 0.3s ease; }
     .btn-det-modal:disabled { background-color: #475569 !important; color: #cbd5e1 !important; cursor: not-allowed; opacity: 1 !important; }
-    
-    .expand-terms-link { 
-        color: var(--det-green); cursor: pointer; font-size: 12px; text-decoration: underline; 
-        display: inline-block; margin: 10px 0;
-    }
-    .expand-terms-link:hover { color: #fff; }
 
-    .promo-badge {
-    position: absolute;
-    top: 12px;
-    left: -4px;
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    color: #fff !important;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 4px 12px 4px 16px;
-    border-radius: 0 4px 4px 0;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    z-index: 2;
-    box-shadow: 0 2px 8px rgba(245,158,11,0.3);
-    animation: promoGlow 2s ease-in-out infinite;
-}
-.promo-badge::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: #fff;
-    border-radius: 2px 0 0 2px;
-}
-@keyframes promoGlow {
-    0%, 100% { box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
-    50% { box-shadow: 0 2px 16px rgba(245,158,11,0.6); }
-}
-.promo-card {
-    border-color: rgba(245,158,11,0.4) !important;
-    background: linear-gradient(180deg, rgba(245,158,11,0.05) 0%, var(--det-card) 30%) !important;
-}
-.promo-card:hover {
-    border-color: #f59e0b !important;
-}
-.promo-countdown {
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.25);
-    border-radius: 6px;
-    padding: 8px 12px;
-    text-align: center;
-    font-size: 11px;
-    color: #f59e0b;
-    font-weight: 600;
-    margin-bottom: 15px;
-    letter-spacing: 0.5px;
-}
-.promo-price {
-    text-decoration: line-through;
-    color: #64748b !important;
-    font-size: 12px;
-}
-.promo-price-new {
-    color: #f59e0b !important;
-    font-size: 15px;
-    font-weight: 800;
-}
+    /* Sticky checkbox bar */
+    .sticky-agreement-bar { position: sticky; bottom: 0; background: var(--det-card); border-top: 1px solid var(--det-border); padding: 16px 0 4px; margin-top: 20px; z-index: 5; }
 </style>
 
 <div class="container flex-grow-1">
@@ -166,65 +172,98 @@
 
     <div class="pricing-grid">
         <% tiers.forEach(function(tier) { %>
-            <div class="tier-card <%= tier.name === 'Amber' ? 'promo-card' : '' %>">
-    <% if(tier.name === 'Amber') { %>
-        <span class="promo-badge">🔥 Promo</span>
-    <% } %>
-                <i class="bi bi-info-circle card-info-icon" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
-                
-                <div class="tier-row pt-0">
-                    <span class="tier-label">Grade / Level</span>
-                    <span class="tier-val highlight"><%= tier.name %> <%= tier.designation %></span>
-                </div>
-                
-<% if(tier.name === 'Amber') { %>
-    <div class="promo-countdown">
-        <i class="bi bi-alarm me-1"></i> Promo ends 25 December 2026
-    </div>
-<% } %>
-                
-                <div class="tier-row">
-                    <span class="tier-label">Subscription Percentage</span>
-                    <span class="tier-val">
-                        <% if(tier.name === 'Amber') { %>
-                            <span class="promo-price">N/A</span> <span class="promo-price-new">$1/week</span>
-                        <% } else { %>
-                            <%= tier.percentage %>
-                        <% } %>
-                    </span>
-                </div>
+            
+            <% if(tier.name === 'Amber') { %>
+                <!-- ==============================================
+                     THE CUSTOM AMBER TEST-RUN PROMOTION CARD
+                =============================================== -->
+                <div class="tier-card amber-promo-card">
+                    <div class="promo-header-container">
+                        <h2 class="promo-main-title">Test-Run Promotion</h2>
+                        <h4 class="promo-sub-title">Runs until 25th December 2026</h4>
+                    </div>
+                    
+                    <div class="tier-row pt-2">
+                        <span class="tier-label">Grade / Level</span>
+                        <span class="tier-val highlight d-flex justify-content-end align-items-center">
+                            Amber Level 
+                            <i class="bi bi-info-circle ms-2 card-info-icon-static" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
+                        </span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Estimated Trading Float<br>In Your Account</span>
+                        <span class="tier-val">$0 to $49</span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Subscription Percentage</span>
+                        <span class="tier-val"><div class="tag-box">$1/week</div></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Subscription Period</span>
+                        <span class="tier-val"><div class="tag-box">Weekly</div></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Minimum Subscription</span>
+                        <span class="tier-val"><div class="tag-box">$1</div></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Maximum Subscription</span>
+                        <span class="tier-val"><div class="tag-box">$4 / Month</div></span>
+                    </div>
 
-                <div class="tier-row">
-                    <span class="tier-label">Subscription Period</span>
-                    <span class="tier-val">
-                        <% if(tier.name === 'Amber') { %>
-                            <span style="color: #f59e0b !important;">4 Weeks ($4/month)</span>
-                        <% } else { %>
-                            <%= tier.period %>
-                        <% } %>
-                    </span>
+                    <div class="mt-auto position-relative pt-3">
+                        <!-- Faint 'Not Available' layered underneath -->
+                        <div style="position:absolute; width:100%; text-align:center; top: 28px; color: rgba(255,255,255,0.15); font-size: 16px; font-weight: 800; pointer-events: none; z-index: 1;"></div>
+                        
+                        <button type="button" class="btn-amber-select" onclick="openTermsModal('Amber')">Select Amber Level</button>
+                    </div>
                 </div>
-                
-                <div class="tier-row">
-                    <span class="tier-label">Minimum Subscription</span>
-                    <span class="tier-val"><%= tier.minSub %></span>
-                </div>
-                
-                <div class="tier-row">
-                    <span class="tier-label">Maximum Subscription</span>
-                    <span class="tier-val"><%= tier.maxSub %></span>
-                </div>
+            <% } else { %>
+                <!-- ==============================================
+                     STANDARD TIER CARDS
+                =============================================== -->
+                <div class="tier-card">
+                    <i class="bi bi-info-circle card-info-icon" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
+                    
+                    <div class="tier-row pt-0">
+                        <span class="tier-label">Grade / Level</span>
+                        <span class="tier-val highlight"><%= tier.name %> <%= tier.designation %></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Estimated Trading Float in your account</span>
+                        <span class="tier-val"><%= tier.float %></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Subscription Percentage</span>
+                        <span class="tier-val"><%= tier.percentage %></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Subscription Period</span>
+                        <span class="tier-val"><%= tier.period %></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Minimum Subscription</span>
+                        <span class="tier-val"><%= tier.minSub %></span>
+                    </div>
+                    
+                    <div class="tier-row">
+                        <span class="tier-label">Maximum Subscription</span>
+                        <span class="tier-val"><%= tier.maxSub %></span>
+                    </div>
 
-<% if(tier.name === "Amber") { %>
-    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('Amber')" style="border-color: #f59e0b; color: #f59e0b !important;">
-        <i class="bi bi-fire me-1"></i> Claim Promo Offer
-    </button>
-    <span class="terms-note" style="color: #f59e0b;">Limited time · Until 25 Dec 2026</span>
-<% } else { %>
-    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('<%= tier.name %>')">Subscribe to <%= tier.name %> Level</button>
-    <span class="terms-note">Click to agree to terms and conditions</span>
-<% } %>
-            </div>
+                    <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('<%= tier.name %>')">Subscribe to <%= tier.name %> Level</button>
+                    <span class="terms-note">Click to agree to terms and conditions</span>
+                </div>
+            <% } %>
         <% }); %>
     </div>
 </div>
@@ -245,13 +284,12 @@
         <div class="warning-box">
             <p><strong>⚠️ No Guarantees:</strong> Caveat Subscriptor, we are "NOT an Advisory Institution" "NOT an Investment Institution", "NOT an Investment Advisor" we offer "NO Guarantees" these are just our opinions and in High-Risk trading you ACTUALLY may lose all your capital.</p>
         </div>
-         <div class="warning-box">
+        <div class="warning-box">
             <p><strong>⚠️ Zero-Hedging:</strong> D.E.T will do a Zero-Hedging when the account doubles (100% gain). Meaning all positive and negative trades in the entire account will be combined, such that when these open trades neutralise each other to a Breakeven, D.E.T will instantaneously close all trades, at the minimalistic loss as possible. <em>N.B: To avoid this, make a quick prepayment to reactivate D.E.T.</em></p>
         </div>
         <div class="warning-box">
             <p><strong>⚠️ Warning:</strong> There is NO Top-up option.</p>
         </div>
-
 
         <div class="warning-box">
             <p><strong>⚠️ Withdrawals:</strong> If you make any withdrawals from your account, the equivalent amount will be withdrawn from your expected "double profit" gain.</p>
@@ -300,7 +338,7 @@
     </div>
 </div>
 
-<!-- ===== TERMS & CONDITIONS MODAL (Appears after tier selection) ===== -->
+<!-- ===== TERMS & CONDITIONS MODAL ===== -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
@@ -311,92 +349,73 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <!-- Selected Tier Display -->
                 <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded" style="background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);">
                     <span class="text-uppercase fw-bold" style="font-size: 12px; color: #cbd5e1;">Selected Level</span>
                     <span class="fw-bold text-accent fs-5" id="termsTierDisplay">--</span>
                 </div>
 
-                <!-- Quick Summary (Original 4 points preserved) -->
-                <p class="fw-bold text-white mb-2 text-start" style="font-size: 13px;">Key Terms Summary:</p>
-                <div class="terms-box" style="height: auto; margin-bottom: 15px;">
-                    <p style="color: inherit; margin-bottom: 8px;"><strong>1.</strong> D.E.T System is NOT an Investment Institution, nor an Investment Advisor.</p>
-                    <p style="color: inherit; margin-bottom: 8px;"><strong>2. Caveat Subscriptor:</strong> There are NO guarantees of profit. Trading carries a high level of risk.</p>
-                    <p style="color: inherit; margin-bottom: 8px;"><strong>3. Zero-Hedge Protocol:</strong> If your account reaches 100% gain, the D.E.T connection will suspend.</p>
-                    <p style="color: inherit; margin-bottom: 0;"><strong>4. Diverted Account Warning:</strong> Account may be diverted to lower grade if prepaid subscription differs from trading float.</p>
-                </div>
+                <div class="full-terms-box">
+                    <h6>📜 MULTI-JURISDICTIONAL CAVEAT SUBSCRIPTOR</h6>
+                    
+                    <p><span class="clause-number">1. LIABILITY LIMITATION & REGULATORY RISK:</span></p>
+                    <p><strong>1.1</strong> To the maximum extent permitted under applicable law (United Kingdom, Singapore, Dubai (DIFC/DFSA), Mauritius, Zimbabwe, including other applicable jurisdictions), the Participant acknowledges that Trading involves substantial risk of capital loss, including possible total loss of capital. No guarantees are provided regarding profitability, capital preservation, or system performance. D.E.T, including its architecture, operators, affiliates, developers, licensors, infrastructure providers, and associated entities shall not be liable for: Direct, indirect, incidental, consequential, punitive, or special damages; Market losses, volatility exposure, slippage, liquidity disruptions, execution delays, or system interruptions; Losses arising from broker conduct, exchange actions, or third-party infrastructure failures.</p>
+                    
+                    <p><strong>1.2 REGULATORY & SOVEREIGN RISK:</strong> The Participant acknowledges that regulatory authorities, exchanges, governments and central banking institutions may impose restrictions affecting access or execution. Such events constitute Force-Majeure Events, Regulatory Override Events, Sovereign Intervention Events, including sanctions, capital controls, exchange suspensions, brokerage restrictions, or legislative changes.</p>
+                    
+                    <p><strong>1.3 MANDATORY LEGAL PROTECTION:</strong> Nothing herein excludes liability where such exclusion is prohibited by law, including fraud or willful misconduct.</p>
 
-                <!-- Expand/Collapse Full Terms -->
-                <div class="text-center mb-2">
-                    <span class="expand-terms-link" onclick="toggleFullTerms()" id="expandLink">
-                        <i class="bi bi-arrows-expand me-1"></i>View Complete Terms & Conditions
-                    </span>
-                </div>
+                    <h6>⚙️ OPERATIONAL TERMS</h6>
+                    
+                    <p><span class="clause-number">2. AUTOMATED EXECUTION AUTHORITY:</span> The Participant authorises D.E.T to execute trades, manage exposure, and apply algorithmic risk logic through connected brokerage infrastructure.</p>
+                    
+                    <p><span class="clause-number">3. MARKET INFRASTRUCTURE INDEPENDENCE:</span> D.E.T operates through independent third-party brokers, exchanges, and liquidity providers. D.E.T does not: Hold client funds; Act as broker or exchange; Provide financial advisory services; Guarantee execution conditions.</p>
+                    
+                    <p><span class="clause-number">4. SYSTEM EVOLUTION CLAUSE:</span> D.E.T may implement automatic updates, recalibration, optimisation cycles, and structural enhancements. System evolution is intrinsic to operational architecture.</p>
+                    
+                    <p><span class="clause-number">5. GROWTH EVENT LOGIC:</span> Where account equity increases by 100%, system access may be temporarily suspended; trades remain under system management; new trade initiation may be restricted until cycle completion.</p>
+                    
+                    <p><span class="clause-number">6. ZERO-HEDGING & RISK CONSOLIDATION:</span> D.E.T may aggregate opposing positions, reduce exposure, or neutralise risk at defined thresholds as part of risk optimisation logic.</p>
+                    
+                    <p><span class="clause-number">7. PREPAYMENT & ACCESS LICENSING STRUCTURE:</span> Access to D.E.T is granted through tier-based licensing determined by system allocation logic and operational parameters. D.E.T may modify access levels or reassign tiers at its discretion.</p>
 
-                <!-- Collapsible Full Terms -->
-                <div id="fullTermsContent" style="display: none;">
-                    <div class="full-terms-box">
-                        <h6>📜 MULTI-JURISDICTIONAL CAVEAT SUBSCRIPTOR</h6>
-                        
-                        <p><span class="clause-number">1. LIABILITY LIMITATION & REGULATORY RISK:</span></p>
-                        <p><strong>1.1</strong> To the maximum extent permitted under applicable law (United Kingdom, Singapore, Dubai (DIFC/DFSA), Mauritius, Zimbabwe, including other applicable jurisdictions), the Participant acknowledges that Trading involves substantial risk of capital loss, including possible total loss of capital. No guarantees are provided regarding profitability, capital preservation, or system performance. D.E.T, including its architecture, operators, affiliates, developers, licensors, infrastructure providers, and associated entities shall not be liable for: Direct, indirect, incidental, consequential, punitive, or special damages; Market losses, volatility exposure, slippage, liquidity disruptions, execution delays, or system interruptions; Losses arising from broker conduct, exchange actions, or third-party infrastructure failures.</p>
-                        
-                        <p><strong>1.2 REGULATORY & SOVEREIGN RISK:</strong> The Participant acknowledges that regulatory authorities, exchanges, governments and central banking institutions may impose restrictions affecting access or execution. Such events constitute Force-Majeure Events, Regulatory Override Events, Sovereign Intervention Events, including sanctions, capital controls, exchange suspensions, brokerage restrictions, or legislative changes.</p>
-                        
-                        <p><strong>1.3 MANDATORY LEGAL PROTECTION:</strong> Nothing herein excludes liability where such exclusion is prohibited by law, including fraud or willful misconduct.</p>
+                    <h6>🔒 INTELLECTUAL PROPERTY & CONFIDENTIALITY</h6>
+                    
+                    <p><span class="clause-number">8. INTELLECTUAL PROPERTY & NON-CIRCUMVENTION:</span> All D.E.T architecture, logic, workflows, algorithms, and systems remain proprietary intellectual property. Participants shall not reverse engineer, replicate, or commercially exploit D.E.T without authorisation.</p>
+                    
+                    <p><span class="clause-number">9. CONFIDENTIALITY, NON-CIRCUMVENTION & REMEDIES:</span> Participants shall not disclose, misuse, or replicate any proprietary D.E.T material.</p>
+                    <p><strong>9.1 LIQUIDATED DAMAGES:</strong> In case of breach, D.E.T legal owners may recover reasonable, pre-estimated commercial loss including lost licensing value; enforcement and recovery costs; direct and indirect damages arising from breach.</p>
+                    <p><strong>9.2 INJUNCTIVE RELIEF:</strong> D.E.T legal owners may seek urgent injunctive relief, restraining orders, or specific performance in any competent jurisdiction.</p>
 
-                        <h6>⚙️ OPERATIONAL TERMS</h6>
-                        
-                        <p><span class="clause-number">2. AUTOMATED EXECUTION AUTHORITY:</span> The Participant authorises D.E.T to execute trades, manage exposure, and apply algorithmic risk logic through connected brokerage infrastructure.</p>
-                        
-                        <p><span class="clause-number">3. MARKET INFRASTRUCTURE INDEPENDENCE:</span> D.E.T operates through independent third-party brokers, exchanges, and liquidity providers. D.E.T does not: Hold client funds; Act as broker or exchange; Provide financial advisory services; Guarantee execution conditions.</p>
-                        
-                        <p><span class="clause-number">4. SYSTEM EVOLUTION CLAUSE:</span> D.E.T may implement automatic updates, recalibration, optimisation cycles, and structural enhancements. System evolution is intrinsic to operational architecture.</p>
-                        
-                        <p><span class="clause-number">5. GROWTH EVENT LOGIC:</span> Where account equity increases by 100%, system access may be temporarily suspended; trades remain under system management; new trade initiation may be restricted until cycle completion.</p>
-                        
-                        <p><span class="clause-number">6. ZERO-HEDGING & RISK CONSOLIDATION:</span> D.E.T may aggregate opposing positions, reduce exposure, or neutralise risk at defined thresholds as part of risk optimisation logic.</p>
-                        
-                        <p><span class="clause-number">7. PREPAYMENT & ACCESS LICENSING STRUCTURE:</span> Access to D.E.T is granted through tier-based licensing determined by system allocation logic and operational parameters. D.E.T may modify access levels or reassign tiers at its discretion.</p>
+                    <h6>🌍 JURISDICTIONAL & GOVERNANCE</h6>
+                    
+                    <p><span class="clause-number">10. GLOBAL REGULATORY FRAMEWORK:</span> Participants acknowledge that D.E.T may operate across multiple jurisdictions with varying regulatory environments. Access may be restricted or modified for compliance purposes.</p>
+                    <p><span class="clause-number">11. ENTIRE AGREEMENT:</span> This Agreement supersedes all prior representations or communications.</p>
+                    <p><span class="clause-number">12. ETHOS, VALUES & COMMUNICATION DISCLOSURE:</span> D.E.T operates within a values-based framework informed by Christian ethical principles including stewardship, accountability, discipline, and integrity. Communications may include ethical commentary, educational insights, and Biblical references. Such content: Does not impose religious obligation; Does not alter the commercial nature of this Agreement; Forms part of D.E.T's operational identity. D.E.T reserves the right to maintain its ethos and communication philosophy.</p>
 
-                        <h6>🔒 INTELLECTUAL PROPERTY & CONFIDENTIALITY</h6>
-                        
-                        <p><span class="clause-number">8. INTELLECTUAL PROPERTY & NON-CIRCUMVENTION:</span> All D.E.T architecture, logic, workflows, algorithms, and systems remain proprietary intellectual property. Participants shall not reverse engineer, replicate, or commercially exploit D.E.T without authorisation.</p>
-                        
-                        <p><span class="clause-number">9. CONFIDENTIALITY, NON-CIRCUMVENTION & REMEDIES:</span> Participants shall not disclose, misuse, or replicate any proprietary D.E.T material.</p>
-                        <p><strong>9.1 LIQUIDATED DAMAGES:</strong> In case of breach, D.E.T legal owners may recover reasonable, pre-estimated commercial loss including lost licensing value; enforcement and recovery costs; direct and indirect damages arising from breach.</p>
-                        <p><strong>9.2 INJUNCTIVE RELIEF:</strong> D.E.T legal owners may seek urgent injunctive relief, restraining orders, or specific performance in any competent jurisdiction.</p>
+                    <h6>👤 PARTICIPANT DEFINITIONS & AUTHORITY</h6>
+                    
+                    <p><span class="clause-number">13. PARTICIPANT DEFINITION:</span> Participant means any person or entity accessing or utilising D.E.T. A Participant may function as: Account Holder; Licensee; Market Participant. These roles are contextual and do not create fiduciary or advisory relationships.</p>
+                    <p><span class="clause-number">14. AUTHORITY TO ACT & BIND:</span> The Participant confirms full authority to enter and bind any represented entity. D.E.T may rely conclusively on such representation. Digital activation is proof of authority.</p>
+                    <p><span class="clause-number">15. ECOSYSTEM ENTITY REFERENCE:</span> D.E.T operates within an institutional ecosystem including Shaun Clarence Microbank, which may act as a commercial or licensing counterpart.</p>
+                    <p><span class="clause-number">16. GOVERNING LAW & ARBITRATION:</span> Disputes shall be resolved through negotiation, failing which binding arbitration shall apply under recognised international arbitration frameworks.</p>
 
-                        <h6>🌍 JURISDICTIONAL & GOVERNANCE</h6>
-                        
-                        <p><span class="clause-number">10. GLOBAL REGULATORY FRAMEWORK:</span> Participants acknowledge that D.E.T may operate across multiple jurisdictions with varying regulatory environments. Access may be restricted or modified for compliance purposes.</p>
-                        <p><span class="clause-number">11. ENTIRE AGREEMENT:</span> This Agreement supersedes all prior representations or communications.</p>
-                        <p><span class="clause-number">12. ETHOS, VALUES & COMMUNICATION DISCLOSURE:</span> D.E.T operates within a values-based framework informed by Christian ethical principles including stewardship, accountability, discipline, and integrity. Communications may include ethical commentary, educational insights, and Biblical references. Such content: Does not impose religious obligation; Does not alter the commercial nature of this Agreement; Forms part of D.E.T's operational identity. D.E.T reserves the right to maintain its ethos and communication philosophy.</p>
-
-                        <h6>👤 PARTICIPANT DEFINITIONS & AUTHORITY</h6>
-                        
-                        <p><span class="clause-number">13. PARTICIPANT DEFINITION:</span> Participant means any person or entity accessing or utilising D.E.T. A Participant may function as: Account Holder; Licensee; Market Participant. These roles are contextual and do not create fiduciary or advisory relationships.</p>
-                        <p><span class="clause-number">14. AUTHORITY TO ACT & BIND:</span> The Participant confirms full authority to enter and bind any represented entity. D.E.T may rely conclusively on such representation. Digital activation is proof of authority.</p>
-                        <p><span class="clause-number">15. ECOSYSTEM ENTITY REFERENCE:</span> D.E.T operates within an institutional ecosystem including Shaun Clarence Microbank, which may act as a commercial or licensing counterpart.</p>
-                        <p><span class="clause-number">16. GOVERNING LAW & ARBITRATION:</span> Disputes shall be resolved through negotiation, failing which binding arbitration shall apply under recognised international arbitration frameworks.</p>
-
-                        <h6>✍️ FINAL BINDING DIGITAL ACCEPTANCE</h6>
-                        
-                        <p><span class="clause-number">18. FINAL BINDING DIGITAL ACCEPTANCE:</span> By clicking, activating, subscribing, logging in, or otherwise affirming acceptance through any digital interface including OK, AGREE, PROCEED, or equivalent action, the Participant confirms that: I have read and understood this Agreement in full; I voluntarily accept all risks and obligations; I possess legal authority to bind myself or any entity represented; Such digital action constitutes full and enforceable contractual consent. If I do not agree, I must discontinue use immediately. By proceeding, I am deemed fully and irrevocably bound.</p>
-                        
-                        <div class="biblical-reference">
-                            "I invoke Colossians 3 vs 22-25"<br>
-                            <small style="color: #cbd5e1;">and I have read and understood the entirety of the Terms and Conditions</small>
-                        </div>
+                    <h6>✍️ FINAL BINDING DIGITAL ACCEPTANCE</h6>
+                    
+                    <p><span class="clause-number">18. FINAL BINDING DIGITAL ACCEPTANCE:</span> By clicking, activating, subscribing, logging in, or otherwise affirming acceptance through any digital interface including OK, AGREE, PROCEED, or equivalent action, the Participant confirms that: I have read and understood this Agreement in full; I voluntarily accept all risks and obligations; I possess legal authority to bind myself or any entity represented; Such digital action constitutes full and enforceable contractual consent. If I do not agree, I must discontinue use immediately. By proceeding, I am deemed fully and irrevocably bound.</p>
+                    
+                    <div class="biblical-reference">
+                        "I invoke Colossians 3 vs 22-25"<br>
+                        <small style="color: #cbd5e1;">and I have read and understood the entirety of the Terms and Conditions</small>
                     </div>
                 </div>
 
-                <!-- Agreement Checkbox -->
-                <div class="form-check mt-3 d-flex align-items-start gap-2 text-start">
-                    <input class="form-check-input mt-0" type="checkbox" id="termsCheck" required>
-                    <label class="form-check-label text-white small" for="termsCheck" style="cursor: pointer;">
-                        I have read and understood the entirety of the Terms and Conditions and agree to be bound by them.
-                    </label>
+                <div class="sticky-agreement-bar">
+                    <div class="form-check d-flex align-items-start gap-2 text-start">
+                        <input class="form-check-input mt-0" type="checkbox" id="termsCheck" required>
+                        <label class="form-check-label text-white small" for="termsCheck" style="cursor: pointer;">
+                            I have read and understood the entirety of the Terms and Conditions and agree to be bound by them.
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -409,140 +428,52 @@
     </div>
 </div>
 
-<!-- ===== CHECKOUT MODAL (Original - PayNow Payment) ===== -->
-<div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold text-white"><i class="bi bi-shield-lock text-accent me-2"></i>D.E.T Agreement</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="/checkout/initialize" method="POST" id="tierForm">
-                <div class="modal-body">
-                    <input type="hidden" name="selectedTier" id="modalTierInput" value="">
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(176, 191, 150, 0.1); border: 1px solid var(--det-border);">
-                        <span class="text-uppercase fw-bold" style="font-size: 12px; color: #cbd5e1;">Selected Level</span>
-                        <span class="fw-bold text-accent fs-5" id="modalTierDisplay">--</span>
-                    </div>
-
-                    <p class="small fw-bold text-white mb-2 text-start">Terms & Risk Disclosure</p>
-                    <div class="terms-box">
-                        <p style="color: inherit;">1. D.E.T System is NOT an Investment Institution, nor an Investment Advisor.</p>
-                        <p style="color: inherit;">2. Caveat Subscriptor: There are NO guarantees of profit. Trading carries a high level of risk.</p>
-                        <p style="color: inherit;">3. Zero-Hedge Protocol: If your account reaches 100% gain, the D.E.T connection will suspend.</p>
-                        <p style="color: inherit;">4. Diverted Account Warning: Account may be diverted to lower grade if prepaid subscription differs from trading float.</p>
-                    </div>
-
-                    <div class="form-check mt-3 d-flex align-items-center gap-2 text-start">
-                        <input class="form-check-input mt-0" type="checkbox" id="finalTermsCheck" required>
-                        <label class="form-check-label text-white small" for="finalTermsCheck" style="cursor: pointer;">
-                            I confirm I have read and agree to the Risk Disclosure.
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-det-modal" id="proceedBtn" disabled>Continue to Setup <i class="bi bi-arrow-right ms-1"></i></button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ===== SCRIPT ===== -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize all modals
         const termsModalEl = document.getElementById('termsModal');
-        const checkoutModalEl = document.getElementById('checkoutModal');
-        
         const termsModal = termsModalEl ? new bootstrap.Modal(termsModalEl) : null;
-        const checkoutModal = checkoutModalEl ? new bootstrap.Modal(checkoutModalEl) : null;
         
-        // Terms modal elements
         const termsCheck = document.getElementById('termsCheck');
         const agreeBtn = document.getElementById('agreeBtn');
         
-        // Checkout modal elements
-        const finalTermsCheck = document.getElementById('finalTermsCheck');
-        const proceedBtn = document.getElementById('proceedBtn');
-        
         let selectedTierName = '';
 
-        // Toggle full terms expand/collapse
-        window.toggleFullTerms = function() {
-            const fullTerms = document.getElementById('fullTermsContent');
-            const expandLink = document.getElementById('expandLink');
-            
-            if (fullTerms.style.display === 'none') {
-                fullTerms.style.display = 'block';
-                expandLink.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i>Hide Complete Terms & Conditions';
-                fullTerms.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                fullTerms.style.display = 'none';
-                expandLink.innerHTML = '<i class="bi bi-arrows-expand me-1"></i>View Complete Terms & Conditions';
-            }
-        };
-
-        // Global function called from tier cards - opens terms modal
         window.openTermsModal = function(tierName) {
             if (!termsModal) return;
             
-            // Reset state
             if (termsCheck) termsCheck.checked = false;
             if (agreeBtn) agreeBtn.disabled = true;
-
-
-            // Show full terms expanded by default
-            const fullTerms = document.getElementById('fullTermsContent');
-            if (fullTerms) fullTerms.style.display = 'block';
-            const expandLink = document.getElementById('expandLink');
-            if (expandLink) expandLink.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i>Hide Complete Terms & Conditions';
-
-
-            // Store selected tier
+            
             selectedTierName = tierName;
             document.getElementById('termsTierDisplay').innerText = tierName;
             
-            // Show terms modal
             termsModal.show();
         };
 
-        // Enable/disable agree button based on terms checkbox
         if (termsCheck && agreeBtn) {
             termsCheck.addEventListener('change', function() {
                 agreeBtn.disabled = !this.checked;
             });
         }
 
-        // Proceed from terms to checkout
         window.proceedToCheckout = function() {
-            if (!termsModal || !checkoutModal) return;
+            if (!termsModal) return;
             
-            // Hide terms modal
             termsModal.hide();
             
-            // Reset checkout modal
-            if (finalTermsCheck) finalTermsCheck.checked = false;
-            if (proceedBtn) proceedBtn.disabled = true;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/checkout/initialize';
             
-            // Set tier in checkout modal
-            document.getElementById('modalTierDisplay').innerText = selectedTierName;
-            document.getElementById('modalTierInput').value = selectedTierName;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selectedTier';
+            input.value = selectedTierName;
             
-            // Show checkout modal with smooth delay
-            setTimeout(function() {
-                checkoutModal.show();
-            }, 300);
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
         };
-
-        // Enable/disable proceed button in checkout modal
-        if (finalTermsCheck && proceedBtn) {
-            finalTermsCheck.addEventListener('change', function() {
-                proceedBtn.disabled = !this.checked;
-            });
-        }
     });
 </script>
 
