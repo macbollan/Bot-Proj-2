@@ -164,17 +164,17 @@ app.post("/api/client/sync", async (req, res) => {
 const pricingTiers = [
     { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Week", period: "4 Weeks Promo", minSub: "$1", maxSub: "$4" },
     { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "Fixed $1 Rate", period: "Per Day", minSub: "$1", maxSub: "$30" },
-    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "Per 30 Days", minSub: "$22", maxSub: "$111" },
-    { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 30 Days", minSub: "$100", maxSub: "$1,000" },
-    { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 7 Months", minSub: "$900", maxSub: "$9,000" },
-    { name: "Emerald", designation: "Level", float: "$100K to $1M", percentage: "8%", period: "Per 7 Months", minSub: "$8,000", maxSub: "$80K" },
+    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "3 Months", minSub: "$22", maxSub: "$111" },
+    { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "3 Months", minSub: "$100", maxSub: "$1,000" },
+    { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 4 Months", minSub: "$900", maxSub: "$9,000" },
+    { name: "Emerald", designation: "Level", float: "$100K to $1M", percentage: "8%", period: "Per 5 Months", minSub: "$8,000", maxSub: "$80K" },
     { name: "Diamond", designation: "Level", float: "$1M to $10M", percentage: "7%", period: "Per 7 Months", minSub: "$70K", maxSub: "$700K" },
-    { name: "Rhodium", designation: "Grade", float: "$10M to $100M", percentage: "5%", period: "Per 12 Months", minSub: "$500K", maxSub: "$5M" },
-    { name: "Platinum", designation: "Grade", float: "$100M to $1B", percentage: "4%", period: "Per 12 Months", minSub: "$4M", maxSub: "$40M" },
-    { name: "Uranium", designation: "Grade", float: "$1B to $10B", percentage: "3%", period: "Per 12 Months", minSub: "$30M", maxSub: "$300M" },
-    { name: "Atomic", designation: "Grade", float: "$10B to $100B", percentage: "2%", period: "Per 12 Months", minSub: "$200M", maxSub: "$2B" },
-    { name: "Nuclear", designation: "Grade", float: "$100B to $1T", percentage: "1%", period: "Per 12 Months", minSub: "$1B", maxSub: "$10B" },
-    { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "Per 12 Months", minSub: "$5B", maxSub: "No Limit" }
+    { name: "Rhodium", designation: "Grade", float: "$10M to $100M", percentage: "5%", period: "1 Year", minSub: "$500K", maxSub: "$5M" },
+    { name: "Platinum", designation: "Grade", float: "$100M to $1B", percentage: "4%", period: "2 Years", minSub: "$4M", maxSub: "$40M" },
+    { name: "Uranium", designation: "Grade", float: "$1B to $10B", percentage: "3%", period: "3 Years", minSub: "$30M", maxSub: "$300M" },
+    { name: "Atomic", designation: "Grade", float: "$10B to $100B", percentage: "2%", period: "4 Years", minSub: "$200M", maxSub: "$2B" },
+    { name: "Nuclear", designation: "Grade", float: "$100B to $1T", percentage: "1%", period: "5 Years", minSub: "$1B", maxSub: "$10B" },
+    { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "7 Years", minSub: "$5B", maxSub: "No Limit" }
 ];
 
 // --- PRICING PAGE ROUTE ---
@@ -204,17 +204,17 @@ paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 const tierConfig = {
     "Amber": { min: 1, max: 4, durationDays: 7 },
     "Amethyst": { min: 1, max: 30, durationDays: 30 },
-    "Topaz": { min: 22, max: 111, durationDays: 30 },
-    "Tanzanite": { min: 100, max: 1000, durationDays: 30 },
-    "Sapphire": { min: 900, max: 9000, durationDays: 210 }, 
-    "Emerald": { min: 8000, max: 80000, durationDays: 210 },
+    "Topaz": { min: 22, max: 111, durationDays: 90 },
+    "Tanzanite": { min: 100, max: 1000, durationDays: 90 },
+    "Sapphire": { min: 900, max: 9000, durationDays: 120 }, 
+    "Emerald": { min: 8000, max: 80000, durationDays: 150 },
     "Diamond": { min: 70000, max: 700000, durationDays: 210 },
     "Rhodium": { min: 500000, max: 5000000, durationDays: 365 }, 
-    "Platinum": { min: 4000000, max: 40000000, durationDays: 365 },
-    "Uranium": { min: 30000000, max: 300000000, durationDays: 365 },
-    "Atomic": { min: 200000000, max: 2000000000, durationDays: 365 },
-    "Nuclear": { min: 1000000000, max: 10000000000, durationDays: 365 },
-    "Solomonic": { min: 5000000000, max: 999999999999, durationDays: 365 }
+    "Platinum": { min: 4000000, max: 40000000, durationDays: 730 },
+    "Uranium": { min: 30000000, max: 300000000, durationDays: 1095 },
+    "Atomic": { min: 200000000, max: 2000000000, durationDays: 1460 },
+    "Nuclear": { min: 1000000000, max: 10000000000, durationDays: 1825 },
+    "Solomonic": { min: 5000000000, max: 999999999999, durationDays: 2555 }
 };
 
 // 1. Intercept users coming from Pricing Page Modal
@@ -472,15 +472,123 @@ app.get("/how-it-works", (req, res) => {
 });
 
 
+// ==========================================
+// FORGOT PASSWORD ROUTES
+// ==========================================
+
+// Store reset tokens in memory (in production, use a proper store)
+const resetTokens = {};
+
 app.get("/login", (req, res) => {
     const pendingTier = req.query.tier;
     const referralCode = req.query.ref || '';
     const redirect = req.query.redirect || '';
+    const showForgot = req.query.forgot === 'true';
+    const showReset = req.query.reset === 'true';
+    const resetToken = req.query.token || '';
+    const userId = req.query.uid || '';
+    
     res.render("login", { 
         pendingTier: pendingTier || null, 
         referralCode: referralCode,
-        redirect: redirect
+        redirect: redirect,
+        showForgot: showForgot,
+        showReset: showReset,
+        resetToken: resetToken,
+        userId: userId
     });
+});
+
+// Send reset code
+app.post("/forgot-password", async (req, res) => {
+    const { identifier, resetMethod } = req.body;
+    
+    try {
+        // Find user by email or username
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { username: identifier }
+            ]
+        });
+        
+        if (!user) {
+            req.flash("error", "No account found with that email or username.");
+            return res.redirect("/login?forgot=true");
+        }
+        
+        // Generate 6-digit code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        
+        // Store token
+        resetTokens[resetToken] = {
+            userId: user._id.toString(),
+            code: resetCode,
+            expires: Date.now() + 15 * 60 * 1000 // 15 minutes
+        };
+        
+        // In production, send via WhatsApp API or email
+        // For now, log it and show on screen
+        console.log(`[PASSWORD RESET] Code for ${user.username}: ${resetCode} (via ${resetMethod})`);
+        
+        req.flash("success", `Reset code sent to your ${resetMethod}. For demo: code is ${resetCode}`);
+        res.redirect(`/login?reset=true&token=${resetToken}&uid=${user._id}`);
+        
+    } catch (err) {
+        console.error("Forgot password error:", err);
+        req.flash("error", "Could not process request.");
+        res.redirect("/login?forgot=true");
+    }
+});
+
+// Reset password
+app.post("/reset-password", async (req, res) => {
+    const { resetToken, userId, resetCode, newPassword, confirmPassword } = req.body;
+    
+    try {
+        const stored = resetTokens[resetToken];
+        
+        if (!stored || stored.expires < Date.now()) {
+            req.flash("error", "Reset code has expired. Please request a new one.");
+            return res.redirect("/login?forgot=true");
+        }
+        
+        if (stored.code !== resetCode) {
+            req.flash("error", "Invalid reset code. Please try again.");
+            return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
+        }
+        
+        if (newPassword !== confirmPassword) {
+            req.flash("error", "Passwords do not match.");
+            return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
+        }
+        
+        if (newPassword.length < 8) {
+            req.flash("error", "Password must be at least 8 characters.");
+            return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
+        }
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/login");
+        }
+        
+        await user.setPassword(newPassword);
+        await user.save();
+        
+        // Clean up token
+        delete resetTokens[resetToken];
+        
+        req.flash("success", "Password reset successfully! Please login with your new password.");
+        res.redirect("/login");
+        
+    } catch (err) {
+        console.error("Reset password error:", err);
+        req.flash("error", "Could not reset password.");
+        res.redirect("/login?forgot=true");
+    }
 });
 
 app.post("/login", (req, res, next) => {

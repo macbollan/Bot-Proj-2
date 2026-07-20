@@ -83,10 +83,34 @@
     .auth-link a:hover {
         text-decoration: underline;
     }
+    .forgot-link {
+        text-align: right;
+        margin-top: -10px;
+        margin-bottom: 20px;
+    }
+    .forgot-link a {
+        color: #94a3b8;
+        font-size: 12px;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .forgot-link a:hover {
+        color: var(--det-green);
+    }
     .alert-danger {
         background: rgba(239,68,68,0.1);
         border: 1px solid #ef4444;
         color: #fca5a5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-align: center;
+    }
+    .alert-success {
+        background: rgba(34,197,94,0.1);
+        border: 1px solid #22c55e;
+        color: #86efac;
         padding: 12px;
         border-radius: 6px;
         margin-bottom: 20px;
@@ -121,52 +145,185 @@
         margin: 0;
         font-weight: 600;
     }
+    .back-to-login {
+        text-align: center;
+        margin-top: 15px;
+    }
+    .back-to-login a {
+        color: #94a3b8;
+        font-size: 13px;
+        text-decoration: none;
+    }
+    .back-to-login a:hover {
+        color: var(--det-green);
+    }
 </style>
 
 <div class="auth-container">
     <div class="auth-card">
-        <h2>Welcome Back</h2>
-        <p class="auth-subtitle">Login to your D.E.T account</p>
+        
+        <% if (typeof showForgot !== 'undefined' && showForgot) { %>
+            <!-- ===== FORGOT PASSWORD VIEW ===== -->
+            <h2>Reset Password</h2>
+            <p class="auth-subtitle">Enter your email or username to receive a reset code</p>
 
-        <% if (locals.pendingTier) { %>
-            <div class="purchase-banner">
-                <p><i class="bi bi-cart-check me-2"></i>Login to continue with <strong><%= pendingTier %></strong> subscription</p>
+            <% if (locals.error && locals.error.length > 0) { %>
+                <div class="alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
+                </div>
+            <% } %>
+            <% if (locals.success && locals.success.length > 0) { %>
+                <div class="alert-success">
+                    <i class="bi bi-check-circle me-2"></i><%= success[0] %>
+                </div>
+            <% } %>
+
+            <form action="/forgot-password" method="POST">
+                <label class="form-label">Email or Username</label>
+                <input type="text" name="identifier" class="form-control" placeholder="Enter your email or username" required>
+                
+                <label class="form-label">Reset Method</label>
+                <select name="resetMethod" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 6px; font-size: 16px; width: 100%; margin-bottom: 20px;">
+                    <option value="whatsapp">Send via WhatsApp</option>
+                    <option value="email">Send via Email</option>
+                </select>
+                
+                <button type="submit" class="btn-auth">
+                    <i class="bi bi-send me-2"></i>Send Reset Code
+                </button>
+            </form>
+            
+            <div class="back-to-login">
+                <a href="/login"><i class="bi bi-arrow-left me-1"></i>Back to Login</a>
             </div>
-        <% } %>
 
-        <% if (typeof redirect !== 'undefined' && redirect === 'affiliate') { %>
-            <div class="affiliate-banner">
-                <p><i class="bi bi-diagram-3 me-2"></i>Login to join the <strong>Affiliate Program</strong></p>
+        <% } else if (typeof showReset !== 'undefined' && showReset) { %>
+            <!-- ===== RESET PASSWORD VIEW ===== -->
+            <h2>Set New Password</h2>
+            <p class="auth-subtitle">Enter the code sent to you and your new password</p>
+
+            <% if (locals.error && locals.error.length > 0) { %>
+                <div class="alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
+                </div>
+            <% } %>
+
+            <form action="/reset-password" method="POST">
+                <input type="hidden" name="resetToken" value="<%= resetToken %>">
+                <input type="hidden" name="userId" value="<%= userId %>">
+                
+                <label class="form-label">Reset Code</label>
+                <input type="text" name="resetCode" class="form-control" placeholder="Enter the 6-digit code" maxlength="6" required>
+                
+                <label class="form-label">New Password</label>
+                <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Minimum 8 characters" minlength="8" required oninput="checkPasswordStrength()">
+                
+                <div id="passwordStrength" style="margin-bottom: 15px; font-size: 11px;"></div>
+                
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="confirmPassword" class="form-control" placeholder="Re-enter your password" required>
+                
+                <button type="submit" class="btn-auth">
+                    <i class="bi bi-shield-check me-2"></i>Reset Password
+                </button>
+            </form>
+            
+            <div class="back-to-login">
+                <a href="/login"><i class="bi bi-arrow-left me-1"></i>Back to Login</a>
             </div>
-        <% } %>
 
-        <% if (locals.error && locals.error.length > 0) { %>
-            <div class="alert-danger">
-                <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
-            </div>
-        <% } %>
+        <% } else { %>
+            <!-- ===== NORMAL LOGIN VIEW ===== -->
+            <h2>Welcome Back</h2>
+            <p class="auth-subtitle">Login to your D.E.T account</p>
 
-        <form action="/login" method="POST">
             <% if (locals.pendingTier) { %>
-                <input type="hidden" name="pendingTier" value="<%= pendingTier %>">
+                <div class="purchase-banner">
+                    <p><i class="bi bi-cart-check me-2"></i>Login to continue with <strong><%= pendingTier %></strong> subscription</p>
+                </div>
             <% } %>
-            <% if (typeof redirect !== 'undefined' && redirect) { %>
-                <input type="hidden" name="redirect" value="<%= redirect %>">
-            <% } %>
-            
-            <label class="form-label">Username</label>
-            <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
-            
-            <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
-            
-            <button type="submit" class="btn-auth">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
-            </button>
-        </form>
 
-        <p class="auth-link">Don't have an account? <a href="/register<%= typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '' %>">Create one here</a></p>
+            <% if (typeof redirect !== 'undefined' && redirect === 'affiliate') { %>
+                <div class="affiliate-banner">
+                    <p><i class="bi bi-diagram-3 me-2"></i>Login to join the <strong>Affiliate Program</strong></p>
+                </div>
+            <% } %>
+
+            <% if (locals.error && locals.error.length > 0) { %>
+                <div class="alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
+                </div>
+            <% } %>
+            <% if (locals.success && locals.success.length > 0) { %>
+                <div class="alert-success">
+                    <i class="bi bi-check-circle me-2"></i><%= success[0] %>
+                </div>
+            <% } %>
+
+            <form action="/login" method="POST">
+                <% if (locals.pendingTier) { %>
+                    <input type="hidden" name="pendingTier" value="<%= pendingTier %>">
+                <% } %>
+                <% if (typeof redirect !== 'undefined' && redirect) { %>
+                    <input type="hidden" name="redirect" value="<%= redirect %>">
+                <% } %>
+                
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+                
+                <div class="forgot-link">
+                    <a href="/login?forgot=true">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="btn-auth">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </button>
+            </form>
+
+            <p class="auth-link">Don't have an account? <a href="/register<%= typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '' %>">Create one here</a></p>
+        <% } %>
     </div>
 </div>
+
+<script>
+    function checkPasswordStrength() {
+        const password = document.getElementById('newPassword').value;
+        const strengthDiv = document.getElementById('passwordStrength');
+        
+        let strength = 0;
+        let message = '';
+        let color = '#ef4444';
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/\d/)) strength++;
+        if (password.match(/[^a-zA-Z\d]/)) strength++;
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                message = 'Weak — use 8+ chars, mix of letters, numbers & symbols';
+                color = '#ef4444';
+                break;
+            case 2:
+                message = 'Fair — add numbers or symbols';
+                color = '#f59e0b';
+                break;
+            case 3:
+                message = 'Good — almost there';
+                color = '#38bdf8';
+                break;
+            case 4:
+                message = 'Strong password ✓';
+                color = '#22c55e';
+                break;
+        }
+        
+        strengthDiv.innerHTML = '<span style="color: ' + color + ';">' + message + '</span>';
+    }
+</script>
 
 <%- include('partials/footer') %>

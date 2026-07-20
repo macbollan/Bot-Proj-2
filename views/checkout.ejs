@@ -123,24 +123,6 @@
     .breakdown-value.green {
         color: var(--det-green);
     }
-    .breakdown-total {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 2px solid var(--det-green);
-    }
-    .breakdown-total-label {
-        font-size: 14px;
-        color: #fff;
-        font-weight: 700;
-    }
-    .breakdown-total-value {
-        font-size: 20px;
-        color: var(--det-green);
-        font-weight: 800;
-    }
 
     .what-you-get {
         margin-top: 25px;
@@ -228,17 +210,11 @@
     .amount-currency {
         position: absolute;
         left: 20px;
-        top: 15px;
+        top: 50%;
+        transform: translateY(-50%);
         font-size: 24px;
         color: var(--det-green);
         font-weight: 700;
-    }
-    .amount-input {
-        font-size: 28px !important;
-        font-weight: 800;
-        color: var(--det-green) !important;
-        text-align: center;
-        padding-left: 40px !important;
     }
     
     .range-slider-container { position: relative; width: 100%; margin: 20px 0; }
@@ -402,7 +378,107 @@
     </div>
 
     <div class="checkout-grid">
-        <!-- LEFT COLUMN - Tier Details & Breakdown -->
+        <!-- PAYMENT CARD FIRST -->
+        <div class="checkout-card">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+                    Step 2 of 3
+                </span>
+                <h3 style="color: #fff; font-weight: 700; margin: 10px 0 5px;">Choose Your Amount</h3>
+                <p style="color: #94a3b8; font-size: 13px;">
+                    Select how much you want to prepay for <%= tier %> activation
+                </p>
+            </div>
+            
+            <label class="form-label mb-1" style="font-size: 11px;">
+                Your Prepayment Amount (USD)
+            </label>
+            <div class="amount-input-group">
+                <span class="amount-currency">$</span>
+                <input type="text" id="customAmount" class="form-control amount-input" 
+                       value="<%= config.min %>" 
+                       oninput="syncFromInput()"
+                       style="font-size: 22px !important; font-weight: 800; color: var(--det-green) !important; text-align: center; padding-left: 40px !important; letter-spacing: 1px;">
+            </div>
+            
+            <!-- Preset Amounts -->
+            <div class="amount-presets" id="presetButtons">
+                <!-- Generated dynamically -->
+            </div>
+            
+            <!-- Range Slider -->
+            <div class="range-slider-container">
+                <input type="range" id="amountSlider" class="range-slider"
+                       min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
+                       oninput="syncFromSlider()">
+            </div>
+            
+            <div class="d-flex justify-content-between mt-1 px-2 mb-4">
+                <small style="color: #94a3b8; font-size: 11px;">Min: $<%= config.min.toLocaleString() %></small>
+                <small style="color: #94a3b8; font-size: 11px;">Max: $<%= config.max.toLocaleString() %></small>
+            </div>
+
+            <!-- Dynamic Coverage Indicator -->
+            <div style="background: rgba(176,191,150,0.08); border: 1px solid rgba(176,191,150,0.2); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 25px;">
+                <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;" id="coverageLabel">Estimated Float Coverage</span>
+                <div style="font-size: 18px; color: var(--det-green); font-weight: 700; margin-top: 5px;" id="coverageEstimate">
+                    --
+                </div>
+            </div>
+
+            <div id="payment-ui">
+                <div class="payment-tabs">
+                    <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">
+                        <i class="bi bi-phone me-1"></i>EcoCash
+                    </div>
+                    <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">
+                        <i class="bi bi-phone me-1"></i>OneMoney
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
+                    <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
+                    <input type="hidden" id="selectedMethod" value="ecocash">
+                    
+                    <button class="btn-secure" onclick="triggerMobilePush()">
+                        <i class="bi bi-phone-vibrate me-2"></i>Send Payment Prompt
+                    </button>
+                </div>
+
+                <div class="text-center mt-4 mb-4">
+                    <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
+                </div>
+
+                <a href="#" id="standardGatewayBtn" class="btn-outline" onclick="triggerStandardGateway(event)">
+                    <i class="bi bi-credit-card me-2"></i>Pay with Visa / MasterCard
+                </a>
+
+                <p style="text-align: center; margin-top: 20px; font-size: 11px; color: #64748b;">
+                    <i class="bi bi-shield-lock me-1"></i>
+                    Secured by Paynow SSL Encryption
+                </p>
+            </div>
+
+            <div id="loader">
+                <div id="spinner-container">
+                    <div class="spinner-border mb-4" role="status"></div>
+                    <h4 style="color: var(--det-green); font-weight: 700;">Check your phone!</h4>
+                    <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
+                </div>
+                
+                <div id="success-container" style="display: none;">
+                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                    <h4 style="color: var(--det-green); font-weight: 700;">Payment Successful!</h4>
+                    <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIER DETAILS CARD SECOND -->
         <div class="tier-details-card">
             <div class="tier-badge"><%= tierDesignation %></div>
             <h1 class="tier-name-display"><%= tier %></h1>
@@ -490,126 +566,28 @@
                 <i class="bi bi-grid-3x3-gap me-2"></i>View All Tiers & Plans
             </a>
         </div>
-
-        <!-- RIGHT COLUMN - Payment Interface -->
-        <div class="checkout-card">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
-                    Step 2 of 3
-                </span>
-                <h3 style="color: #fff; font-weight: 700; margin: 10px 0 5px;">Choose Your Amount</h3>
-                <p style="color: #94a3b8; font-size: 13px;">
-                    Select how much you want to prepay for <%= tier %> activation
-                </p>
-            </div>
-            
-            <label class="form-label mb-1" style="font-size: 11px;">
-                Your Prepayment Amount (USD)
-            </label>
-            <div class="amount-input-group">
-                <span class="amount-currency">$</span>
-                <input type="number" id="customAmount" class="form-control amount-input" 
-                       min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
-                       oninput="syncFromInput()">
-            </div>
-            
-            <!-- Preset Amounts -->
-            <div class="amount-presets" id="presetButtons">
-                <!-- Generated dynamically -->
-            </div>
-            
-            <!-- Range Slider -->
-            <div class="range-slider-container">
-                <input type="range" id="amountSlider" class="range-slider"
-                       min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
-                       oninput="syncFromSlider()">
-            </div>
-            
-            <div class="d-flex justify-content-between mt-1 px-2 mb-4">
-                <small style="color: #94a3b8; font-size: 11px;">Min: $<%= config.min.toLocaleString() %></small>
-                <small style="color: #94a3b8; font-size: 11px;">Max: $<%= config.max.toLocaleString() %></small>
-            </div>
-
-            <!-- Dynamic Coverage Indicator -->
-            <div style="background: rgba(176,191,150,0.08); border: 1px solid rgba(176,191,150,0.2); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 25px;">
-                <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Estimated Float Coverage</span>
-                <div style="font-size: 18px; color: var(--det-green); font-weight: 700; margin-top: 5px;" id="coverageEstimate">
-                    $<%= Math.round(config.min / (parseFloat(tierPercentageRate) / 100)).toLocaleString() %>
-                </div>
-            </div>
-
-            <div id="payment-ui">
-                <div class="payment-tabs">
-                    <div class="payment-tab active" id="tab-ecocash" onclick="selectMobileMethod('ecocash')">
-                        <i class="bi bi-phone me-1"></i>EcoCash
-                    </div>
-                    <div class="payment-tab" id="tab-onemoney" onclick="selectMobileMethod('onemoney')">
-                        <i class="bi bi-phone me-1"></i>OneMoney
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label" id="phoneLabel">Enter EcoCash Number</label>
-                    <input type="tel" id="mobileNumber" class="form-control" placeholder="077XXXXXXX" maxlength="10">
-                    <input type="hidden" id="selectedMethod" value="ecocash">
-                    
-                    <button class="btn-secure" onclick="triggerMobilePush()">
-                        <i class="bi bi-phone-vibrate me-2"></i>Send Payment Prompt
-                    </button>
-                </div>
-
-                <div class="text-center mt-4 mb-4">
-                    <span style="color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px;">— OR —</span>
-                </div>
-
-                <a href="#" id="standardGatewayBtn" class="btn-outline" onclick="triggerStandardGateway(event)">
-                    <i class="bi bi-credit-card me-2"></i>Pay with Visa / MasterCard
-                </a>
-
-                <p style="text-align: center; margin-top: 20px; font-size: 11px; color: #64748b;">
-                    <i class="bi bi-shield-lock me-1"></i>
-                    Secured by Paynow SSL Encryption
-                </p>
-            </div>
-
-            <div id="loader">
-                <div id="spinner-container">
-                    <div class="spinner-border mb-4" role="status"></div>
-                    <h4 style="color: var(--det-green); font-weight: 700;">Check your phone!</h4>
-                    <p style="color: #cbd5e1; font-size: 15px;" id="poll-text">Enter your PIN to complete the transaction...</p>
-                </div>
-                
-                <div id="success-container" style="display: none;">
-                    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                    </svg>
-                    <h4 style="color: var(--det-green); font-weight: 700;">Payment Successful!</h4>
-                    <p style="color: #cbd5e1; font-size: 15px;">Generating your secure D.E.T ID...</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
 <%- include('partials/footer') %>
 
 <script>
-    // Tier data from server
     const tierConfig = {
         min: <%= config.min %>,
         max: <%= config.max %>,
         percentageRate: <%= tierPercentageRate %>
     };
 
-    // Generate preset buttons based on tier range
+    function formatNumber(num) {
+        return num.toLocaleString('en-US');
+    }
+
     function generatePresets() {
         const container = document.getElementById('presetButtons');
         const range = tierConfig.max - tierConfig.min;
         const presets = [];
         
-        // Create smart presets based on range
-        presets.push(tierConfig.min); // Minimum
+        presets.push(tierConfig.min);
         
         if (range > 0) {
             const quarter = Math.round(tierConfig.min + (range * 0.25));
@@ -621,16 +599,15 @@
             if (threeQuarter > half) presets.push(threeQuarter);
         }
         
-        presets.push(tierConfig.max); // Maximum
+        presets.push(tierConfig.max);
         
-        // Remove duplicates and sort
         const uniquePresets = [...new Set(presets)].sort((a, b) => a - b);
         
         container.innerHTML = uniquePresets.map((amount, index) => {
             const isFirst = index === 0;
             return `<button type="button" class="preset-btn ${isFirst ? 'active' : ''}" 
                     onclick="setPresetAmount(${amount}, this)" data-amount="${amount}">
-                    $${amount.toLocaleString()}
+                    $${formatNumber(amount)}
                     ${index === 0 ? '(Min)' : index === uniquePresets.length - 1 ? '(Max)' : ''}
                     </button>`;
         }).join('');
@@ -641,7 +618,6 @@
         document.getElementById('amountSlider').value = amount;
         updateCoverageEstimate(amount);
         
-        // Update active state
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
@@ -649,7 +625,7 @@
     function syncFromInput() {
         const input = document.getElementById('customAmount');
         const slider = document.getElementById('amountSlider');
-        let val = parseInt(input.value);
+        let val = parseInt(input.value.replace(/,/g, ''));
         
         if (isNaN(val)) val = tierConfig.min;
         if (val > tierConfig.max) val = tierConfig.max;
@@ -672,9 +648,23 @@
 
     function updateCoverageEstimate(amount) {
         const coverageEl = document.getElementById('coverageEstimate');
-        const rate = tierConfig.percentageRate / 100;
-        const estimatedFloat = amount / rate;
-        coverageEl.textContent = '$' + Math.round(estimatedFloat).toLocaleString();
+        const coverageLabel = document.getElementById('coverageLabel');
+        const tierName = '<%= tier %>';
+        
+        if (tierName === 'Amber') {
+            coverageLabel.textContent = 'Estimated Duration';
+            const weeks = Math.floor(amount / 1);
+            coverageEl.textContent = weeks + ' Week' + (weeks > 1 ? 's' : '') + ' ($1/week)';
+        } else if (tierName === 'Amethyst') {
+            coverageLabel.textContent = 'Estimated Duration';
+            const days = amount;
+            coverageEl.textContent = days + ' Day' + (days > 1 ? 's' : '') + ' ($1/day)';
+        } else {
+            coverageLabel.textContent = 'Estimated Float Coverage';
+            const rate = tierConfig.percentageRate > 0 ? tierConfig.percentageRate / 100 : 0.02;
+            const estimatedFloat = rate > 0 ? amount / rate : 0;
+            coverageEl.textContent = '$' + formatNumber(Math.round(estimatedFloat));
+        }
     }
 
     function updatePresetActive(val) {
@@ -698,7 +688,7 @@
 
     function triggerStandardGateway(e) {
         e.preventDefault();
-        const amount = document.getElementById('customAmount').value;
+        const amount = document.getElementById('customAmount').value.replace(/,/g, '');
         if(!amount) return alert("Please specify an amount.");
         window.location.href = `/checkout/standard-gateway?tier=<%= tier %>&amount=${amount}`;
     }
@@ -706,7 +696,7 @@
     async function triggerMobilePush() {
         const phone = document.getElementById('mobileNumber').value;
         const method = document.getElementById('selectedMethod').value;
-        const amount = document.getElementById('customAmount').value;
+        const amount = document.getElementById('customAmount').value.replace(/,/g, '');
         
         if(!phone || phone.length < 9) return alert("Please enter a valid mobile number.");
         if(!amount) return alert("Please specify an amount.");
@@ -753,11 +743,8 @@
         }
     }
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         generatePresets();
         updateCoverageEstimate(<%= config.min %>);
     });
 </script>
-</body>
-</html>

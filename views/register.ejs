@@ -9,12 +9,57 @@
     .setup-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; padding: 40px; width: 100%; max-width: 550px; margin: 0 auto 60px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
     
     .form-label { color: var(--det-green) !important; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .form-control { background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; }
-    .form-control:focus { background: rgba(0,0,0,0.3) !important; border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
+    .form-control, .form-select { background: rgba(0,0,0,0.2) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 15px; width: 100%; }
+    .form-control:focus, .form-select:focus { background: rgba(0,0,0,0.3) !important; border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.15) !important; }
     .form-control::placeholder { color: #64748b !important; }
+    .form-select option { background: var(--det-card); color: #fff; }
+    
+    .form-control.error, .form-select.error { border-color: #ef4444 !important; box-shadow: 0 0 0 0.2rem rgba(239,68,68,0.15) !important; }
+    .error-message { color: #fca5a5; font-size: 11px; margin-top: -16px; margin-bottom: 16px; display: none; text-align: left; }
+    .error-message.show { display: block; }
+
+    .phone-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .phone-row .country-code-select {
+        width: 140px;
+        flex-shrink: 0;
+    }
+    .phone-row .phone-input {
+        flex: 1;
+    }
+    .phone-row .form-control, .phone-row .form-select {
+        margin-bottom: 0;
+    }
 
     .info-box { background: rgba(176, 191, 150, 0.1); border-left: 3px solid var(--det-green); padding: 15px; border-radius: 4px; margin-bottom: 25px; }
     .info-box p { margin: 0; font-size: 13px; color: #cbd5e1 !important; line-height: 1.5; }
+
+    .password-requirements {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 6px;
+        padding: 12px 15px;
+        margin-bottom: 20px;
+        font-size: 11px;
+    }
+    .password-requirements .req-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+        color: #64748b;
+        transition: color 0.3s;
+    }
+    .password-requirements .req-item.met {
+        color: #22c55e;
+    }
+    .password-requirements .req-item i {
+        font-size: 14px;
+        width: 16px;
+    }
 
     .btn-secure { background: var(--det-green); color: var(--det-dark) !important; border: none; border-radius: 6px; padding: 14px 20px; font-weight: 700; font-size: 16px; width: 100%; transition: all 0.3s; cursor: pointer; margin-top: 10px; }
     .btn-secure:hover { background: var(--det-green-hover); transform: translateY(-2px); }
@@ -37,6 +82,17 @@
         margin: 0;
         font-weight: 600;
     }
+    
+    .alert-danger {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-align: center;
+    }
 </style>
 
 <div class="container flex-grow-1">
@@ -48,7 +104,7 @@
 
     <div class="setup-card">
         <% if(error && error.length > 0) { %> 
-            <div class="alert alert-danger" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; text-align: center; font-size: 14px; border-radius: 8px;">
+            <div class="alert-danger">
                 <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
             </div> 
         <% } %>
@@ -59,7 +115,7 @@
             </div>
         <% } %>
 
-        <form action="/register" method="POST">
+        <form action="/register" method="POST" id="registerForm" novalidate>
 
             <% if(typeof referralCode !== 'undefined' && referralCode) { %>
                 <input type="hidden" name="ref" value="<%= referralCode %>">
@@ -70,38 +126,113 @@
             <% } %>
 
             <input type="hidden" name="selectedTier" value="<%= typeof selectedTier !== 'undefined' ? selectedTier : 'None' %>">
+            <input type="hidden" name="whatsapp" id="fullWhatsapp">
+            
             <div class="mb-3">
                 <label class="form-label">Full Name / Terminal ID</label>
-                <input type="text" class="form-control" name="username" placeholder="e.g. John Doe" required>
+                <input type="text" class="form-control" name="username" id="username" placeholder="e.g. John Doe" required>
+                <div class="error-message" id="usernameError">Please enter your full name.</div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Email Address</label>
-                <input type="email" class="form-control" name="email" placeholder="you@domain.com" required>
+                <input type="email" class="form-control" name="email" id="email" placeholder="you@domain.com" required>
+                <div class="error-message" id="emailError">Please enter a valid email address.</div>
             </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">WhatsApp Number</label>
-                    <input type="tel" class="form-control" name="whatsapp" placeholder="+263..." required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Country</label>
-                    <input type="text" class="form-control" name="country" placeholder="e.g. Zimbabwe" required>
+            
+            <!-- Phone with Country Code -->
+            <label class="form-label">WhatsApp Number</label>
+            <div class="phone-row">
+                <select class="form-select country-code-select" id="countryCode" onchange="updateFullNumber()">
+                    <option value="+263">🇿🇼 +263</option>
+                    <option value="+27">🇿🇦 +27</option>
+                    <option value="+267">🇧🇼 +267</option>
+                    <option value="+260">🇿🇲 +260</option>
+                    <option value="+265">🇲🇼 +265</option>
+                    <option value="+258">🇲🇿 +258</option>
+                    <option value="+264">🇳🇦 +264</option>
+                    <option value="+268">🇸🇿 +268</option>
+                    <option value="+266">🇱🇸 +266</option>
+                    <option value="+255">🇹🇿 +255</option>
+                    <option value="+254">🇰🇪 +254</option>
+                    <option value="+256">🇺🇬 +256</option>
+                    <option value="+250">🇷🇼 +250</option>
+                    <option value="+257">🇧🇮 +257</option>
+                    <option value="+234">🇳🇬 +234</option>
+                    <option value="+233">🇬🇭 +233</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+65">🇸🇬 +65</option>
+                    <option value="+230">🇲🇺 +230</option>
+                    <option value="+86">🇨🇳 +86</option>
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+61">🇦🇺 +61</option>
+                </select>
+                <div style="flex: 1;">
+                    <input type="tel" class="form-control phone-input" id="whatsappNumber" placeholder="712345678" oninput="updateFullNumber()" required>
+                    <div class="error-message" id="phoneError">Please enter your WhatsApp number.</div>
                 </div>
             </div>
+
+            <!-- Country Dropdown -->
+            <div class="mb-3">
+                <label class="form-label">Country</label>
+                <select class="form-select" name="country" id="country" required>
+                    <option value="">Select your country...</option>
+                    <option value="Zimbabwe">Zimbabwe</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="Botswana">Botswana</option>
+                    <option value="Zambia">Zambia</option>
+                    <option value="Malawi">Malawi</option>
+                    <option value="Mozambique">Mozambique</option>
+                    <option value="Namibia">Namibia</option>
+                    <option value="Eswatini">Eswatini</option>
+                    <option value="Lesotho">Lesotho</option>
+                    <option value="Tanzania">Tanzania</option>
+                    <option value="Kenya">Kenya</option>
+                    <option value="Uganda">Uganda</option>
+                    <option value="Rwanda">Rwanda</option>
+                    <option value="Burundi">Burundi</option>
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Ghana">Ghana</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="United States">United States</option>
+                    <option value="United Arab Emirates">United Arab Emirates</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Mauritius">Mauritius</option>
+                    <option value="China">China</option>
+                    <option value="India">India</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Other">Other</option>
+                </select>
+                <div class="error-message" id="countryError">Please select your country.</div>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Secure Password</label>
-                <input type="password" class="form-control" name="password" placeholder="Minimum 8 characters" minlength="8" required>
+                <input type="password" class="form-control" name="password" id="regPassword" placeholder="Minimum 8 characters" minlength="8" required oninput="checkRegPassword()">
+                
+                <!-- Password Requirements Checklist -->
+                <div class="password-requirements" id="passwordReqs">
+                    <div class="req-item" id="req-length"><i class="bi bi-circle"></i> At least 8 characters</div>
+                    <div class="req-item" id="req-upperlower"><i class="bi bi-circle"></i> Upper and lowercase letters</div>
+                    <div class="req-item" id="req-number"><i class="bi bi-circle"></i> At least one number</div>
+                    <div class="req-item" id="req-symbol"><i class="bi bi-circle"></i> At least one symbol (!@#$%^&*)</div>
+                </div>
+                <div class="error-message" id="passwordError">Password does not meet all requirements.</div>
             </div>
+
             <div class="info-box">
                 <p><strong>Verification Notice:</strong> Your 9-Digit D.E.T ID will be linked directly to these credentials upon payment completion.</p>
             </div>
 
-            <button type="submit" class="btn-secure">Confirm Details & Continue to Pay</button>
+            <button type="submit" class="btn-secure" id="submitBtn">Confirm Details & Continue to Pay</button>
         </form>
 
         <div class="ux-safety-net">
             Already have a profile? <br>
-            <a href="/login<%= typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '' %>">Login to bypass Setup</a>
+            <a href="/login<%= typeof selectedTier !== 'undefined' && selectedTier && selectedTier !== 'None' ? '?tier=' + encodeURIComponent(selectedTier) + (typeof redirect !== 'undefined' && redirect ? '&redirect=' + redirect : '') : (typeof redirect !== 'undefined' && redirect ? '?redirect=' + redirect : '') %>">Login to bypass Setup</a>
         </div>
     </div>
 </div>
@@ -113,6 +244,121 @@
 </footer>
 
 <script>
+    function updateFullNumber() {
+        const code = document.getElementById('countryCode').value;
+        const number = document.getElementById('whatsappNumber').value.replace(/\s/g, '');
+        document.getElementById('fullWhatsapp').value = number ? code + number : '';
+    }
+
+    function checkRegPassword() {
+        const password = document.getElementById('regPassword').value;
+        
+        const reqs = {
+            length: password.length >= 8,
+            upperlower: /[a-z]/.test(password) && /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            symbol: /[^a-zA-Z\d]/.test(password)
+        };
+        
+        Object.keys(reqs).forEach(key => {
+            const el = document.getElementById('req-' + key);
+            if (el) {
+                if (reqs[key]) {
+                    el.classList.add('met');
+                    el.querySelector('i').className = 'bi bi-check-circle-fill';
+                } else {
+                    el.classList.remove('met');
+                    el.querySelector('i').className = 'bi bi-circle';
+                }
+            }
+        });
+    }
+
+    // Hide all error messages initially
+    function hideAllErrors() {
+        document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+        document.querySelectorAll('.form-control.error, .form-select.error').forEach(el => el.classList.remove('error'));
+    }
+
+    // Show error for a specific field
+    function showError(fieldId, errorId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(errorId);
+        if (field) field.classList.add('error');
+        if (error) error.classList.add('show');
+    }
+
+    // Form validation on submit
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        hideAllErrors();
+        updateFullNumber();
+        
+        let hasError = false;
+        const password = document.getElementById('regPassword').value;
+        
+        // Validate username
+        if (!document.getElementById('username').value.trim()) {
+            showError('username', 'usernameError');
+            hasError = true;
+        }
+        
+        // Validate email
+        const email = document.getElementById('email').value.trim();
+        if (!email || !email.includes('@') || !email.includes('.')) {
+            showError('email', 'emailError');
+            hasError = true;
+        }
+        
+        // Validate phone
+        if (!document.getElementById('whatsappNumber').value.trim()) {
+            showError('whatsappNumber', 'phoneError');
+            hasError = true;
+        }
+        
+        // Validate country
+        if (!document.getElementById('country').value) {
+            showError('country', 'countryError');
+            hasError = true;
+        }
+        
+        // Validate password
+        if (password.length > 0) {
+            const allMet = password.length >= 8 && 
+                /[a-z]/.test(password) && /[A-Z]/.test(password) && 
+                /\d/.test(password) && /[^a-zA-Z\d]/.test(password);
+            if (!allMet) {
+                showError('regPassword', 'passwordError');
+                hasError = true;
+            }
+        } else {
+            showError('regPassword', 'passwordError');
+            hasError = true;
+        }
+        
+        if (hasError) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = document.querySelector('.error-message.show');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Clear error on input
+    document.querySelectorAll('#registerForm input, #registerForm select').forEach(el => {
+        el.addEventListener('input', function() {
+            this.classList.remove('error');
+            const errorEl = this.parentElement.querySelector('.error-message');
+            if (errorEl) errorEl.classList.remove('show');
+        });
+        el.addEventListener('change', function() {
+            this.classList.remove('error');
+            const errorEl = this.parentElement.querySelector('.error-message');
+            if (errorEl) errorEl.classList.remove('show');
+        });
+    });
+
     document.getElementById('mobile-toggle').addEventListener('click', function() {
         document.getElementById('nav-menu').classList.toggle('active');
     });
