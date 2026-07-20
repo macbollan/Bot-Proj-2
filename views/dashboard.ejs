@@ -5,16 +5,12 @@
         --det-border: rgba(176, 191, 150, 0.15);
     }
 
-    /* =========================================
-       DASHBOARD LAYOUT
-    ========================================= */
     .dashboard-container {
         max-width: 1400px;
         margin: 0 auto;
         padding: 0 20px;
     }
 
-    /* Quick Navigation Bar */
     .quick-nav {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -61,7 +57,6 @@
     }
     .quick-nav a i { font-size: 13px; }
 
-    /* Welcome Hero */
     .welcome-hero {
         background: linear-gradient(135deg, var(--det-card) 0%, #241f1f 100%);
         border: 1px solid var(--det-border);
@@ -98,7 +93,6 @@
         margin-bottom: 0;
     }
 
-    /* Status Cards Grid */
     .status-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -144,7 +138,33 @@
         color: #fff;
     }
 
-    /* Integration Card */
+    .profile-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+    .profile-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--det-border);
+        color: #cbd5e1;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .profile-btn:hover {
+        background: rgba(176,191,150,0.1);
+        color: #fff;
+        border-color: var(--det-green);
+    }
+
     .integration-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -174,7 +194,6 @@
     }
     .key-display:hover { border-style: solid; }
 
-    /* Live Feed Card */
     .feed-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -204,7 +223,6 @@
     }
     .metric-mini .value.accent { color: var(--det-green); }
 
-    /* Buttons */
     .btn-det {
         background: var(--det-green);
         color: var(--det-dark);
@@ -213,6 +231,7 @@
         padding: 10px 20px;
         border-radius: 8px;
         transition: all 0.2s;
+        cursor: pointer;
     }
     .btn-det:hover {
         background: var(--det-green-hover);
@@ -227,6 +246,9 @@
         padding: 10px 20px;
         border-radius: 8px;
         transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
     }
     .btn-outline-det:hover {
         background: rgba(176, 191, 150, 0.1);
@@ -234,7 +256,6 @@
         border-color: #fff;
     }
 
-    /* Alerts */
     .alert-custom {
         border-radius: 8px;
         padding: 14px 18px;
@@ -246,7 +267,50 @@
         gap: 10px;
     }
 
-    /* Responsive */
+    /* Modal styles */
+    .modal-content {
+        background-color: var(--det-card) !important;
+        color: #fff !important;
+        border: 1px solid var(--det-border);
+        border-radius: 14px;
+    }
+    .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
+    .form-control, .form-select {
+        background-color: rgba(0,0,0,0.2) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #fff !important;
+        padding: 12px;
+        border-radius: 6px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--det-green) !important;
+        box-shadow: 0 0 0 0.25rem rgba(176,191,150,0.15) !important;
+    }
+    .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+
+    .password-requirements {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 6px;
+        padding: 12px 15px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        font-size: 11px;
+    }
+    .password-requirements .req-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+        color: #64748b;
+        transition: color 0.3s;
+    }
+    .password-requirements .req-item.met {
+        color: #22c55e;
+    }
+    .password-requirements .req-item i { font-size: 14px; width: 16px; }
+
     @media (max-width: 768px) {
         .dashboard-container { padding: 0 12px; }
         .welcome-hero { padding: 22px 20px; }
@@ -277,7 +341,7 @@
     ========================================= -->
     <div class="quick-nav">
         <span class="quick-nav-label">Navigate:</span>
-        <a href="/" class=""><i class="bi bi-house"></i> Home</a>
+        <a href="/"><i class="bi bi-house"></i> Home</a>
         <a href="/dashboard" class="active-page"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <a href="/pricing"><i class="bi bi-tags"></i> Pricing Plans</a>
         <a href="/training"><i class="bi bi-mortarboard"></i> Training</a>
@@ -294,6 +358,14 @@
                 <div>
                     <h1 style="color: #fff;">Welcome, <%= currentUser.username %></h1>
                     <p class="subtitle">Your D.E.T trading environment is ready. Monitor your license and live market data below.</p>
+                    <div class="profile-actions">
+                        <button class="profile-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="bi bi-person-badge"></i> Edit Profile
+                        </button>
+                        <button class="profile-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-shield-lock"></i> Change Password
+                        </button>
+                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 8px 18px; border-radius: 30px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
@@ -402,10 +474,10 @@
                 </div>
                 <div class="col-lg-5">
                     <div class="d-grid gap-2">
-                        <a href="/det-client.zip" class="btn btn-det">
+                        <a href="/det-client.zip" class="btn btn-det" style="text-decoration: none; display: block; text-align: center;">
                             <i class="bi bi-download me-2"></i> Download D.E.T
                         </a>
-                        <a href="/pricing" class="btn-outline-det text-center text-decoration-none">
+                        <a href="/pricing" class="btn-outline-det">
                             <i class="bi bi-arrow-up-circle me-2"></i> Upgrade Plan
                         </a>
                     </div>
@@ -416,7 +488,7 @@
                 <i class="bi bi-lock-fill" style="font-size: 28px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
                 <p style="color: #f59e0b; font-weight: 600; margin-bottom: 12px;">No active license key found.</p>
                 <p style="color: #94a3b8; font-size: 13px; margin-bottom: 16px;">Subscribe to a D.E.T plan to receive your unique Integration ID.</p>
-                <a href="/pricing" class="btn btn-det">
+                <a href="/pricing" class="btn btn-det" style="text-decoration: none;">
                     <i class="bi bi-tags me-2"></i> View Plans
                 </a>
             </div>
@@ -484,31 +556,31 @@
 ========================================= -->
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: var(--det-card); border: 1px solid var(--det-border); border-radius: 14px; color: #f8fafc;">
+        <div class="modal-content">
             <form action="/profile/update" method="POST">
-                <div class="modal-header" style="border-bottom: 1px solid var(--det-border);">
+                <div class="modal-header">
                     <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2" style="color: var(--det-green);"></i>Edit Profile</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Username</label>
-                        <input type="text" class="form-control" value="<%= currentUser.username %>" disabled style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="text" class="form-control" value="<%= currentUser.username %>" disabled>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Email Address</label>
-                        <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">WhatsApp</label>
-                        <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Country</label>
-                        <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>">
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid var(--det-border);">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-det">Save Changes</button>
                 </div>
@@ -522,29 +594,36 @@
 ========================================= -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: var(--det-card); border: 1px solid var(--det-border); border-radius: 14px; color: #f8fafc;">
-            <form action="/profile/change-password" method="POST">
-                <div class="modal-header" style="border-bottom: 1px solid var(--det-border);">
+        <div class="modal-content">
+            <form action="/profile/change-password" method="POST" id="changePasswordForm">
+                <div class="modal-header">
                     <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock me-2" style="color: var(--det-green);"></i>Change Password</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Current Password</label>
-                        <input type="password" class="form-control" name="currentPassword" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="password" class="form-control" name="currentPassword" id="currentPassword" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">New Password</label>
-                        <input type="password" class="form-control" name="newPassword" minlength="6" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="password" class="form-control" name="newPassword" id="newPassword" minlength="8" required oninput="checkPasswordStrength()">
+                        <div class="password-requirements" id="passwordReqs">
+                            <div class="req-item" id="req-length"><i class="bi bi-circle"></i> At least 8 characters</div>
+                            <div class="req-item" id="req-upperlower"><i class="bi bi-circle"></i> Upper and lowercase letters</div>
+                            <div class="req-item" id="req-number"><i class="bi bi-circle"></i> At least one number</div>
+                            <div class="req-item" id="req-symbol"><i class="bi bi-circle"></i> At least one symbol (!@#$%^&*)</div>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Confirm New Password</label>
-                        <input type="password" class="form-control" name="confirmPassword" minlength="6" required style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" minlength="8" required>
+                        <div id="confirmError" style="color: #ef4444; font-size: 11px; margin-top: 4px; display: none;">Passwords do not match.</div>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid var(--det-border);">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-det">Update Password</button>
+                    <button type="submit" class="btn btn-det" id="updatePasswordBtn">Update Password</button>
                 </div>
             </form>
         </div>
@@ -561,11 +640,9 @@
     function handleKeyClick() {
         const box = document.getElementById('licenseKeyBox');
         if (!keyRevealed) {
-            // First click: reveal
             box.classList.remove('blurred');
             keyRevealed = true;
         } else {
-            // Second click: copy
             navigator.clipboard.writeText(box.innerText.trim());
             const original = box.innerText;
             box.innerText = '✓ COPIED!';
@@ -578,6 +655,71 @@
             }, 1800);
         }
     }
+
+    // =========================================
+    // PASSWORD STRENGTH CHECKER
+    // =========================================
+    function checkPasswordStrength() {
+        const password = document.getElementById('newPassword').value;
+        
+        const reqs = {
+            length: password.length >= 8,
+            upperlower: /[a-z]/.test(password) && /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            symbol: /[^a-zA-Z\d]/.test(password)
+        };
+        
+        Object.keys(reqs).forEach(key => {
+            const el = document.getElementById('req-' + key);
+            if (el) {
+                if (reqs[key]) {
+                    el.classList.add('met');
+                    el.querySelector('i').className = 'bi bi-check-circle-fill';
+                } else {
+                    el.classList.remove('met');
+                    el.querySelector('i').className = 'bi bi-circle';
+                }
+            }
+        });
+    }
+
+    // =========================================
+    // CONFIRM PASSWORD MATCH
+    // =========================================
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = this.value;
+        const errorEl = document.getElementById('confirmError');
+        
+        if (confirmPass && newPass !== confirmPass) {
+            errorEl.style.display = 'block';
+        } else {
+            errorEl.style.display = 'none';
+        }
+    });
+
+    // =========================================
+    // VALIDATE CHANGE PASSWORD FORM
+    // =========================================
+    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('confirmPassword').value;
+        
+        if (newPass !== confirmPass) {
+            e.preventDefault();
+            document.getElementById('confirmError').style.display = 'block';
+            return;
+        }
+        
+        const allMet = newPass.length >= 8 && 
+            /[a-z]/.test(newPass) && /[A-Z]/.test(newPass) && 
+            /\d/.test(newPass) && /[^a-zA-Z\d]/.test(newPass);
+        
+        if (!allMet) {
+            e.preventDefault();
+            alert('Please meet all password requirements before submitting.');
+        }
+    });
 
     // =========================================
     // LIVE EQUITY CHART
@@ -628,13 +770,11 @@
             document.getElementById('ea-trades').innerText = data.openTrades || '0';
             document.getElementById('ea-action').innerText = data.action || 'Scanning';
 
-            // Color-code the action
             const actionEl = document.getElementById('ea-action');
             if (data.action?.includes('Buy')) actionEl.style.color = '#B0BF96';
             else if (data.action?.includes('Sell')) actionEl.style.color = '#ef4444';
             else actionEl.style.color = '#f59e0b';
 
-            // Update equity chart
             if (data.equityHistory?.length > 0) {
                 equityChart.data.datasets[0].data = data.equityHistory;
                 equityChart.update();

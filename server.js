@@ -8,7 +8,7 @@ const flash = require("connect-flash");
 const crypto = require("crypto");
 const path = require("path");
 const { Paynow } = require("paynow");
-
+const nodemailer = require("nodemailer"); 
 const Affiliate = require("./models/Affiliate.model");
 
 require("dotenv").config();
@@ -667,28 +667,35 @@ app.post("/profile/update", isLoggedIn, async (req, res) => {
 
 app.post("/profile/change-password", isLoggedIn, async (req, res) => {
     const { currentPassword, newPassword, confirmPassword } = req.body;
+    
     if (!currentPassword || !newPassword || !confirmPassword) {
         req.flash("error", "Please fill in all password fields.");
         return res.redirect("/dashboard");
     }
-    if (newPassword.length < 6) {
-        req.flash("error", "New password must be at least 6 characters long.");
+    if (newPassword.length < 8) {
+        req.flash("error", "New password must be at least 8 characters long.");
         return res.redirect("/dashboard");
     }
     if (newPassword !== confirmPassword) {
         req.flash("error", "New password and confirmation do not match.");
         return res.redirect("/dashboard");
     }
-    req.user.changePassword(currentPassword, newPassword, (err) => {
-        if (err) {
-            req.flash("error", err.message.includes("Incorrect") ? "Current password is incorrect." : "Could not change password.");
-            return res.redirect("/dashboard");
-        }
+    
+    try {
+        // passport-local-mongoose changePassword handles verification internally
+        await req.user.changePassword(currentPassword, newPassword);
         req.flash("success", "Password changed successfully.");
-        res.redirect("/dashboard");
-    });
+    } catch (err) {
+        if (err.message && err.message.includes("incorrect")) {
+            req.flash("error", "Current password is incorrect.");
+        } else {
+            req.flash("error", "Could not change password. Please try again.");
+            console.error("Password change error:", err);
+        }
+    }
+    
+    res.redirect("/dashboard");
 });
-
 
 // ==========================================
 // 3. ADMIN PANEL ROUTES
@@ -1325,6 +1332,16 @@ app.get("/dev/generate-key", async (req, res) => {
     } catch (err) {
         res.send("Error: " + err.message);
     }
+});
+
+
+// ==========================================
+// GLOBAL ERROR HANDLER
+// ==========================================
+app.use((err, req, res, next) => {
+    console.error("Unhandled error:", err);
+    req.flash("error", "Something went wrong. Please try again.");
+    res.redirect("/");
 });
 
 // --- START SERVER ---
