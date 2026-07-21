@@ -249,6 +249,18 @@
                 </div>
             <% } %>
 
+
+
+            <% if (typeof redirect !== 'undefined' && redirect) { %>
+                <input type="hidden" name="redirect" value="<%= redirect %>">
+            <% } %>
+            <% if (typeof course !== 'undefined' && course) { %>
+                <input type="hidden" name="course" value="<%= course %>">
+            <% } %>
+            <% if (typeof type !== 'undefined' && type) { %>
+                <input type="hidden" name="type" value="<%= type %>">
+            <% } %>
+
             <% if (locals.error && locals.error.length > 0) { %>
                 <div class="alert-danger">
                     <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>

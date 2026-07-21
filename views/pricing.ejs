@@ -186,7 +186,7 @@
                     <div class="tier-row pt-2">
                         <span class="tier-label">Grade / Level</span>
                         <span class="tier-val highlight d-flex justify-content-end align-items-center">
-                            Amber Level 
+                            Amber Promotion 
                             <i class="bi bi-info-circle ms-2 card-info-icon-static" data-bs-toggle="modal" data-bs-target="#manifestoModal" title="How Pricing Works"></i>
                         </span>
                     </div>
@@ -240,10 +240,6 @@
                         <span class="tier-val"><%= tier.float %></span>
                     </div>
                     
-                    <div class="tier-row">
-                        <span class="tier-label">Subscription Percentage</span>
-                        <span class="tier-val"><%= tier.percentage %></span>
-                    </div>
                     
                     <div class="tier-row">
                         <span class="tier-label">Subscription Period</span>
@@ -252,12 +248,12 @@
                     
                     <div class="tier-row">
                         <span class="tier-label">Minimum Subscription</span>
-                        <span class="tier-val"><%= tier.minSub %></span>
+                        <span class="tier-val"><%= tier.minSub %> <%= tier.period %></span>
                     </div>
                     
                     <div class="tier-row">
                         <span class="tier-label">Maximum Subscription</span>
-                        <span class="tier-val"><%= tier.maxSub %></span>
+                        <span class="tier-val"><%= tier.maxSub %> <%= tier.period %></span>
                     </div>
 
                     <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('<%= tier.name %>')">Subscribe to <%= tier.name %> Level</button>

@@ -72,7 +72,6 @@
         border-bottom: none;
     }
     
-    /* Already Affiliate Card */
     .already-affiliate {
         background: rgba(176,191,150,0.08);
         border: 1px solid rgba(176,191,150,0.25);
@@ -81,7 +80,6 @@
         text-align: center;
     }
 
-    /* Agreement Modal Styles */
     .agreement-check-item {
         display: flex;
         align-items: flex-start;
@@ -125,9 +123,9 @@
         border: 1px solid var(--det-border);
         border-radius: 10px;
         padding: 20px;
-        height: 200px;
+        height: 350px;
         overflow-y: auto;
-        font-size: 12px;
+        font-size: 11px;
         color: #cbd5e1;
         line-height: 1.7;
         margin-bottom: 20px;
@@ -143,12 +141,24 @@
     .affiliate-agreement-box h6 {
         color: var(--det-green);
         font-weight: 700;
-        font-size: 13px;
-        margin-top: 12px;
+        font-size: 12px;
+        margin-top: 14px;
         margin-bottom: 6px;
     }
     .affiliate-agreement-box h6:first-child {
         margin-top: 0;
+    }
+    .affiliate-agreement-box strong {
+        color: #fff;
+    }
+    .affiliate-agreement-box .section-title-agreement {
+        color: var(--det-green);
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        margin: 15px 0 10px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(176,191,150,0.15);
     }
 
     .agreement-divider {
@@ -194,7 +204,6 @@
 <div class="container" style="max-width: 1000px; margin-top: 30px; margin-bottom: 60px;">
 
     <% if(isAffiliate && affiliate) { %>
-        <!-- ===== ALREADY AN AFFILIATE ===== -->
         <div class="already-affiliate mb-5">
             <div style="font-size: 50px; margin-bottom: 15px;">🎯</div>
             <h2 class="fw-bold mb-2">You're Already an Affiliate!</h2>
@@ -229,7 +238,6 @@
         </div>
         
     <% } else { %>
-        <!-- ===== JOIN AFFILIATE PROGRAM ===== -->
         <div class="affiliate-hero">
             <span style="background: rgba(176,191,150,0.15); color: var(--det-green); padding: 6px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">D.E.T Affiliate Program</span>
             <h1 class="fw-bold mt-3 mb-2" style="font-size: 36px;">Earn 20% Commission<br>on Every Referral</h1>
@@ -248,14 +256,11 @@
                 <button type="button" class="btn-affiliate" data-bs-toggle="modal" data-bs-target="#affiliateAgreementModal">
                     <i class="bi bi-box-arrow-in-right me-2"></i> Login to Join
                 </button>
-
- 
-                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="//register?redirect=affiliateregister" style="color: var(--det-green);">Register here</a></p>
+                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="/register?redirect=affiliate" style="color: var(--det-green);">Register here</a></p>
             <% } %>
         </div>
     <% } %>
 
-    <!-- ===== HOW IT WORKS (show to everyone) ===== -->
     <h3 class="fw-bold text-center mb-4">How It Works</h3>
     <div class="row g-3 mb-5">
         <div class="col-md-4">
@@ -284,7 +289,6 @@
         </div>
     </div>
 
-    <!-- ===== COMMISSION BREAKDOWN ===== -->
     <div class="row g-4 mb-5">
         <div class="col-lg-6">
             <div class="commission-card">
@@ -319,19 +323,11 @@
                     </li>
                     <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
                         <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
-                        <strong>Lifetime Commissions</strong> — Earn on every renewal
-                    </li>
-                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
-                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
                         <strong>Real-Time Tracking</strong> — See clicks and conversions instantly
                     </li>
                     <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
                         <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
                         <strong>Weekly Payouts</strong> — Request payout anytime above $50
-                    </li>
-                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
-                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
-                        <strong>Marketing Materials</strong> — Get banners and copy to share
                     </li>
                 </ul>
             </div>
@@ -356,7 +352,6 @@
             </div>
             <div class="modal-body p-4">
                 
-                <!-- Progress Steps -->
                 <div class="progress-steps">
                     <span class="progress-step active" id="step1"></span>
                     <span class="progress-step" id="step2"></span>
@@ -418,41 +413,97 @@
                 <!-- ===== STEP 2: FULL AFFILIATE AGREEMENT ===== -->
                 <div id="agreementSection" style="display: none;">
                     <p class="fw-bold text-white mb-3" style="font-size: 13px;">
-                        <i class="bi bi-journal-text me-2" style="color: var(--det-green);"></i>D.E.T Affiliate Agreement
+                        <i class="bi bi-journal-text me-2" style="color: var(--det-green);"></i>D.E.T Affiliate Agreement — Version 1.0
                     </p>
 
                     <div class="affiliate-agreement-box">
                         <h6>D.E.T AFFILIATE AGREEMENT</h6>
-                        <p>This Affiliate Agreement ("Agreement") is entered into between the D.E.T System ("D.E.T", "we", "us", "our") and the Affiliate ("you", "your", "Affiliate").</p>
+                        <p><strong>Version 1.0 — LOCKED</strong></p>
+                        <p><strong>Effective Date:</strong> Upon Acceptance</p>
                         
-                        <h6>1. AFFILIATE OBLIGATIONS</h6>
-                        <p><strong>1.1</strong> The Affiliate agrees to market D.E.T strictly based on its actual trading results and system performance.</p>
-                        <p><strong>1.2</strong> The Affiliate shall NOT make any guarantees, promises, or assurances of profit, returns, or performance to any potential participant.</p>
-                        <p><strong>1.3</strong> The Affiliate acknowledges that D.E.T is not an advisory institution, not an investment institution, and not an investment advisor.</p>
+                        <h6>1. Introduction</h6>
+                        <p>Welcome to the D.E.T Affiliate Programme. This Agreement governs your participation as an authorised D.E.T Affiliate. By accepting this Agreement and activating your affiliate account, you agree to comply with all terms contained herein.</p>
                         
-                        <h6>2. COMMISSION & PAYOUTS</h6>
-                        <p><strong>2.1</strong> Commission rate is 20% of verified subscription payments made through the Affiliate's unique referral link.</p>
-                        <p><strong>2.2</strong> Commissions are held for a 7-day verification period before becoming available for payout.</p>
+                        <h6>2. Affiliate Appointment</h6>
+                        <p>Upon approval, D.E.T grants you a non-exclusive, revocable licence to promote D.E.T using your assigned affiliate link. Participation does not create employment, partnership, agency or ownership in D.E.T.</p>
                         
-                        <h6>3. BREACH & PENALTIES</h6>
-                        <p><strong>3.1</strong> Any breach of this Agreement — including making guarantees, false promises, or misrepresenting D.E.T — may result in immediate commission suspension, account blocking, or permanent banning at D.E.T's sole discretion.</p>
-                        <p><strong>3.2</strong> D.E.T reserves the right to withhold commissions pending investigation of any suspected breach.</p>
+                        <h6>3. Marketing Standards</h6>
+                        <p>Affiliates shall promote D.E.T truthfully, professionally and ethically. You may explain D.E.T's features, philosophy and publicly available information. You shall not alter, distort or misrepresent official D.E.T material.</p>
                         
-                        <h6>4. MARKETING & REPRESENTATION</h6>
-                        <p><strong>4.1</strong> The Affiliate shall only market D.E.T based on its actual, verifiable results.</p>
-                        <p><strong>4.2</strong> D.E.T is result-oriented; it is the system's results ONLY that the Affiliate is assigned to market.</p>
+                        <h6>4. Prohibited Conduct</h6>
+                        <p>The following are strictly prohibited:</p>
+                        <p>• Guaranteeing profits<br>• Guaranteeing returns<br>• Promising risk-free trading<br>• Claiming D.E.T cannot lose<br>• Making false or misleading statements<br>• Using fake testimonials<br>• Using manipulated screenshots<br>• Impersonating D.E.T employees<br>• Claiming to represent D.E.T without authorisation<br>• Publishing defamatory or illegal content<br>• Spamming<br>• Misleading advertising<br>• Creating fake urgency<br>• Using deceptive sales tactics<br>• Purchasing referrals using fraudulent methods</p>
                         
-                        <h6>5. LIABILITY</h6>
-                        <p><strong>5.1</strong> D.E.T is not liable for any individual guarantees, false promises, false hope, or misrepresentations made by the Affiliate to potential participants.</p>
-                        <p><strong>5.2</strong> The Affiliate indemnifies D.E.T against any claims arising from the Affiliate's conduct.</p>
-
-                        <p style="margin-top: 15px; text-align: center; color: var(--det-green);"><em>[Full Affiliate Agreement document to be inserted here]</em></p>
+                        <h6>5. No Guarantees</h6>
+                        <p>D.E.T does not guarantee profits. D.E.T does not guarantee financial success. Trading involves substantial risk. Past performance does not guarantee future results. Affiliates shall never communicate otherwise.</p>
+                        
+                        <h6>6. Independent Responsibility</h6>
+                        <p>Affiliates act independently. Statements made by affiliates are their own responsibility. D.E.T shall not be liable for unauthorised promises, guarantees or representations made by affiliates.</p>
+                        
+                        <h6>7. Intellectual Property</h6>
+                        <p>The D.E.T name, logo, branding, posters, website content, videos and marketing materials remain the exclusive property of D.E.T. Affiliates may use approved materials only. Modification of official branding requires written approval.</p>
+                        
+                        <h6>8. Affiliate Commissions</h6>
+                        <p>Commission is earned only from valid qualifying registrations and successful payments recorded by D.E.T. Commission is calculated solely from official D.E.T records. D.E.T reserves the right to investigate suspicious referrals before releasing commission.</p>
+                        
+                        <h6>9. Commission Suspension & Enforcement</h6>
+                        <p>Where this Agreement is breached, D.E.T may apply one or more of the following actions:</p>
+                        <p><strong>Level 1 — Warning:</strong> Written warning. Education provided. Affiliate remains active.</p>
+                        <p><strong>Level 2 — Temporary Commission Hold:</strong> Affiliate remains active. Commission payments temporarily suspended pending investigation.</p>
+                        <p><strong>Level 3 — Temporary Suspension:</strong> Affiliate account suspended. Affiliate links disabled. Commission frozen until investigation concludes.</p>
+                        <p><strong>Level 4 — Suspension With Commission Preserved:</strong> Affiliate account suspended. Affiliate links disabled. Previously earned legitimate commissions remain payable after investigation. No new commissions accumulate during suspension.</p>
+                        <p><strong>Level 5 — Suspension Without Commission:</strong> Affiliate suspended. Affiliate links disabled. Pending commission forfeited where obtained through misconduct.</p>
+                        <p><strong>Level 6 — Permanent Ban:</strong> Affiliate account permanently terminated. Affiliate links revoked. Future participation prohibited.</p>
+                        <p><strong>Level 7 — Permanent Ban With Commission Revocation:</strong> Affiliate account terminated. Affiliate links permanently disabled. Pending commissions cancelled. Future commissions forfeited. Where fraud is involved, D.E.T reserves the right to recover amounts already paid where permitted by law.</p>
+                        
+                        <h6>10. Fraud</h6>
+                        <p>Fraud includes, but is not limited to: Fake registrations. Self-referrals intended to manipulate commissions. Identity fraud. Payment fraud. Artificial traffic. Automated registrations. Document falsification. Commission manipulation. Fraud may result in immediate termination.</p>
+                        
+                        <h6>11. Affiliate Link Validity</h6>
+                        <p>Affiliate links issued under this Agreement shall expire automatically on 2 April 2030. Following expiry, D.E.T shall communicate future affiliate programme arrangements in due course.</p>
+                        
+                        <h6>12. Limitation of Liability</h6>
+                        <p>D.E.T shall not be responsible for: Trading losses. Investment decisions. Affiliate business expenses. Loss of income. Indirect or consequential damages arising from affiliate activities.</p>
+                        
+                        <h6>13. Compliance</h6>
+                        <p>Affiliates agree to comply with all applicable laws, regulations and advertising standards within their respective jurisdictions.</p>
+                        
+                        <h6>14. Modification</h6>
+                        <p>D.E.T reserves the right to amend this Agreement where necessary. Updated terms become effective upon publication. Continued participation constitutes acceptance of revised terms.</p>
+                        
+                        <h6>15. Termination</h6>
+                        <p>Either party may terminate participation at any time. Termination does not affect rights or obligations accrued before termination.</p>
+                        
+                        <h6>16. Governing Principle</h6>
+                        <p>D.E.T grows through integrity—not exaggerated promises. Our reputation is built on results, transparency and responsible representation.</p>
+                        
+                        <div class="section-title-agreement">AFFILIATE DECLARATION</div>
+                        <p>By accepting this Agreement, I confirm that:</p>
+                        <p>• I have read and understood these terms.<br>• I will not make guarantees or false promises.<br>• I will market D.E.T honestly and professionally.<br>• I understand that breaches may result in suspension, commission withholding or permanent removal from the Affiliate Programme.</p>
+                        
+                        <div class="section-title-agreement">D.E.T AFFILIATE CODE OF CONDUCT</div>
+                        <p>Every D.E.T Affiliate represents not only themselves, but also the reputation of the D.E.T brand. Affiliates are therefore expected to conduct themselves with professionalism, honesty and integrity at all times.</p>
+                        <p>As a D.E.T Affiliate, you agree to:</p>
+                        <p><strong>1. Represent D.E.T Truthfully</strong> — Present D.E.T accurately and only use information officially published or approved by D.E.T.</p>
+                        <p><strong>2. Never Make Guarantees</strong> — Never promise profits, guaranteed returns, risk-free trading, fixed income, or any outcome that D.E.T has not expressly stated.</p>
+                        <p><strong>3. Market with Integrity</strong> — Avoid misleading, deceptive, aggressive or unethical marketing practices. Allow prospective participants to make informed decisions without pressure.</p>
+                        <p><strong>4. Respect Applicable Laws</strong> — Comply with all applicable advertising, consumer protection, financial promotion and data privacy laws within your country or region.</p>
+                        <p><strong>5. Protect the D.E.T Brand</strong> — Use only authorised logos, branding, marketing materials and affiliate resources. Do not alter or misuse D.E.T intellectual property without written approval.</p>
+                        <p><strong>6. Respect Others</strong> — Do not make false, defamatory or misleading statements about competitors, brokers, exchanges, institutions or other affiliates.</p>
+                        <p><strong>7. Maintain Professional Communication</strong> — Conduct yourself respectfully in all online and offline communications, including social media, messaging platforms, seminars and public presentations.</p>
+                        <p><strong>8. Protect Confidential Information</strong> — Do not disclose confidential business information, internal documents, pricing strategies, technical information or non-public developments without written authorisation.</p>
+                        <p><strong>9. Report Misconduct</strong> — Promptly report any suspected fraud, misuse of the affiliate programme, unauthorised representations or activities that could damage the integrity of D.E.T.</p>
+                        <p><strong>10. Protect the Reputation of D.E.T</strong> — Every action you take reflects upon the D.E.T community. Affiliates are expected to uphold the highest standards of professionalism, ethics and responsible conduct.</p>
+                        
+                        <div class="section-title-agreement">GUIDING PRINCIPLE</div>
+                        <p style="text-align: center;"><strong>Our marketing is built on credibility—not exaggeration.<br>Our reputation is built on RESULTS—not promises.</strong></p>
+                        <p style="text-align: center; color: #ef4444;">Failure to comply with this Code of Conduct may result in warnings, suspension, withholding of commissions, termination of affiliate status, or any other enforcement action provided for under the D.E.T Affiliate Agreement.</p>
                     </div>
 
                     <div class="form-check mt-3 d-flex align-items-start gap-2 text-start">
                         <input class="form-check-input mt-1" type="checkbox" id="finalAgreementCheck">
                         <label class="form-check-label text-white small" for="finalAgreementCheck" style="cursor: pointer;">
-                            I have read and agree to the <strong>D.E.T Affiliate Agreement</strong> in its entirety.
+                            <strong>☐ I ACCEPT THE D.E.T AFFILIATE AGREEMENT</strong>
                         </label>
                     </div>
                 </div>
@@ -472,7 +523,6 @@
 </div>
 
 <script>
-    // Track checkbox states
     const allChecks = ['check1', 'check2', 'check3', 'check4', 'check5', 'check6', 'check7', 'check8', 'check9'];
     let currentStep = 1;
 
@@ -512,7 +562,6 @@
 
     function handleAgreementProceed() {
         if (currentStep === 1) {
-            // Move to Step 2
             document.getElementById('clausesSection').style.display = 'none';
             document.getElementById('agreementSection').style.display = 'block';
             document.getElementById('step1').classList.add('done');
@@ -524,7 +573,6 @@
             
             currentStep = 2;
             
-            // Watch final agreement checkbox
             const finalCheck = document.getElementById('finalAgreementCheck');
             finalCheck.addEventListener('change', function() {
                 document.getElementById('finalLoginLink').style.display = this.checked ? 'inline-block' : 'none';
@@ -532,7 +580,6 @@
         }
     }
 
-    // Initialize checkboxes on modal open
     document.getElementById('affiliateAgreementModal').addEventListener('show.bs.modal', function() {
         allChecks.forEach(id => {
             document.getElementById(id).checked = false;

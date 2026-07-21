@@ -559,24 +559,7 @@
             Every professional uses professional tools.<br>
             Every professional also learns how to use them.
         </p>
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="stat-number">8</span>
-                <span class="stat-label">Learning Modules</span>
-            </div>
-            <div class="hero-stat">
-                <span class="stat-number">4</span>
-                <span class="stat-label">Training Levels</span>
-            </div>
-            <div class="hero-stat">
-                <span class="stat-number">5</span>
-                <span class="stat-label">Trader Types</span>
-            </div>
-            <div class="hero-stat">
-                <span class="stat-number">∞</span>
-                <span class="stat-label">Continuous Updates</span>
-            </div>
-        </div>
+
     </div>
 </div>
 
@@ -584,11 +567,7 @@
      TRAINING PACKAGES - CARD GRID
 ========================================= -->
 <div class="container">
-    <div class="section-title">
-        <h2>Choose Your <span>Training Level</span></h2>
-        <p>Progress through structured learning modules designed for every experience level</p>
-        <div class="section-divider"></div>
-    </div>
+
 
     <!-- Policy Alert -->
     <div class="policy-alert">
@@ -630,7 +609,7 @@
                     <strong>Next Class:</strong> <span id="ecd-date">Pending</span>
                 </div>
                 <a href="#" class="card-btn btn-subscribe" onclick="handleEnroll('ECD', 300, 600); return false;">
-                    Enroll in ECD
+                    Enroll in ECD - $300
                 </a>
                 <a href="#" class="card-btn btn-onetoone" onclick="handleEnroll('ECD', 300, 600, true); return false;">
                     1-on-1 Private ($600)
@@ -670,7 +649,7 @@
                     <strong>Next Class:</strong> <span id="beginner-date">Pending</span>
                 </div>
                 <a href="#" class="card-btn btn-subscribe" onclick="handleEnroll('Beginner', 500, 1000); return false;">
-                    Enroll in Beginner
+                    Enroll in Beginner - $500
                 </a>
                 <a href="#" class="card-btn btn-onetoone" onclick="handleEnroll('Beginner', 500, 1000, true); return false;">
                     1-on-1 Private ($1,000)
@@ -710,7 +689,7 @@
                     <strong>Next Class:</strong> <span id="advanced-date">Pending</span>
                 </div>
                 <a href="#" class="card-btn btn-subscribe" onclick="handleEnroll('Advanced', 300, 600); return false;">
-                    Enroll in Advanced
+                    Enroll in Advanced -$300
                 </a>
                 <a href="#" class="card-btn btn-onetoone" onclick="handleEnroll('Advanced', 300, 600, true); return false;">
                     1-on-1 Private ($600)
@@ -750,7 +729,7 @@
                     <strong>Next Class:</strong> <span id="specialized-date">Pending</span>
                 </div>
                 <a href="#" class="card-btn btn-subscribe" onclick="handleEnroll('Specialized', 1000, 2000); return false;">
-                    Enroll in Specialized
+                    Enroll in Specialized - $1000
                 </a>
                 <a href="#" class="card-btn btn-onetoone" onclick="handleEnroll('Specialized', 1000, 2000, true); return false;">
                     1-on-1 Private ($2,000)
@@ -776,19 +755,7 @@
 <div class="academy-section">
     <div class="container">
         <!-- Academy Intro -->
-        <div class="academy-intro">
-            <p class="quote-text">
-                Every professional uses <strong>professional tools</strong>.<br>
-                Every professional also learns how to <strong>use them</strong>.
-            </p>
-            <p style="color:#cbd5e1; line-height:1.8; font-size:15px;">
-                D.E.T Academy was created to help every trader—from beginner to institutional professional—understand how to maximise the full power of the D.E.T ecosystem.
-            </p>
-            <p style="color:#cbd5e1; line-height:1.8; font-size:15px;">
-                Whether you are placing your first trade or managing institutional portfolios, your learning journey begins here.
-            </p>
-        </div>
-
+      
         <!-- Learn At Your Own Pace -->
         <div style="text-align:center; margin-bottom:60px;">
             <h3 style="color:#fff; font-weight:700; margin-bottom:15px;">Learn At <span style="color:var(--det-green);">Your Own Pace</span></h3>
@@ -960,139 +927,72 @@
 <%- include('partials/footer') %>
 
 <script>
-// ============================================================
-// TRAINING ENROLLMENT SYSTEM
-// ============================================================
-
+// Training course config
 const trainingConfig = {
-    ECD: { minStudents: 5, durationDays: 5, hoursPerDay: 3 },
-    Beginner: { minStudents: 5, durationDays: 5, hoursPerDay: 2 },
-    Advanced: { minStudents: 5, durationDays: 5, hoursPerDay: 2 },
-    Specialized: { minStudents: 5, durationDays: 14, hoursPerDay: 1 }
+    ECD: { minStudents: 5, groupPrice: 300, oneOnOnePrice: 600 },
+    Beginner: { minStudents: 5, groupPrice: 500, oneOnOnePrice: 1000 },
+    Advanced: { minStudents: 5, groupPrice: 300, oneOnOnePrice: 600 },
+    Specialized: { minStudents: 5, groupPrice: 1000, oneOnOnePrice: 2000 }
 };
 
-const paidStudents = {
-    ECD: [],
-    Beginner: [],
-    Advanced: [],
-    Specialized: []
-};
+// Check login status from server
+const isLoggedIn = <%= currentUser ? 'true' : 'false' %>;
 
-function generateSchedule(classKey, studentCount) {
-    const config = trainingConfig[classKey];
-    const now = new Date();
-    const daysUntilMonday = (1 - now.getDay() + 7) % 7 || 7;
-    const startDate = new Date(now);
-    startDate.setDate(now.getDate() + daysUntilMonday);
-    startDate.setHours(8, 0, 0, 0);
-    
-    return {
-        startDate: startDate,
-        isReady: studentCount >= config.minStudents
-    };
-}
-
-function updateAllUI() {
-    ['ECD', 'Beginner', 'Advanced', 'Specialized'].forEach(key => {
-        const count = paidStudents[key].length;
-        const config = trainingConfig[key];
-        const schedule = generateSchedule(key, count);
-        
-        // Update count
-        const countEl = document.getElementById(`${key.toLowerCase()}-count`);
-        if (countEl) countEl.textContent = count;
-        
-        // Update status
-        const statusEl = document.getElementById(`${key.toLowerCase()}-status`);
-        if (statusEl) {
-            if (count >= 10) {
-                statusEl.textContent = 'FULL';
-                statusEl.className = 'status-badge full';
-            } else if (count >= config.minStudents) {
-                statusEl.textContent = 'SCHEDULED';
-                statusEl.className = 'status-badge scheduled';
-            } else if (count > 0) {
-                statusEl.textContent = `WAITING (${count}/${config.minStudents})`;
-                statusEl.className = 'status-badge waiting';
-            } else {
-                statusEl.textContent = 'WAITING';
-                statusEl.className = 'status-badge waiting';
-            }
-        }
-        
-        // Update date
-        const dateEl = document.getElementById(`${key.toLowerCase()}-date`);
-        if (dateEl && schedule) {
-            dateEl.textContent = schedule.startDate.toLocaleDateString('en-US', {
-                weekday: 'short', month: 'short', day: 'numeric'
-            });
-        }
-    });
-}
-
-function handleEnroll(classKey, groupPrice, oneOnOnePrice, isOneOnOne = false) {
-    const studentName = prompt('Enter your full name to enroll:', '');
-    if (!studentName || !studentName.trim()) return;
+function handleEnroll(courseKey, groupPrice, oneOnOnePrice, isOneOnOne = false) {
+    if (!isLoggedIn) {
+        // Redirect to login, then come back to training
+        window.location.href = '/login?redirect=training&course=' + courseKey + '&type=' + (isOneOnOne ? 'one-on-one' : 'group');
+        return;
+    }
     
     const price = isOneOnOne ? oneOnOnePrice : groupPrice;
-    const type = isOneOnOne ? 'One-on-One' : 'Group';
+    const type = isOneOnOne ? 'one-on-one' : 'group';
     
-    const confirmed = confirm(
-        `📋 Enrollment Summary\n\n` +
-        `Student: ${studentName}\n` +
-        `Course: ${classKey} Training\n` +
-        `Type: ${type}\n` +
-        `Amount: $${price.toLocaleString()}\n\n` +
-        `Proceed with enrollment?`
-    );
-    
-    if (!confirmed) return;
-    
-    // Add student
-    paidStudents[classKey].push({
-        name: studentName.trim(),
-        oneOnOne: isOneOnOne,
-        price: price,
-        enrolledAt: new Date().toISOString()
-    });
-    
-    // Update UI
-    updateAllUI();
-    
-    // Success message
-    const schedule = generateSchedule(classKey, paidStudents[classKey].length);
-    const startDate = schedule.startDate.toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-    });
-    
-    alert(
-        `✅ Enrollment Successful!\n\n` +
-        `Welcome to D.E.T Academy, ${studentName}!\n` +
-        `Course: ${classKey} Training (${type})\n` +
-        `Amount: $${price.toLocaleString()}\n` +
-        `Estimated Start: ${startDate}\n\n` +
-        `You will receive confirmation and schedule details shortly.`
-    );
-    
-    // Simulate admin notification
-    console.log(`🔔 ADMIN ALERT: ${studentName} enrolled in ${classKey} (${type}) - $${price}`);
+    // Redirect to training checkout
+    window.location.href = '/training/enroll/' + courseKey + '/' + type;
 }
 
-// Initialize with demo data
-document.addEventListener('DOMContentLoaded', () => {
-    paidStudents.ECD = [
-        { name: 'John D.', oneOnOne: false, price: 300 },
-        { name: 'Sarah M.', oneOnOne: false, price: 300 }
-    ];
-    paidStudents.Beginner = [
-        { name: 'Michael T.', oneOnOne: false, price: 500 }
-    ];
-    updateAllUI();
-    
-    // Refresh every 30 seconds
-    setInterval(updateAllUI, 30000);
-});
+// Fetch live enrollment counts
+async function fetchTrainingStats() {
+    try {
+        const res = await fetch('/api/training/status');
+        const data = await res.json();
+        
+        for (const [key, info] of Object.entries(data.classes)) {
+            const countEl = document.getElementById(key.toLowerCase() + '-count');
+            const statusEl = document.getElementById(key.toLowerCase() + '-status');
+            const dateEl = document.getElementById(key.toLowerCase() + '-date');
+            
+            if (countEl) countEl.textContent = info.enrolled;
+            if (statusEl) {
+                if (info.status === 'scheduled') {
+                    statusEl.textContent = 'SCHEDULED';
+                    statusEl.className = 'status-badge scheduled';
+                } else if (info.enrolled > 0) {
+                    statusEl.textContent = `WAITING (${info.enrolled}/${info.min})`;
+                    statusEl.className = 'status-badge waiting';
+                } else {
+                    statusEl.textContent = 'WAITING';
+                    statusEl.className = 'status-badge waiting';
+                }
+            }
+            if (dateEl && info.status === 'scheduled') {
+                const nextMonday = new Date();
+                const daysUntilMonday = (1 - nextMonday.getDay() + 7) % 7 || 7;
+                nextMonday.setDate(nextMonday.getDate() + daysUntilMonday);
+                dateEl.textContent = nextMonday.toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric'
+                });
+            }
+        }
+    } catch (e) {
+        console.error('Training stats error:', e);
+    }
+}
 
-console.log('🎓 D.E.T Academy Training System Ready');
-console.log('📋 Test: handleEnroll("ECD", 300, 600)');
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    fetchTrainingStats();
+    setInterval(fetchTrainingStats, 30000);
+});
 </script>

@@ -1,0 +1,119 @@
+<%- include('partials/header', { title: 'Training Checkout | D.E.T Academy', page: 'training' }) %>
+
+<style>
+    .checkout-container {
+        max-width: 650px;
+        margin: 50px auto 60px;
+        padding: 0 20px;
+    }
+    .checkout-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    .checkout-card h2 {
+        color: var(--det-green);
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+    .checkout-subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .summary-box {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--det-border);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: #94a3b8; font-size: 13px; }
+    .summary-value { color: #fff; font-weight: 600; font-size: 13px; }
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid var(--det-green);
+    }
+    .summary-total .label { color: #fff; font-size: 16px; font-weight: 700; }
+    .summary-total .value { color: var(--det-green); font-size: 22px; font-weight: 800; }
+    .btn-pay {
+        background: var(--det-green);
+        color: var(--det-dark);
+        border: none;
+        border-radius: 8px;
+        padding: 16px;
+        font-weight: 700;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    .btn-pay:hover { background: var(--det-green-hover); transform: translateY(-2px); }
+    .btn-cancel {
+        display: block;
+        text-align: center;
+        color: #94a3b8;
+        margin-top: 15px;
+        font-size: 13px;
+        text-decoration: none;
+    }
+    .btn-cancel:hover { color: #fff; }
+</style>
+
+<div class="checkout-container">
+    <div class="checkout-card">
+        <h2>Training Enrollment</h2>
+        <p class="checkout-subtitle">Review and confirm your course registration</p>
+        
+        <div class="summary-box">
+            <div class="summary-row">
+                <span class="summary-label">Student</span>
+                <span class="summary-value"><%= user.username %></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Email</span>
+                <span class="summary-value"><%= user.email %></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Course</span>
+                <span class="summary-value"><%= courseName %></span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Type</span>
+                <span class="summary-value"><%= type %></span>
+            </div>
+            <div class="summary-total">
+                <span class="label">Total Amount</span>
+                <span class="value">$<%= price.toLocaleString() %></span>
+            </div>
+        </div>
+        
+        <form action="/training/pay" method="POST">
+            <input type="hidden" name="courseKey" value="<%= courseKey %>">
+            <input type="hidden" name="courseName" value="<%= courseName %>">
+            <input type="hidden" name="type" value="<%= type %>">
+            <input type="hidden" name="price" value="<%= price %>">
+            <button type="submit" class="btn-pay">
+                <i class="bi bi-lock me-2"></i> Pay $<%= price.toLocaleString() %> via Paynow
+            </button>
+        </form>
+        <a href="/training" class="btn-cancel">Cancel and go back</a>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

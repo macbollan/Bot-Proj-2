@@ -164,17 +164,17 @@ app.post("/api/client/sync", async (req, res) => {
 const pricingTiers = [
     { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Week", period: "4 Weeks Promo", minSub: "$1", maxSub: "$4" },
     { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "Fixed $1 Rate", period: "Per Day", minSub: "$1", maxSub: "$30" },
-    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "3 Months", minSub: "$22", maxSub: "$111" },
-    { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "3 Months", minSub: "$100", maxSub: "$1,000" },
+    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: " Per 2 Months", minSub: "$22", maxSub: "$111" },
+    { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 3 Months", minSub: "$100", maxSub: "$1,000" },
     { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 4 Months", minSub: "$900", maxSub: "$9,000" },
     { name: "Emerald", designation: "Level", float: "$100K to $1M", percentage: "8%", period: "Per 5 Months", minSub: "$8,000", maxSub: "$80K" },
     { name: "Diamond", designation: "Level", float: "$1M to $10M", percentage: "7%", period: "Per 7 Months", minSub: "$70K", maxSub: "$700K" },
-    { name: "Rhodium", designation: "Grade", float: "$10M to $100M", percentage: "5%", period: "1 Year", minSub: "$500K", maxSub: "$5M" },
-    { name: "Platinum", designation: "Grade", float: "$100M to $1B", percentage: "4%", period: "2 Years", minSub: "$4M", maxSub: "$40M" },
-    { name: "Uranium", designation: "Grade", float: "$1B to $10B", percentage: "3%", period: "3 Years", minSub: "$30M", maxSub: "$300M" },
-    { name: "Atomic", designation: "Grade", float: "$10B to $100B", percentage: "2%", period: "4 Years", minSub: "$200M", maxSub: "$2B" },
-    { name: "Nuclear", designation: "Grade", float: "$100B to $1T", percentage: "1%", period: "5 Years", minSub: "$1B", maxSub: "$10B" },
-    { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "7 Years", minSub: "$5B", maxSub: "No Limit" }
+    { name: "Rhodium", designation: "Grade", float: "$10M to $100M", percentage: "5%", period: "Per 1 Year", minSub: "$500K", maxSub: "$5M" },
+    { name: "Platinum", designation: "Grade", float: "$100M to $1B", percentage: "4%", period: "Per 2 Years", minSub: "$4M", maxSub: "$40M" },
+    { name: "Uranium", designation: "Grade", float: "$1B to $10B", percentage: "3%", period: "Per 3 Years", minSub: "$30M", maxSub: "$300M" },
+    { name: "Atomic", designation: "Grade", float: "$10B to $100B", percentage: "2%", period: "Per 4 Years", minSub: "$200M", maxSub: "$2B" },
+    { name: "Nuclear", designation: "Grade", float: "$100B to $1T", percentage: "1%", period: "Per 5 Years", minSub: "$1B", maxSub: "$10B" },
+    { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "Per 7 Years", minSub: "$5B", maxSub: "No Limit" }
 ];
 
 // --- PRICING PAGE ROUTE ---
@@ -204,7 +204,7 @@ paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 const tierConfig = {
     "Amber": { min: 1, max: 4, durationDays: 7 },
     "Amethyst": { min: 1, max: 30, durationDays: 30 },
-    "Topaz": { min: 22, max: 111, durationDays: 90 },
+    "Topaz": { min: 22, max: 111, durationDays: 60 },
     "Tanzanite": { min: 100, max: 1000, durationDays: 90 },
     "Sapphire": { min: 900, max: 9000, durationDays: 120 }, 
     "Emerald": { min: 8000, max: 80000, durationDays: 150 },
@@ -483,6 +483,8 @@ app.get("/login", (req, res) => {
     const pendingTier = req.query.tier;
     const referralCode = req.query.ref || '';
     const redirect = req.query.redirect || '';
+    const course = req.query.course || '';
+    const type = req.query.type || 'group';
     const showForgot = req.query.forgot === 'true';
     const showReset = req.query.reset === 'true';
     const resetToken = req.query.token || '';
@@ -492,6 +494,8 @@ app.get("/login", (req, res) => {
         pendingTier: pendingTier || null, 
         referralCode: referralCode,
         redirect: redirect,
+        course: course,
+        type: type,
         showForgot: showForgot,
         showReset: showReset,
         resetToken: resetToken,
@@ -616,12 +620,27 @@ app.post("/login", (req, res, next) => {
                 return res.redirect(`/checkout?tier=${encodeURIComponent(pendingTier)}`);
             }
             // Check if they came from affiliate page
+
+                       
             const redirect = req.body.redirect;
             if (redirect === 'affiliate') {
                 return res.redirect("/affiliate");
             }
+            if (redirect === 'training') {
+                const course = req.body.course || '';
+                const type = req.body.type || 'group';
+                if (course) {
+                    return res.redirect(`/training/enroll/${course}/${type}`);
+                }
+                return res.redirect("/training");
+            }
+
+            
             // Regular login goes to dashboard
             return res.redirect("/dashboard");
+ 
+
+
         });
     })(req, res, next);
 });
@@ -1331,6 +1350,179 @@ app.get("/dev/generate-key", async (req, res) => {
         res.send("<h1 style='color: green; font-family: sans-serif;'>Success! Your Test Key is: TEST-KEY-2026</h1>");
     } catch (err) {
         res.send("Error: " + err.message);
+    }
+});
+
+
+// ==========================================
+// TRAINING ENROLLMENT ROUTES
+// ==========================================
+
+const Training = require("./models/Training.model");
+
+// Training course config
+const trainingCourses = {
+    ECD: { name: "ECD Training", groupPrice: 300, oneOnOnePrice: 600, durationDays: 5, hoursPerDay: 3, minStudents: 5 },
+    Beginner: { name: "Beginner Training", groupPrice: 500, oneOnOnePrice: 1000, durationDays: 5, hoursPerDay: 2, minStudents: 5 },
+    Advanced: { name: "Advanced Training", groupPrice: 300, oneOnOnePrice: 600, durationDays: 5, hoursPerDay: 2, minStudents: 5 },
+    Specialized: { name: "Specialized Training", groupPrice: 1000, oneOnOnePrice: 2000, durationDays: 14, hoursPerDay: 1, minStudents: 5 }
+};
+
+// Get training stats (for UI)
+app.get("/api/training/status", async (req, res) => {
+    try {
+        const stats = {};
+        for (const [key, config] of Object.entries(trainingCourses)) {
+            const paidStudents = await Training.countDocuments({ courseKey: key, status: { $in: ['paid', 'confirmed', 'completed'] } });
+            stats[key] = {
+                enrolled: paidStudents,
+                min: config.minStudents,
+                status: paidStudents >= config.minStudents ? 'scheduled' : (paidStudents > 0 ? 'waiting' : 'waiting')
+            };
+        }
+        res.json({ classes: stats, alerts: [] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Initiate training enrollment (called from training page)
+app.get("/training/enroll/:courseKey/:type", isLoggedIn, async (req, res) => {
+    const { courseKey, type } = req.params;
+    const config = trainingCourses[courseKey];
+    
+    if (!config) {
+        req.flash("error", "Invalid course selected.");
+        return res.redirect("/training");
+    }
+    
+    const price = type === 'one-on-one' ? config.oneOnOnePrice : config.groupPrice;
+    
+    res.render("training-checkout", {
+        courseKey,
+        courseName: config.name,
+        type: type === 'one-on-one' ? 'One-on-One' : 'Group',
+        price,
+        user: req.user
+    });
+});
+
+// Process training payment via Paynow
+app.post("/training/pay", isLoggedIn, async (req, res) => {
+    const { courseKey, courseName, type, price } = req.body;
+    
+    try {
+        // Create enrollment record
+        const enrollment = new Training({
+            courseKey,
+            courseName,
+            studentName: req.user.username,
+            userId: req.user._id,
+            email: req.user.email,
+            whatsapp: req.user.whatsapp || '',
+            country: req.user.country || '',
+            type: type === 'One-on-One' ? 'one-on-one' : 'group',
+            price: parseFloat(price),
+            status: 'pending_payment'
+        });
+        
+        const invoiceRef = `TRAIN-${req.user._id}-${courseKey}-${Date.now()}`;
+        enrollment.paynowReference = invoiceRef;
+        await enrollment.save();
+        
+        // Create Paynow payment
+        let payment = paynow.createPayment(invoiceRef, req.user.email);
+        payment.add(`${courseName} (${type})`, parseFloat(price));
+        
+        const response = await paynow.send(payment);
+        
+        if (response.success) {
+            res.redirect(response.redirectUrl);
+        } else {
+            await Training.findByIdAndDelete(enrollment._id);
+            req.flash("error", "Payment initiation failed. Please try again.");
+            res.redirect("/training");
+        }
+    } catch (err) {
+        console.error("Training payment error:", err);
+        req.flash("error", "Could not process payment.");
+        res.redirect("/training");
+    }
+});
+
+// Training webhook (add to existing Paynow webhook or create new)
+app.post("/api/training/paynow-update", async (req, res) => {
+    const { reference, status, amount } = req.body;
+    
+    if (status === "Paid" || status === "Awaiting Delivery") {
+        try {
+            const enrollment = await Training.findOne({ paynowReference: reference });
+            if (enrollment && enrollment.status === 'pending_payment') {
+                enrollment.status = 'paid';
+                enrollment.amountPaid = parseFloat(amount) || enrollment.price;
+                enrollment.paidAt = new Date();
+                await enrollment.save();
+                console.log(`[TRAINING] Payment confirmed: ${enrollment.studentName} - ${enrollment.courseName} ($${amount})`);
+            }
+        } catch (err) {
+            console.error("Training webhook error:", err);
+        }
+    }
+    res.status(200).send("OK");
+});
+
+// Update the main Paynow webhook to also check training references
+// Add this inside the existing app.post("/api/paynow/update"...) after the user check:
+// (We'll handle it separately with a different resultUrl for training)
+
+// Admin: View training enrollments
+app.get("/admin/training", isAdmin, async (req, res) => {
+    try {
+        const enrollments = await Training.find({}).sort({ enrolledAt: -1 });
+        
+        const stats = {};
+        for (const [key, config] of Object.entries(trainingCourses)) {
+            const paid = enrollments.filter(e => e.courseKey === key && ['paid', 'confirmed', 'completed'].includes(e.status));
+            stats[key] = {
+                total: paid.length,
+                group: paid.filter(e => e.type === 'group').length,
+                oneOnOne: paid.filter(e => e.type === 'one-on-one').length,
+                revenue: paid.reduce((sum, e) => sum + e.amountPaid, 0),
+                minRequired: config.minStudents
+            };
+        }
+        
+        res.render("admin-training", {
+            enrollments,
+            courses: trainingCourses,
+            stats,
+            currentUser: req.user
+        });
+    } catch (err) {
+        console.error("Admin training error:", err);
+        req.flash("error", "Could not load training data.");
+        res.redirect("/admin");
+    }
+});
+
+// Admin: Confirm/update enrollment status
+app.post("/admin/training/update/:id", isAdmin, async (req, res) => {
+    const { status, notes } = req.body;
+    try {
+        const enrollment = await Training.findById(req.params.id);
+        if (!enrollment) {
+            req.flash("error", "Enrollment not found.");
+            return res.redirect("/admin/training");
+        }
+        enrollment.status = status;
+        if (notes) enrollment.notes = notes;
+        if (status === 'completed') enrollment.completedAt = new Date();
+        await enrollment.save();
+        req.flash("success", `Enrollment updated to "${status}".`);
+        res.redirect("/admin/training");
+    } catch (err) {
+        req.flash("error", "Could not update enrollment.");
+        res.redirect("/admin/training");
     }
 });
 
