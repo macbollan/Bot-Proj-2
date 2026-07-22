@@ -16,7 +16,6 @@
         align-items: start;
     }
 
-    /* LEFT COLUMN - Tier Details */
     .tier-details-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -51,7 +50,6 @@
         margin-bottom: 25px;
     }
 
-    /* Tier Stats Grid */
     .stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -81,7 +79,6 @@
         color: var(--det-green);
     }
 
-    /* Payment Breakdown */
     .breakdown-section {
         background: rgba(0,0,0,0.2);
         border: 1px solid var(--det-border);
@@ -170,7 +167,6 @@
         border-color: var(--det-green);
     }
 
-    /* RIGHT COLUMN - Payment */
     .checkout-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -357,7 +353,6 @@
     @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
     @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px var(--det-green); } }
 
-    /* Responsive */
     @media (max-width: 900px) {
         .checkout-grid {
             grid-template-columns: 1fr;
@@ -401,12 +396,8 @@
                        style="font-size: 22px !important; font-weight: 800; color: var(--det-green) !important; text-align: center; padding-left: 40px !important; letter-spacing: 1px;">
             </div>
             
-            <!-- Preset Amounts -->
-            <div class="amount-presets" id="presetButtons">
-                <!-- Generated dynamically -->
-            </div>
+            <div class="amount-presets" id="presetButtons"></div>
             
-            <!-- Range Slider -->
             <div class="range-slider-container">
                 <input type="range" id="amountSlider" class="range-slider"
                        min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
@@ -418,12 +409,9 @@
                 <small style="color: #94a3b8; font-size: 11px;">Max: $<%= config.max.toLocaleString() %></small>
             </div>
 
-            <!-- Dynamic Coverage Indicator -->
             <div style="background: rgba(176,191,150,0.08); border: 1px solid rgba(176,191,150,0.2); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 25px;">
                 <span style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;" id="coverageLabel">Estimated Float Coverage</span>
-                <div style="font-size: 18px; color: var(--det-green); font-weight: 700; margin-top: 5px;" id="coverageEstimate">
-                    --
-                </div>
+                <div style="font-size: 18px; color: var(--det-green); font-weight: 700; margin-top: 5px;" id="coverageEstimate">--</div>
             </div>
 
             <div id="payment-ui">
@@ -494,7 +482,7 @@
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Duration</div>
-                    <div class="stat-value"><%= tierPeriod %></div>
+                    <div class="stat-value"><%= tierPeriod.replace('Per ', '') %></div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Min Payment</div>
@@ -512,7 +500,9 @@
                 </div>
                 <div class="breakdown-row">
                     <span class="breakdown-label">Pricing Model</span>
-                    <span class="breakdown-value green">Percentage-Based</span>
+                    <span class="breakdown-value green">
+                        <%= (tier === 'Amber' || tier === 'Amethyst') ? 'Fixed Daily Rate' : 'Percentage-Based' %>
+                    </span>
                 </div>
                 <div class="breakdown-row">
                     <span class="breakdown-label">Rate Applied</span>
@@ -520,11 +510,11 @@
                 </div>
                 <div class="breakdown-row">
                     <span class="breakdown-label">Coverage Period</span>
-                    <span class="breakdown-value"><%= tierPeriod %></span>
+                    <span class="breakdown-value"><%= tierPeriod.replace('Per ', '') %></span>
                 </div>
                 <div class="breakdown-row">
-                    <span class="breakdown-label">Max Exposure</span>
-                    <span class="breakdown-value">$<%= config.max.toLocaleString() %></span>
+                    <span class="breakdown-label">Payment Range</span>
+                    <span class="breakdown-value">$<%= config.min.toLocaleString() %> – $<%= config.max.toLocaleString() %></span>
                 </div>
                 <div class="breakdown-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
                     <span class="breakdown-label" style="font-size: 12px; color: #94a3b8;">
@@ -538,7 +528,7 @@
                 <h6><i class="bi bi-check2-circle me-2"></i>What You Get</h6>
                 <div class="feature-item">
                     <i class="bi bi-check-lg"></i>
-                    <span>Full D.E.T S.M.A.R.T Engine access for <%= tierPeriod.toLowerCase() %></span>
+                    <span>Full D.E.T S.M.A.R.T Engine access for <%= tierPeriod.replace('Per ', '').toLowerCase() %></span>
                 </div>
                 <div class="feature-item">
                     <i class="bi bi-check-lg"></i>
@@ -575,7 +565,8 @@
     const tierConfig = {
         min: <%= config.min %>,
         max: <%= config.max %>,
-        percentageRate: <%= tierPercentageRate %>
+        percentageRate: <%= tierPercentageRate %>,
+        tierName: '<%= tier %>'
     };
 
     function formatNumber(num) {
@@ -649,16 +640,16 @@
     function updateCoverageEstimate(amount) {
         const coverageEl = document.getElementById('coverageEstimate');
         const coverageLabel = document.getElementById('coverageLabel');
-        const tierName = '<%= tier %>';
+        const tierName = tierConfig.tierName;
         
         if (tierName === 'Amber') {
             coverageLabel.textContent = 'Estimated Duration';
-            const weeks = Math.floor(amount / 1);
-            coverageEl.textContent = weeks + ' Week' + (weeks > 1 ? 's' : '') + ' ($1/week)';
-        } else if (tierName === 'Amethyst') {
-            coverageLabel.textContent = 'Estimated Duration';
             const days = amount;
             coverageEl.textContent = days + ' Day' + (days > 1 ? 's' : '') + ' ($1/day)';
+        } else if (tierName === 'Amethyst') {
+            coverageLabel.textContent = 'Estimated Duration';
+            const days = Math.floor(amount / 4);
+            coverageEl.textContent = days + ' Day' + (days > 1 ? 's' : '') + ' ($4/day)';
         } else {
             coverageLabel.textContent = 'Estimated Float Coverage';
             const rate = tierConfig.percentageRate > 0 ? tierConfig.percentageRate / 100 : 0.02;
