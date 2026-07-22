@@ -162,9 +162,9 @@ app.post("/api/client/sync", async (req, res) => {
 
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
-    { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Week", period: "4 Weeks Promo", minSub: "$1", maxSub: "$4" },
-    { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "Fixed $1 Rate", period: "Per Day", minSub: "$1", maxSub: "$30" },
-    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: " Per 2 Months", minSub: "$22", maxSub: "$111" },
+    { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Day", period: "Per Month", minSub: "$1", maxSub: "$30" },
+    { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "12%", period: "Per Day", minSub: "$4", maxSub: "$30" },
+    { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "Per 2 Months", minSub: "$22", maxSub: "$111" },
     { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 3 Months", minSub: "$100", maxSub: "$1,000" },
     { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 4 Months", minSub: "$900", maxSub: "$9,000" },
     { name: "Emerald", designation: "Level", float: "$100K to $1M", percentage: "8%", period: "Per 5 Months", minSub: "$8,000", maxSub: "$80K" },
