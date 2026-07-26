@@ -86,7 +86,7 @@
 
 <div class="container flex-grow-1">
     <div class="page-heading">
-        <h2>Choose Your Trading Level</h2>
+        <h2>Choose Your Subscription Level</h2>
     </div>
 
         
@@ -94,6 +94,7 @@
         <!-- How Pricing Works Button -->
         <button data-bs-toggle="modal" data-bs-target="#manifestoModal" class="btn btn-outline-light rounded-pill px-4 mb-3" style="font-size: 13px; font-weight: 600;">
             <i class="bi bi-info-circle me-2 text-accent"></i>How Pricing Works
+            <span style="font-size: 10px; color: #94a3b8; font-weight: 400;">(Click to know more)</span>
         </button>
         
         <!-- Two Dustbin Buttons -->
@@ -156,11 +157,22 @@
                     <span class="tier-label">Estimated Trading Float in your account</span>
                     <span class="tier-val"><%= tier.float %></span>
                 </div>
+
+               <% if(tier.name === 'Amber') { %>
+                
+                <div class="tier-row">
+                    <span class="tier-label">Subscription</span>
+                    <span class="tier-val"><%= tier.percentage %></span>
+                </div>
+                <% } else {%>
+ 
                 
                 <div class="tier-row">
                     <span class="tier-label">Subscription Percentage</span>
                     <span class="tier-val"><%= tier.percentage %></span>
                 </div>
+                <% } %>
+
                 
                <div class="tier-row">
                     <span class="tier-label">Subscription Period</span>

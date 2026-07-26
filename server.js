@@ -163,7 +163,7 @@ app.post("/api/client/sync", async (req, res) => {
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
     { name: "Amber", designation: "Promo", float: "$0 to $49", percentage: "$1/Day", period: "Per Month", minSub: "$1", maxSub: "$30" },
-    { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "12%", period: "Per Day", minSub: "$6", maxSub: "$24" },
+    { name: "Amethyst", designation: "Level", float: "$50 to $199", percentage: "12%", period: "Per Month", minSub: "$6", maxSub: "$24" },
     { name: "Topaz", designation: "Level", float: "$200 to $1,000", percentage: "11%", period: "Per 2 Months", minSub: "$22", maxSub: "$111" },
     { name: "Tanzanite", designation: "Level", float: "$1,000 to $10,000", percentage: "10%", period: "Per 3 Months", minSub: "$100", maxSub: "$1,000" },
     { name: "Sapphire", designation: "Level", float: "$10,001 to $100K", percentage: "9%", period: "Per 4 Months", minSub: "$900", maxSub: "$9,000" },
@@ -840,6 +840,43 @@ app.get("/admin", isAdmin, async (req, res) => {
         // Affiliate model doesn't exist yet, leave empty
     }
 
+    // =========================================
+// TOP EARNERS BY TIER (Top 50 per tier)
+// =========================================
+const tierList = ["Amber", "Amethyst", "Topaz", "Tanzanite", "Sapphire", "Emerald", "Diamond", "Rhodium", "Platinum", "Uranium", "Atomic", "Nuclear", "Solomonic"];
+
+
+
+// =========================================
+// TOP AFFILIATES BY TIER (Top 50 per tier)
+// =========================================
+const topAffiliatesByTier = {};
+try {
+    const AffiliateModel = require("./models/Affiliate.model");
+    const allAffiliates = await AffiliateModel.find({ isActive: true });
+
+    tierList.forEach(tierName => {
+        const tierAffiliates = allAffiliates.map(aff => {
+            // Filter referrals for this specific tier
+            const tierReferrals = aff.referrals.filter(r => r.tier === tierName && r.status === 'confirmed');
+            const tierCommission = tierReferrals.reduce((sum, r) => sum + (r.commissionEarned || 0), 0);
+            return {
+                username: aff.username,
+                referrals: tierReferrals.length,
+                commission: tierCommission
+            };
+        }).filter(a => a.referrals > 0)
+          .sort((a, b) => b.commission - a.commission)
+          .slice(0, 50);
+
+        topAffiliatesByTier[tierName] = tierAffiliates;
+    });
+} catch (e) {
+    tierList.forEach(tierName => {
+        topAffiliatesByTier[tierName] = [];
+    });
+}
+
     res.render("admin", {
         users: allUsers,
         stats: {
@@ -859,6 +896,9 @@ app.get("/admin", isAdmin, async (req, res) => {
         topEarners,
         negativeLogouts,
           positiveLogouts,
+          topEarnersByTier,
+        topAffiliatesByTier,
+        tierList,
         topAffiliates
     });
 });
