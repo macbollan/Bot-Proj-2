@@ -398,6 +398,11 @@
             
             <div class="amount-presets" id="presetButtons"></div>
             
+            <div style="text-align: center; margin-bottom: 4px;">
+                <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                    <i class="bi bi-arrows-horizontal me-1"></i>Scroll to select amount
+                </small>
+            </div>
             <div class="range-slider-container">
                 <input type="range" id="amountSlider" class="range-slider"
                        min="<%= config.min %>" max="<%= config.max %>" value="<%= config.min %>" 
@@ -704,12 +709,13 @@
         
         if (tierName === 'Amber') {
             coverageLabel.textContent = 'Estimated Duration';
-            const days = amount;
-            coverageEl.textContent = days + ' Day' + (days > 1 ? 's' : '') + ' ($1/day)';
+            const days = amount; // $1 = 1 day
+            coverageEl.textContent = '$49 Float / ' + days + ' Day' + (days > 1 ? 's' : '');
         } else if (tierName === 'Amethyst') {
-            coverageLabel.textContent = 'Estimated Duration';
-            const days = Math.floor(amount / 4);
-            coverageEl.textContent = days + ' Day' + (days > 1 ? 's' : '') + ' ($4/day)';
+            coverageLabel.textContent = 'Estimated Float Coverage';
+            const rate = 12 / 100;
+            const estimatedFloat = Math.round(amount / rate);
+            coverageEl.textContent = '$' + formatNumber(estimatedFloat);
         } else {
             coverageLabel.textContent = 'Estimated Float Coverage';
             const rate = tierConfig.percentageRate > 0 ? tierConfig.percentageRate / 100 : 0.02;

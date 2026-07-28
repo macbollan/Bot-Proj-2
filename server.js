@@ -202,8 +202,8 @@ paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 
 // DYNAMIC TIER CONFIG WITH MIN/MAX RANGES
 const tierConfig = {
-    "Amber": { min: 1, max: 4, durationDays: 7 },
-    "Amethyst": { min: 1, max: 30, durationDays: 30 },
+    "Amber": { min: 1, max: 30, durationDays: 30 },
+    "Amethyst": { min: 6, max: 24, durationDays: 30 },
     "Topaz": { min: 22, max: 111, durationDays: 60 },
     "Tanzanite": { min: 100, max: 1000, durationDays: 90 },
     "Sapphire": { min: 900, max: 9000, durationDays: 120 }, 
