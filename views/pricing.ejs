@@ -106,7 +106,7 @@
             
             <button data-bs-toggle="modal" data-bs-target="#professionalModal" class="btn btn-outline-light rounded-pill px-4" style="font-size: 12px; font-weight: 600;">
                 <i class="bi bi-briefcase me-1"></i> Trade With Dustbin Money Only
-                <span style="font-size: 10px; color: #94a3b8; font-weight: 400;">Unless you are a professional trader</span>
+                <span style="font-size: 10px; color: #94a3b8; font-weight: 400;">Unless you are a professional trader (Click to know more)</span>
             </button>
         </div>
 
@@ -133,6 +133,36 @@
             </div>
         </div>
     </div>
+
+            <!-- Cloud Resources Banner -->
+            <div style="max-width: 750px; margin: 16px auto 0; background: rgba(56,189,248,0.04); border: 1px solid rgba(56,189,248,0.12); border-radius: 12px; padding: 18px 24px; text-align: left;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                    <div style="flex-shrink: 0; width: 36px; height: 36px; background: rgba(56,189,248,0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px;">
+                        <i class="bi bi-cloud-check-fill" style="color: #38bdf8; font-size: 16px;"></i>
+                    </div>
+                    <div>
+                        <p style="color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 4px;">Subscription includes secure cloud computing resources.</p>
+                        <p style="color: #94a3b8; font-size: 12px; line-height: 1.6; margin-bottom: 10px;">
+                            D.E.T continues operating even when your personal computer or laptop is offline.
+                        </p>
+                        <p style="color: #cbd5e1; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Depending on your subscription level, your allocation includes:</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                            <span style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #cbd5e1;">Cloud Processing Capacity</span>
+                            <span style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #cbd5e1;">Memory Allocation</span>
+                            <span style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #cbd5e1;">Secure Storage</span>
+                            <span style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #cbd5e1;">Background Execution</span>
+                            <span style="background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #cbd5e1;">Market Monitoring</span>
+                        </div>
+                        <div style="background: rgba(56,189,248,0.06); border-left: 2px solid rgba(56,189,248,0.4); border-radius: 0 6px 6px 0; padding: 8px 12px;">
+                            <p style="color: #cbd5e1; font-size: 11px; line-height: 1.5; margin: 0;">
+                                <i class="bi bi-arrow-up-circle me-1" style="color: #38bdf8;"></i>
+                                As your <strong style="color: #38bdf8;">Subscription Level</strong> increases, your available cloud resources increase accordingly, allowing D.E.T to comfortably manage larger portfolios and more complex trading environments with ease.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+   
 
     <% if(error && error.length > 0) { %> 
         <div class="alert alert-danger text-center mx-auto mb-4" style="background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; max-width: 600px; border-radius: 8px;">
@@ -203,7 +233,7 @@
 
                 <% if(tier.name === 'Amber') { %>
                     <button type="button" class="btn-secure mt-auto" onclick="openTermsModal('Amber')" style="border-color: #f59e0b; color: #f59e0b !important;">
-                        <i class="bi bi-fire me-1"></i> Claim Promo Offer — $<%= tier.minSub %>
+                        <i class="bi bi-fire me-1"></i> Claim Promo Offer — <%= tier.minSub %>
                     </button>
                     <span class="terms-note" style="color: #f59e0b;">Promo pricing · Limited time</span>
                 <% } else { %>
@@ -317,7 +347,7 @@
                     <li style="padding: 3px 0; color: #ef4444;">❌ Business Capital</li>
                 </ul>
                 
-                <p style="color: #22c55e; font-weight: 600; margin: 10px 0;">✅ Money you can lose without stress. This is money you are fully prepared to lose — money that, if gone tomorrow, it will not shake your peace, your responsibilities, or your dignity.</p>
+                <p style="color: #22c55e; font-weight: 600; margin: 10px 0;">✅Trade with the money you can lose without stress. This is money you are fully prepared to lose — money that, if gone tomorrow, it will not shake your peace, your responsibilities, or your dignity.</p>
                 
                 <div style="background: rgba(176,191,150,0.05); border: 1px solid rgba(176,191,150,0.15); border-radius: 10px; padding: 16px 20px; margin-top: 20px;">
                     <p style="margin-bottom: 8px; font-size: 13px;"><strong style="color: var(--det-green);">1. D.E.T Simple truth:</strong> with budgeted money, pressure enters and bad decisions follow.</p>

@@ -845,7 +845,23 @@ app.get("/admin", isAdmin, async (req, res) => {
 // =========================================
 const tierList = ["Amber", "Amethyst", "Topaz", "Tanzanite", "Sapphire", "Emerald", "Diamond", "Rhodium", "Platinum", "Uranium", "Atomic", "Nuclear", "Solomonic"];
 
+// =========================================
+// TOP EARNERS BY TIER (Top 50 per tier)
+// =========================================
 
+const topEarnersByTier = {};
+tierList.forEach(tierName => {
+    topEarnersByTier[tierName] = allUsers
+        .filter(c => c.licenseKey && c.currentTier === tierName)
+        .sort((a, b) => (Number(b.prepaymentAmount) || 0) - (Number(a.prepaymentAmount) || 0))
+        .slice(0, 50)
+        .map(c => ({
+            username: c.username,
+            email: c.email,
+            country: (c.country && c.country.trim()) || "Unknown",
+            revenue: Number(c.prepaymentAmount) || 0
+        }));
+});
 
 // =========================================
 // TOP AFFILIATES BY TIER (Top 50 per tier)
