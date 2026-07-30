@@ -133,28 +133,6 @@ app.post("/api/paynow/update", async (req, res) => {
 // =========================================
 // PER-SYMBOL STATE STORAGE
 // =========================================
-let eaBrainStates = {}; // Keyed by symbol: { "GBPUSD": {...}, "XAUUSD": {...} }
-let activeTradesBySymbol = {}; // Keyed by symbol
-
-// Default state for symbols that haven't received data yet
-function getDefaultBrainState() {
-    return {
-        symbol: "Awaiting Connection...",
-        trend: "Unknown",
-        action: "Scanning",
-        price: 0.00,
-        openTrades: 0,
-        equityHistory: [],
-        trends: {
-            long: "Awaiting Data...", swing: "Awaiting Data...", day: "Awaiting Data...",
-            intra: "Awaiting Data...", scalpa: "Awaiting Data...", real: "Awaiting Data..."
-        },
-        analytics: {
-            scalpa: "Awaiting Data...", intra: "Awaiting Data...", day: "Awaiting Data...",
-            swing: "Awaiting Data...", long: "Awaiting Data..."
-        }
-    };
-}
 
 // A. Master EA Endpoint (SECURED) — Updated for per-symbol storage
 app.post("/api/master/update", (req, res) => {
