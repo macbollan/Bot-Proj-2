@@ -19,23 +19,35 @@ const app = express();
 // ==========================================
 // GLOBAL MEMORY FOR D.E.T. DATA
 // ==========================================
-let activeTradesList = []; 
-let eaBrainState = { 
-    symbol: "Awaiting Connection...", 
-    trend: "Unknown", 
-    action: "Scanning", 
-    price: 0.00, 
-    openTrades: 0,
-    equityHistory: [],
-    trends: {
-        long: "Awaiting Data...", swing: "Awaiting Data...", day: "Awaiting Data...",
-        intra: "Awaiting Data...", scalpa: "Awaiting Data...", real: "Awaiting Data..."
-    },
-    analytics: {
-        scalpa: "Awaiting Data...", intra: "Awaiting Data...", day: "Awaiting Data...",
-        swing: "Awaiting Data...", long: "Awaiting Data..."
-    }
-};
+
+// A. Master EA Endpoint
+// A. Master EA Endpoint (SECURED)
+// =========================================
+// PER-SYMBOL STATE STORAGE
+// =========================================
+let eaBrainStates = {}; // Keyed by symbol: { "GBPUSD": {...}, "XAUUSD": {...} }
+let activeTradesBySymbol = {}; // Keyed by symbol
+
+// Default state for symbols that haven't received data yet
+function getDefaultBrainState() {
+    return {
+        symbol: "Awaiting Connection...",
+        trend: "Unknown",
+        action: "Scanning",
+        price: 0.00,
+        openTrades: 0,
+        equityHistory: [],
+        trends: {
+            long: "Awaiting Data...", swing: "Awaiting Data...", day: "Awaiting Data...",
+            intra: "Awaiting Data...", scalpa: "Awaiting Data...", real: "Awaiting Data..."
+        },
+        analytics: {
+            scalpa: "Awaiting Data...", intra: "Awaiting Data...", day: "Awaiting Data...",
+            swing: "Awaiting Data...", long: "Awaiting Data..."
+        }
+    };
+}
+
 
 // --- DATABASE CONNECTION ---
 mongoose.connect("mongodb://nyctech002:macb@ac-urmttwh-shard-00-00.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-01.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-02.o6scueg.mongodb.net:27017/bot-project?ssl=true&replicaSet=atlas-1gew6o-shard-0&authSource=admin&appName=INVESTMENTNETWORK")
@@ -118,79 +130,136 @@ app.post("/api/paynow/update", async (req, res) => {
 
 // A. Master EA Endpoint
 // A. Master EA Endpoint (SECURED)
+// =========================================
+// PER-SYMBOL STATE STORAGE
+// =========================================
+let eaBrainStates = {}; // Keyed by symbol: { "GBPUSD": {...}, "XAUUSD": {...} }
+let activeTradesBySymbol = {}; // Keyed by symbol
+
+// Default state for symbols that haven't received data yet
+function getDefaultBrainState() {
+    return {
+        symbol: "Awaiting Connection...",
+        trend: "Unknown",
+        action: "Scanning",
+        price: 0.00,
+        openTrades: 0,
+        equityHistory: [],
+        trends: {
+            long: "Awaiting Data...", swing: "Awaiting Data...", day: "Awaiting Data...",
+            intra: "Awaiting Data...", scalpa: "Awaiting Data...", real: "Awaiting Data..."
+        },
+        analytics: {
+            scalpa: "Awaiting Data...", intra: "Awaiting Data...", day: "Awaiting Data...",
+            swing: "Awaiting Data...", long: "Awaiting Data..."
+        }
+    };
+}
+
+// A. Master EA Endpoint (SECURED) — Updated for per-symbol storage
 app.post("/api/master/update", (req, res) => {
     const { masterPassword, analysis, trades, uiState } = req.body;
     
-    // Verify master password
     const MASTER_SECRET = process.env.MASTER_EA_SECRET || "DET_MASTER_2026_CHANGE_ME";
     if (masterPassword !== MASTER_SECRET) {
         console.log("[SECURITY] Unauthorized master update attempt");
         return res.status(401).json({ status: "unauthorized" });
     }
     
-    if (analysis) {
-        eaBrainState.symbol = analysis.symbol;
-        eaBrainState.trend = analysis.trend;
-        eaBrainState.action = analysis.action;
-        eaBrainState.price = analysis.price;
-        eaBrainState.openTrades = analysis.openTrades;
+    if (analysis && analysis.symbol) {
+        const symbol = analysis.symbol;
         
-        if(analysis.equity) {
-            eaBrainState.equityHistory.push(parseFloat(analysis.equity));
-            if(eaBrainState.equityHistory.length > 50) eaBrainState.equityHistory.shift(); 
+        // Initialize if first time for this symbol
+        if (!eaBrainStates[symbol]) {
+            eaBrainStates[symbol] = { ...getDefaultBrainState() };
         }
-    }
-
-    if (uiState) {
-        if(uiState.trends) eaBrainState.trends = uiState.trends;
-        if(uiState.analytics) eaBrainState.analytics = uiState.analytics;
+        
+        const state = eaBrainStates[symbol];
+        state.symbol = analysis.symbol;
+        state.trend = analysis.trend;
+        state.action = analysis.action;
+        state.price = analysis.price;
+        state.openTrades = analysis.openTrades;
+        
+        if (analysis.equity) {
+            state.equityHistory.push(parseFloat(analysis.equity));
+            if (state.equityHistory.length > 50) state.equityHistory.shift();
+        }
+        
+        if (uiState) {
+            if (uiState.trends) state.trends = uiState.trends;
+            if (uiState.analytics) state.analytics = uiState.analytics;
+        }
+        
+        if (trades) activeTradesBySymbol[symbol] = trades;
+        
+        // Also update legacy eaBrainState for dashboard compatibility
+        eaBrainState = { ...state };
+        if (trades) activeTradesList = trades;
+        
+        console.log(`[MASTER UPDATE] ${symbol} | Price: ${analysis.price} | Trades: ${analysis.openTrades}`);
     }
     
-    if (trades) activeTradesList = trades;
     res.json({ status: "success" });
 });
 
 
-// B. Public Endpoint for the Web Dashboard Charts
-app.get("/api/public/ea-state", (req, res) => res.json(eaBrainState));
+// B. Public Endpoint — returns all symbols
+app.get("/api/public/ea-state", (req, res) => {
+    const symbol = req.query.symbol || eaBrainState.symbol;
+    const state = eaBrainStates[symbol] || eaBrainState;
+    res.json({
+        ...state,
+        availableSymbols: Object.keys(eaBrainStates)
+    });
+});
 
 // C. S.M.A.R.T CLIENT SYNC ENDPOINT
+// C. S.M.A.R.T CLIENT SYNC ENDPOINT — Updated with tier info, symbol selection
 app.post("/api/client/sync", async (req, res) => {
-    const { licenseKey, currentBalance, currentEquity } = req.body;
+    const { licenseKey, currentBalance, currentEquity, preferredSymbol } = req.body;
     
     try {
         const user = await User.findOne({ licenseKey: licenseKey });
         
         if (!user || new Date() > user.licenseExpiry) {
-            return res.json({ action: "KILL" }); 
+            return res.json({ action: "KILL" });
         }
 
         if (user.isSuspended || user.accountLocked) {
-            return res.json({ action: "ZERO_HEDGE" }); 
+            return res.json({ action: "ZERO_HEDGE" });
         }
 
         let updated = false;
 
         if (user.startingBalance === 0 || user.startingBalance == null) {
             user.startingBalance = currentBalance;
-            user.targetBalance = currentBalance * 2; 
+            user.targetBalance = currentBalance * 2;
             updated = true;
         }
 
         if (currentEquity >= user.targetBalance && user.targetBalance > 0) {
             user.accountLocked = true;
-            user.isSuspended = true; 
+            user.isSuspended = true;
+            user.lockReason = 'target_reached';
             await user.save();
-            console.log(`[ZERO-HEDGE] Participant ${user.username} doubled their account! Locking platform.`);
-            return res.json({ action: "ZERO_HEDGE" }); 
+            console.log(`[ZERO-HEDGE] ${user.username} doubled! Locking.`);
+            return res.json({ action: "ZERO_HEDGE" });
         }
 
         if (updated) await user.save();
 
+        // Determine which symbol to send
+        const symbol = preferredSymbol || eaBrainState.symbol || "GBPUSD";
+        const masterState = eaBrainStates[symbol] || eaBrainState;
+        const trades = activeTradesBySymbol[symbol] || activeTradesList;
+
         res.json({
             action: "TRADE",
-            masterState: eaBrainState,
-            trades: activeTradesList
+            masterState: masterState,
+            trades: trades,
+            userTier: user.currentTier || "None",
+            availableSymbols: Object.keys(eaBrainStates)
         });
 
     } catch (err) {
@@ -198,6 +267,8 @@ app.post("/api/client/sync", async (req, res) => {
         res.status(500).json({ action: "ERROR" });
     }
 });
+
+
 
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
