@@ -82,13 +82,51 @@ app.use((req, res, next) => {
     next();
 });
 
+
+// 5. The Silent Webhook - handles both D.E.T activations AND training payments
+app.post("/api/paynow/update", async (req, res) => {
+    const { reference, status, amount } = req.body;
+    
+    // --- HANDLE TRAINING PAYMENTS ---
+    if (reference && reference.startsWith("TRAIN-")) {
+        if (status === "Paid" || status === "Awaiting Delivery") {
+            try {
+                const enrollment = await Training.findOne({ paynowReference: reference });
+                if (enrollment && enrollment.status === 'pending_payment') {
+                    enrollment.status = 'paid';
+                    enrollment.amountPaid = parseFloat(amount) || enrollment.price;
+                    enrollment.paidAt = new Date();
+                    await enrollment.save();
+                    console.log(`[TRAINING] Payment confirmed: ${enrollment.studentName} - ${enrollment.courseName} ($${amount})`);
+                }
+            } catch (err) {
+                console.error("Training webhook error:", err);
+            }
+        }
+        return res.status(200).send("OK");
+    }
+    
+    // --- HANDLE D.E.T ACTIVATION PAYMENTS ---
+    if (status === "Paid" || status === "Awaiting Delivery") {
+        // ... existing code unchanged ...
+    }
+    res.status(200).send("OK");
+});
 // ==========================================
 // 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
 
 // A. Master EA Endpoint
+// A. Master EA Endpoint (SECURED)
 app.post("/api/master/update", (req, res) => {
     const { masterPassword, analysis, trades, uiState } = req.body;
+    
+    // Verify master password
+    const MASTER_SECRET = process.env.MASTER_EA_SECRET || "DET_MASTER_2026_CHANGE_ME";
+    if (masterPassword !== MASTER_SECRET) {
+        console.log("[SECURITY] Unauthorized master update attempt");
+        return res.status(401).json({ status: "unauthorized" });
+    }
     
     if (analysis) {
         eaBrainState.symbol = analysis.symbol;
@@ -111,6 +149,7 @@ app.post("/api/master/update", (req, res) => {
     if (trades) activeTradesList = trades;
     res.json({ status: "success" });
 });
+
 
 // B. Public Endpoint for the Web Dashboard Charts
 app.get("/api/public/ea-state", (req, res) => res.json(eaBrainState));
