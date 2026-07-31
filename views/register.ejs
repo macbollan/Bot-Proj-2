@@ -245,122 +245,113 @@
 
 <script>
     function updateFullNumber() {
-        const code = document.getElementById('countryCode').value;
-        const number = document.getElementById('whatsappNumber').value.replace(/\s/g, '');
-        document.getElementById('fullWhatsapp').value = number ? code + number : '';
+        var code = document.getElementById('countryCode');
+        var number = document.getElementById('whatsappNumber');
+        var full = document.getElementById('fullWhatsapp');
+        if (!code || !number || !full) return;
+        var num = number.value.replace(/\s/g, '');
+        full.value = num ? code.value + num : '';
     }
 
     function checkRegPassword() {
-        const password = document.getElementById('regPassword').value;
-        
-        const reqs = {
-            length: password.length >= 8,
-            upperlower: /[a-z]/.test(password) && /[A-Z]/.test(password),
-            number: /\d/.test(password),
-            symbol: /[^a-zA-Z\d]/.test(password)
+        var password = document.getElementById('regPassword');
+        if (!password) return;
+        var pwd = password.value;
+        var reqs = {
+            length: pwd.length >= 8,
+            upperlower: /[a-z]/.test(pwd) && /[A-Z]/.test(pwd),
+            number: /\d/.test(pwd),
+            symbol: /[^a-zA-Z\d]/.test(pwd)
         };
-        
-        Object.keys(reqs).forEach(key => {
-            const el = document.getElementById('req-' + key);
+        Object.keys(reqs).forEach(function(key) {
+            var el = document.getElementById('req-' + key);
             if (el) {
                 if (reqs[key]) {
                     el.classList.add('met');
-                    el.querySelector('i').className = 'bi bi-check-circle-fill';
+                    var icon = el.querySelector('i');
+                    if (icon) icon.className = 'bi bi-check-circle-fill';
                 } else {
                     el.classList.remove('met');
-                    el.querySelector('i').className = 'bi bi-circle';
+                    var icon = el.querySelector('i');
+                    if (icon) icon.className = 'bi bi-circle';
                 }
             }
         });
     }
 
-    // Hide all error messages initially
     function hideAllErrors() {
-        document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
-        document.querySelectorAll('.form-control.error, .form-select.error').forEach(el => el.classList.remove('error'));
+        document.querySelectorAll('.error-message').forEach(function(el) { el.classList.remove('show'); });
+        document.querySelectorAll('.form-control.error, .form-select.error').forEach(function(el) { el.classList.remove('error'); });
     }
 
-    // Show error for a specific field
     function showError(fieldId, errorId) {
-        const field = document.getElementById(fieldId);
-        const error = document.getElementById(errorId);
+        var field = document.getElementById(fieldId);
+        var error = document.getElementById(errorId);
         if (field) field.classList.add('error');
         if (error) error.classList.add('show');
     }
 
-    // Form validation on submit
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        hideAllErrors();
-        updateFullNumber();
-        
-        let hasError = false;
-        const password = document.getElementById('regPassword').value;
-        
-        // Validate username
-        if (!document.getElementById('username').value.trim()) {
-            showError('username', 'usernameError');
-            hasError = true;
-        }
-        
-        // Validate email
-        const email = document.getElementById('email').value.trim();
-        if (!email || !email.includes('@') || !email.includes('.')) {
-            showError('email', 'emailError');
-            hasError = true;
-        }
-        
-        // Validate phone
-        if (!document.getElementById('whatsappNumber').value.trim()) {
-            showError('whatsappNumber', 'phoneError');
-            hasError = true;
-        }
-        
-        // Validate country
-        if (!document.getElementById('country').value) {
-            showError('country', 'countryError');
-            hasError = true;
-        }
-        
-        // Validate password
-        if (password.length > 0) {
-            const allMet = password.length >= 8 && 
-                /[a-z]/.test(password) && /[A-Z]/.test(password) && 
-                /\d/.test(password) && /[^a-zA-Z\d]/.test(password);
-            if (!allMet) {
-                showError('regPassword', 'passwordError');
-                hasError = true;
+    // ===== FORM VALIDATION =====
+    var regForm = document.getElementById('registerForm');
+    if (regForm) {
+        regForm.addEventListener('submit', function(e) {
+            hideAllErrors();
+            updateFullNumber();
+            var hasError = false;
+            var pwd = document.getElementById('regPassword') ? document.getElementById('regPassword').value : '';
+            
+            // Username
+            if (!document.getElementById('username') || !document.getElementById('username').value.trim()) {
+                showError('username', 'usernameError'); hasError = true;
             }
-        } else {
-            showError('regPassword', 'passwordError');
-            hasError = true;
-        }
-        
-        if (hasError) {
-            e.preventDefault();
-            // Scroll to first error
-            const firstError = document.querySelector('.error-message.show');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Email
+            var emailEl = document.getElementById('email');
+            var emailVal = emailEl ? emailEl.value.trim() : '';
+            if (!emailVal || emailVal.indexOf('@') < 0 || emailVal.indexOf('.') < 0) {
+                showError('email', 'emailError'); hasError = true;
             }
-        }
-    });
+            // Phone
+            if (!document.getElementById('whatsappNumber') || !document.getElementById('whatsappNumber').value.trim()) {
+                showError('whatsappNumber', 'phoneError'); hasError = true;
+            }
+            // Country
+            if (!document.getElementById('country') || !document.getElementById('country').value) {
+                showError('country', 'countryError'); hasError = true;
+            }
+            // Password
+            if (pwd.length === 0) {
+                showError('regPassword', 'passwordError'); hasError = true;
+            } else {
+                var allMet = pwd.length >= 8 && /[a-z]/.test(pwd) && /[A-Z]/.test(pwd) && /\d/.test(pwd) && /[^a-zA-Z\d]/.test(pwd);
+                if (!allMet) { showError('regPassword', 'passwordError'); hasError = true; }
+            }
+            
+            if (hasError) {
+                e.preventDefault();
+                var firstError = document.querySelector('.error-message.show');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
 
-    // Clear error on input
-    document.querySelectorAll('#registerForm input, #registerForm select').forEach(el => {
+    // Clear errors on input
+    document.querySelectorAll('#registerForm input, #registerForm select').forEach(function(el) {
         el.addEventListener('input', function() {
             this.classList.remove('error');
-            const errorEl = this.parentElement.querySelector('.error-message');
-            if (errorEl) errorEl.classList.remove('show');
+            var parent = this.closest('.mb-3') || this.closest('div');
+            if (parent) {
+                var errMsg = parent.querySelector('.error-message');
+                if (errMsg) errMsg.classList.remove('show');
+            }
         });
         el.addEventListener('change', function() {
             this.classList.remove('error');
-            const errorEl = this.parentElement.querySelector('.error-message');
-            if (errorEl) errorEl.classList.remove('show');
+            var parent = this.closest('.mb-3') || this.closest('div');
+            if (parent) {
+                var errMsg = parent.querySelector('.error-message');
+                if (errMsg) errMsg.classList.remove('show');
+            }
         });
-    });
-
-    document.getElementById('mobile-toggle').addEventListener('click', function() {
-        document.getElementById('nav-menu').classList.toggle('active');
     });
 </script>
 </body>

@@ -1,0 +1,539 @@
+//+------------------------------------------------------------------+
+//|                                        CornerStore_Client_v5.mq5 |
+//|             D.E.T S.M.A.R.T Client — All Trades, Tier Lots      |
+//+------------------------------------------------------------------+
+#property strict
+#property description "D.E.T CornerStore Client v5 — All Trades Copied, Tier-Based Lot Sizing"
+#include <Trade\Trade.mqh>
+
+CTrade trade;
+
+// --- SERVER SETTINGS ---
+input string Client_API_URL = "https://bot-proj-2-1.onrender.com/api/client/sync";
+input string LicenseKey = "YOUR_LICENSE_KEY_HERE";
+
+// --- TIER-BASED LOT MULTIPLIER ---
+// Every trade is copied. Only the lot size changes based on tier/float coverage.
+double TierLotMultiplier(string tier) {
+    if(tier == "Amber") return 0.10;      // Smallest accounts — 10% of master lot
+    if(tier == "Amethyst") return 0.25;   // 25% of master lot
+    if(tier == "Topaz") return 0.50;      // 50% of master lot
+    if(tier == "Tanzanite") return 0.75;  // 75% of master lot
+    if(tier == "Sapphire") return 1.00;   // 100% — matches master exactly
+    if(tier == "Emerald") return 1.50;    // 150% — larger accounts
+    if(tier == "Diamond") return 2.00;    // 200% — institutional scale
+    if(tier == "Rhodium") return 3.00;
+    if(tier == "Platinum") return 5.00;
+    if(tier == "Uranium") return 10.00;
+    if(tier == "Atomic") return 20.00;
+    if(tier == "Nuclear") return 50.00;
+    if(tier == "Solomonic") return 100.00;
+    return 0.25; // Default
+}
+
+// --- GLOBALS ---
+string Prefix = "CS_";
+bool AutoModeActive = false;
+double g_clientFloat = 0.0;
+int g_traderLevel = 0;
+string g_userTier = "None";
+
+struct TraderLevel { int level; string name; double minFloat; };
+TraderLevel g_levels[] = {
+    {0, "Locked", 0}, {1, "ScalpaTrader", 10}, {2, "IntraTrader", 291},
+    {3, "DayTrader", 497}, {4, "SwingTrader", 799}, {5, "LongTrader", 973}
+};
+
+// ============================================================
+// INLINE JSON PARSER
+// ============================================================
+string JsonGetValue(const string &json, const string &key) {
+    string search = "\"" + key + "\"";
+    int pos = StringFind(json, search);
+    if(pos < 0) return "";
+    pos = StringFind(json, ":", pos);
+    if(pos < 0) return "";
+    pos++;
+    while(pos < StringLen(json) && (StringGetCharacter(json, pos) == ' ' || StringGetCharacter(json, pos) == '\t')) pos++;
+    if(StringGetCharacter(json, pos) == '"') {
+        pos++; string val = "";
+        while(pos < StringLen(json) && StringGetCharacter(json, pos) != '"') { val += ShortToString(StringGetCharacter(json, pos)); pos++; }
+        return val;
+    } else {
+        string val = "";
+        while(pos < StringLen(json)) { ushort c = StringGetCharacter(json, pos); if(c == ',' || c == '}' || c == ']') break; val += ShortToString(c); pos++; }
+        return val;
+    }
+}
+
+string ExtractNested(const string &json, const string &key) {
+    string search = "\"" + key + "\"";
+    int start = StringFind(json, search);
+    if(start < 0) return "";
+    start = StringFind(json, "{", start);
+    if(start < 0) return "";
+    int depth = 1, end = start + 1;
+    while(end < StringLen(json) && depth > 0) { ushort c = StringGetCharacter(json, end); if(c == '{') depth++; else if(c == '}') depth--; end++; }
+    return StringSubstr(json, start, end - start);
+}
+
+// ============================================================
+// AUTO SYMBOL MATCHING
+// ============================================================
+string AutoMatchSymbol(const string masterSymbol) {
+    if(SymbolInfoDouble(masterSymbol, SYMBOL_BID) > 0) return masterSymbol;
+
+    string base = masterSymbol;
+    StringReplace(base, ".pro", ""); StringReplace(base, ".ecn", "");
+    StringReplace(base, "m", ""); StringReplace(base, "x", "");
+    StringReplace(base, "-", ""); StringReplace(base, "_", "");
+    StringReplace(base, "/", "");
+
+    if(base != masterSymbol && SymbolInfoDouble(base, SYMBOL_BID) > 0) return base;
+
+    int total = SymbolsTotal(true);
+    for(int i = 0; i < total; i++) {
+        string sym = SymbolName(i, true);
+        string symClean = sym;
+        StringReplace(symClean, ".pro", ""); StringReplace(symClean, ".ecn", "");
+        StringReplace(symClean, "m", ""); StringReplace(symClean, "x", "");
+        StringReplace(symClean, "-", ""); StringReplace(symClean, "_", "");
+        StringReplace(symClean, "/", "");
+        if(StringFind(symClean, base) >= 0 || StringFind(base, symClean) >= 0) return sym;
+    }
+    return "";
+}
+
+// ============================================================
+// EXPERT INIT
+// ============================================================
+int OnInit() {
+    Print(">>> CornerStore Client v5 Initializing...");
+    char dummy[], dummyRes[]; string dummyHeaders;
+    WebRequest("GET", "https://bot-proj-2-1.onrender.com", "", 500, dummy, dummyRes, dummyHeaders);
+    DrawCornerStoreUI();
+    EventSetTimer(2);
+    g_clientFloat = AccountInfoDouble(ACCOUNT_BALANCE);
+    Print(">>> Ready — Float: $", DoubleToString(g_clientFloat, 2));
+    return(INIT_SUCCEEDED);
+}
+
+void OnDeinit(const int reason) { EventKillTimer(); ObjectsDeleteAll(0, Prefix); ChartRedraw(); }
+
+// ============================================================
+// TIMER
+// ============================================================
+void OnTimer() {
+    double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+    g_clientFloat = equity;
+    g_traderLevel = CalculateTraderLevel(equity);
+    SyncWithServer(equity);
+    UpdateUI();
+    ChartRedraw();
+}
+
+int CalculateTraderLevel(double equity) {
+    int level = 0;
+    for(int i = 0; i < ArraySize(g_levels); i++)
+        if(equity >= g_levels[i].minFloat) level = g_levels[i].level;
+    return level;
+}
+
+// ============================================================
+// SERVER SYNC
+// ============================================================
+void SyncWithServer(double equity) {
+    string jsonPayload = StringFormat(
+        "{\"licenseKey\":\"%s\",\"currentBalance\":%.2f,\"currentEquity\":%.2f}",
+        LicenseKey, equity, equity
+    );
+
+    char data[], result[]; string resHeaders;
+    StringToCharArray(jsonPayload, data, 0, WHOLE_ARRAY, CP_UTF8);
+    ArrayResize(data, ArraySize(data) - 1);
+
+    string headers = "Content-Type: application/json\r\n";
+    int res = WebRequest("POST", Client_API_URL, headers, 5000, data, result, resHeaders);
+    if(res == -1) return;
+
+    string response = CharArrayToString(result, 0, WHOLE_ARRAY);
+    string action = JsonGetValue(response, "action");
+    g_userTier = JsonGetValue(response, "userTier");
+
+    if(action == "TRADE") {
+        string masterState = ExtractNested(response, "masterState");
+        if(masterState != "") {
+            string openTrades = JsonGetValue(masterState, "openTrades");
+            ObjectSetString(0, Prefix+"P1", OBJPROP_TEXT, "Master Trades: " + openTrades);
+        }
+
+        string uiState = ExtractNested(masterState, "uiState");
+        if(uiState != "") {
+            string trends = ExtractNested(uiState, "trends");
+            if(trends != "") {
+                ObjectSetString(0, Prefix+"V_Scalpa", OBJPROP_TEXT, ": " + JsonGetValue(trends, "scalpa"));
+                ObjectSetString(0, Prefix+"V_Intra",  OBJPROP_TEXT, ": " + JsonGetValue(trends, "intra"));
+                ObjectSetString(0, Prefix+"V_Day",    OBJPROP_TEXT, ": " + JsonGetValue(trends, "day"));
+                ObjectSetString(0, Prefix+"V_Swing",  OBJPROP_TEXT, ": " + JsonGetValue(trends, "swing"));
+                ObjectSetString(0, Prefix+"V_Long",   OBJPROP_TEXT, ": " + JsonGetValue(trends, "long"));
+                ObjectSetString(0, Prefix+"V_Real",   OBJPROP_TEXT, ": " + JsonGetValue(trends, "real"));
+            }
+            string analytics = ExtractNested(uiState, "analytics");
+            if(analytics != "") {
+                ObjectSetString(0, Prefix+"A_Scalpa", OBJPROP_TEXT, ": " + JsonGetValue(analytics, "scalpa"));
+                ObjectSetString(0, Prefix+"A_Intra",  OBJPROP_TEXT, ": " + JsonGetValue(analytics, "intra"));
+                ObjectSetString(0, Prefix+"A_Day",    OBJPROP_TEXT, ": " + JsonGetValue(analytics, "day"));
+                ObjectSetString(0, Prefix+"A_Swing",  OBJPROP_TEXT, ": " + JsonGetValue(analytics, "swing"));
+                ObjectSetString(0, Prefix+"A_Long",   OBJPROP_TEXT, ": " + JsonGetValue(analytics, "long"));
+            }
+        }
+
+        if(AutoModeActive) CopyTradesFromMaster(response);
+
+    } else if(action == "KILL") {
+        ObjectSetString(0, Prefix+"Title", OBJPROP_TEXT, "LICENSE EXPIRED");
+    } else if(action == "ZERO_HEDGE") {
+        ObjectSetString(0, Prefix+"Title", OBJPROP_TEXT, "ACCOUNT LOCKED");
+    }
+}
+
+// ============================================================
+// TRADE COPIER — All trades copied, lot size scaled by tier
+// ============================================================
+void CopyTradesFromMaster(const string &response) {
+    struct MasterTrade { string symbol; string type; double volume; double sl; double tp; int ticket; };
+    MasterTrade masterTrades[];
+    int masterCount = 0;
+
+    int pos = StringFind(response, "\"trades\":[");
+    if(pos < 0) return;
+    pos += 10;
+
+    int tradesEnd = pos, depth = 1;
+    int len = StringLen(response);
+    while(tradesEnd < len && depth > 0) { ushort c = StringGetCharacter(response, tradesEnd); if(c == '[') depth++; else if(c == ']') depth--; tradesEnd++; }
+    string tradesSection = StringSubstr(response, pos, tradesEnd - pos - 1);
+
+    int tp = 0, tlen = StringLen(tradesSection);
+    while(tp < tlen) {
+        tp = StringFind(tradesSection, "\"ticket\":", tp);
+        if(tp < 0) break;
+        ArrayResize(masterTrades, masterCount + 1);
+        tp += 9;
+        string ticketStr = "";
+        while(tp < tlen) { ushort c = StringGetCharacter(tradesSection, tp); if(c >= '0' && c <= '9') { ticketStr += ShortToString(c); tp++; } else break; }
+        masterTrades[masterCount].ticket = (int)StringToInteger(ticketStr);
+        tp = StringFind(tradesSection, "\"symbol\":\"", tp); if(tp < 0) break; tp += 10;
+        masterTrades[masterCount].symbol = "";
+        while(tp < tlen && StringGetCharacter(tradesSection, tp) != '"') { masterTrades[masterCount].symbol += ShortToString(StringGetCharacter(tradesSection, tp)); tp++; }
+        tp = StringFind(tradesSection, "\"type\":\"", tp); if(tp < 0) break; tp += 8;
+        masterTrades[masterCount].type = (StringGetCharacter(tradesSection, tp) == 'B') ? "BUY" : "SELL";
+        tp = StringFind(tradesSection, "\"volume\":", tp); if(tp < 0) break; tp += 9;
+        string volStr = "";
+        while(tp < tlen) { ushort c = StringGetCharacter(tradesSection, tp); if((c >= '0' && c <= '9') || c == '.') { volStr += ShortToString(c); tp++; } else break; }
+        masterTrades[masterCount].volume = StringToDouble(volStr);
+        tp = StringFind(tradesSection, "\"sl\":", tp);
+        if(tp > 0) { tp += 5; string slStr = ""; while(tp < tlen) { ushort c = StringGetCharacter(tradesSection, tp); if((c >= '0' && c <= '9') || c == '.' || c == '-') { slStr += ShortToString(c); tp++; } else break; } masterTrades[masterCount].sl = StringToDouble(slStr); }
+        tp = StringFind(tradesSection, "\"tp\":", tp);
+        if(tp > 0) { tp += 5; string tpStr = ""; while(tp < tlen) { ushort c = StringGetCharacter(tradesSection, tp); if((c >= '0' && c <= '9') || c == '.' || c == '-') { tpStr += ShortToString(c); tp++; } else break; } masterTrades[masterCount].tp = StringToDouble(tpStr); }
+        masterCount++;
+    }
+
+    if(masterCount == 0) return;
+
+    double lotMult = TierLotMultiplier(g_userTier);
+
+    // Close client positions that no longer exist on master
+    for(int i = PositionsTotal() - 1; i >= 0; i--) {
+        ulong localTicket = PositionGetTicket(i);
+        if(!PositionSelectByTicket(localTicket)) continue;
+        string comment = PositionGetString(POSITION_COMMENT);
+        if(StringFind(comment, "DET_") < 0) continue;
+
+        bool found = false;
+        string localSym = PositionGetString(POSITION_SYMBOL);
+        long localType = PositionGetInteger(POSITION_TYPE);
+        string localTypeStr = (localType == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+
+        for(int j = 0; j < masterCount; j++) {
+            string mappedSym = AutoMatchSymbol(masterTrades[j].symbol);
+            if(mappedSym == localSym && masterTrades[j].type == localTypeStr) { found = true; break; }
+        }
+        if(!found) {
+            trade.PositionClose(localTicket);
+            Print("🔒 Closed ", localSym, " — no longer on master");
+        }
+    }
+
+    // Open/update — every master trade gets copied
+    for(int j = 0; j < masterCount; j++) {
+        string mappedSym = AutoMatchSymbol(masterTrades[j].symbol);
+        if(mappedSym == "") continue;
+        if(SymbolInfoDouble(mappedSym, SYMBOL_BID) <= 0) continue;
+
+        double adjustedVol = NormalizeDouble(masterTrades[j].volume * lotMult, 2);
+        if(adjustedVol < 0.01) adjustedVol = 0.01;
+
+        // Check if already exists
+        bool exists = false;
+        for(int i = 0; i < PositionsTotal(); i++) {
+            ulong t = PositionGetTicket(i);
+            if(!PositionSelectByTicket(t)) continue;
+            if(StringFind(PositionGetString(POSITION_COMMENT), "DET_") < 0) continue;
+            string localSym = PositionGetString(POSITION_SYMBOL);
+            long localType = PositionGetInteger(POSITION_TYPE);
+            string localTypeStr = (localType == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+
+            if(localSym == mappedSym && localTypeStr == masterTrades[j].type) {
+                exists = true;
+                // Update SL/TP if changed
+                double curSL = PositionGetDouble(POSITION_SL);
+                double curTP = PositionGetDouble(POSITION_TP);
+                if(MathAbs(curSL - masterTrades[j].sl) > 0.00001 || MathAbs(curTP - masterTrades[j].tp) > 0.00001) {
+                    if(masterTrades[j].sl > 0 || masterTrades[j].tp > 0) {
+                        trade.PositionModify(t, masterTrades[j].sl, masterTrades[j].tp);
+                    }
+                }
+                break;
+            }
+        }
+
+        if(!exists) {
+            double ask = SymbolInfoDouble(mappedSym, SYMBOL_ASK);
+            double bid = SymbolInfoDouble(mappedSym, SYMBOL_BID);
+            if(masterTrades[j].type == "BUY" && ask > 0) {
+                if(trade.Buy(adjustedVol, mappedSym, ask, masterTrades[j].sl, masterTrades[j].tp, "DET_" + IntegerToString(masterTrades[j].ticket))) {
+                    Print("📋 BUY ", mappedSym, " | Lot: ", adjustedVol, " (Master: ", masterTrades[j].volume, ")");
+                }
+            } else if(masterTrades[j].type == "SELL" && bid > 0) {
+                if(trade.Sell(adjustedVol, mappedSym, bid, masterTrades[j].sl, masterTrades[j].tp, "DET_" + IntegerToString(masterTrades[j].ticket))) {
+                    Print("📋 SELL ", mappedSym, " | Lot: ", adjustedVol, " (Master: ", masterTrades[j].volume, ")");
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// UI THEME — back to the original cream/lime look, centralised
+// so the whole panel can still be re-skinned from one place
+// ============================================================
+color UI_HeaderBg   = C'150,220,90';   // lime green header (original style)
+color UI_FooterBg   = C'150,220,90';   // matching footer
+color UI_BodyBg      = C'250,250,235'; // cream body (original)
+color UI_TitleText  = clrBlack;
+color UI_SubText    = C'40,60,20';     // deep green-black for header subtitle
+color UI_SectionHd  = C'30,95,20';     // section heading (Trends / Analytics)
+color UI_LabelText  = C'40,40,40';     // row labels
+color UI_ValueText  = clrBlack;        // row values
+color UI_DimText    = C'90,90,90';     // compliance / fine print
+color UI_Divider    = C'205,215,180';  // hairline separators
+color UI_AccentTeal = C'40,167,110';   // AUTO ON / positive
+color UI_AccentRed  = clrRed;          // AUTO OFF / negative
+color UI_BuyBg      = C'40,167,110';
+color UI_SellBg     = C'214,69,69';
+color UI_SwitchBg   = C'214,69,69';
+color UI_BtnOffBg   = clrBlack;
+
+// ============================================================
+// UI
+// ============================================================
+void UpdateUI() {
+    bool showScalpa = (g_traderLevel >= 1), showIntra = (g_traderLevel >= 2);
+    bool showDay = (g_traderLevel >= 3), showSwing = (g_traderLevel >= 4), showLong = (g_traderLevel >= 5);
+    int s = OBJ_ALL_PERIODS, h = OBJ_NO_PERIODS;
+
+    string levelName = (g_traderLevel < ArraySize(g_levels)) ? g_levels[g_traderLevel].name : "Unknown";
+    string autoStatus = AutoModeActive ? "LIVE" : "PAUSED";
+
+    // Count copied trades
+    int copiedTrades = 0;
+    for(int i = 0; i < PositionsTotal(); i++) {
+        if(PositionSelectByTicket(PositionGetTicket(i))) {
+            if(StringFind(PositionGetString(POSITION_COMMENT), "DET_") >= 0) copiedTrades++;
+        }
+    }
+
+    ObjectSetString(0, Prefix+"Title", OBJPROP_TEXT, g_userTier + "  ·  " + levelName + "  ·  $" + DoubleToString(g_clientFloat, 2));
+    ObjectSetString(0, Prefix+"Subtitle", OBJPROP_TEXT, autoStatus + "   |   " + IntegerToString(copiedTrades) + " trade(s) copied");
+    ObjectSetInteger(0, Prefix+"Subtitle", OBJPROP_COLOR, AutoModeActive ? UI_AccentTeal : UI_SubText);
+    ObjectSetString(0, Prefix+"P1", OBJPROP_TEXT, "Lot Multiplier: " + DoubleToString(TierLotMultiplier(g_userTier)*100, 0) + "% of master");
+
+    ObjectSetInteger(0, Prefix+"T5", OBJPROP_TIMEFRAMES, showScalpa?s:h);
+    ObjectSetInteger(0, Prefix+"V_Scalpa", OBJPROP_TIMEFRAMES, showScalpa?s:h);
+    ObjectSetInteger(0, Prefix+"T4", OBJPROP_TIMEFRAMES, showIntra?s:h);
+    ObjectSetInteger(0, Prefix+"V_Intra", OBJPROP_TIMEFRAMES, showIntra?s:h);
+    ObjectSetInteger(0, Prefix+"T3", OBJPROP_TIMEFRAMES, showDay?s:h);
+    ObjectSetInteger(0, Prefix+"V_Day", OBJPROP_TIMEFRAMES, showDay?s:h);
+    ObjectSetInteger(0, Prefix+"T2", OBJPROP_TIMEFRAMES, showSwing?s:h);
+    ObjectSetInteger(0, Prefix+"V_Swing", OBJPROP_TIMEFRAMES, showSwing?s:h);
+    ObjectSetInteger(0, Prefix+"T1", OBJPROP_TIMEFRAMES, showLong?s:h);
+    ObjectSetInteger(0, Prefix+"V_Long", OBJPROP_TIMEFRAMES, showLong?s:h);
+    ObjectSetInteger(0, Prefix+"AL1", OBJPROP_TIMEFRAMES, showScalpa?s:h);
+    ObjectSetInteger(0, Prefix+"A_Scalpa", OBJPROP_TIMEFRAMES, showScalpa?s:h);
+    ObjectSetInteger(0, Prefix+"AL2", OBJPROP_TIMEFRAMES, showIntra?s:h);
+    ObjectSetInteger(0, Prefix+"A_Intra", OBJPROP_TIMEFRAMES, showIntra?s:h);
+    ObjectSetInteger(0, Prefix+"AL3", OBJPROP_TIMEFRAMES, showDay?s:h);
+    ObjectSetInteger(0, Prefix+"A_Day", OBJPROP_TIMEFRAMES, showDay?s:h);
+    ObjectSetInteger(0, Prefix+"AL4", OBJPROP_TIMEFRAMES, showSwing?s:h);
+    ObjectSetInteger(0, Prefix+"A_Swing", OBJPROP_TIMEFRAMES, showSwing?s:h);
+    ObjectSetInteger(0, Prefix+"AL5", OBJPROP_TIMEFRAMES, showLong?s:h);
+    ObjectSetInteger(0, Prefix+"A_Long", OBJPROP_TIMEFRAMES, showLong?s:h);
+
+    double targetLogout = g_clientFloat * 2.0;
+    ObjectSetString(0, Prefix+"F1", OBJPROP_TEXT, "100% Gain Logout: $" + DoubleToString(targetLogout, 2));
+    ObjectSetString(0, Prefix+"Custodial", OBJPROP_TEXT, "Float: $" + DoubleToString(g_clientFloat, 2));
+}
+
+// ============================================================
+// CHART EVENTS
+// ============================================================
+void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
+    if(id == CHARTEVENT_OBJECT_CLICK) {
+        if(sparam == Prefix+"BtnAuto") {
+            AutoModeActive = !AutoModeActive;
+            string txt = AutoModeActive ? "AUTO: ON" : "AUTO: OFF";
+            color bg = AutoModeActive ? UI_AccentTeal : C'46,51,68';
+            color tc = AutoModeActive ? clrWhite : UI_AccentRed;
+            ObjectSetString(0, Prefix+"BtnAuto", OBJPROP_TEXT, txt);
+            ObjectSetInteger(0, Prefix+"BtnAuto", OBJPROP_BGCOLOR, bg);
+            ObjectSetInteger(0, Prefix+"BtnAuto", OBJPROP_COLOR, tc);
+            ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+        } else if(sparam == Prefix+"Collapse") {
+            ToggleCollapse();
+            ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+        }
+        if(sparam == Prefix+"BtnBuy" || sparam == Prefix+"BtnSell")
+            ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+    }
+}
+
+bool PanelCollapsed = false; int FullPanelHeight = 0;
+void ToggleCollapse() {
+    PanelCollapsed = !PanelCollapsed; bool show = !PanelCollapsed;
+    string bodyObjs[] = {"Subtitle","TrendsHead","Div1","T1","T2","T3","T4","T5","T6","V_Long","V_Swing","V_Day","V_Intra","V_Scalpa","V_Real","AnalyticsHead","Div2","AL1","AL2","AL3","AL4","AL5","A_Scalpa","A_Intra","A_Day","A_Swing","A_Long","Div3","C1","C2","P1","Custodial","BtnBuy","BtnAuto","BtnSell","SwitchBar","SwitchLbl","FooterBG","F1","F2","F3"};
+    for(int i=0;i<ArraySize(bodyObjs);i++) ObjectSetInteger(0,Prefix+bodyObjs[i],OBJPROP_TIMEFRAMES,show?OBJ_ALL_PERIODS:OBJ_NO_PERIODS);
+    ObjectSetInteger(0,Prefix+"BG",OBJPROP_YSIZE,show?FullPanelHeight:24);
+    ObjectSetString(0,Prefix+"Collapse",OBJPROP_TEXT,show?"▲":"▼"); ChartRedraw();
+}
+
+void DrawCornerStoreUI() {
+    // --- base geometry: wider panel + generous fixed gaps everywhere ---
+    int x=20,y=20,w=500;
+    int labelX=x+16,valX=x+195;
+    int rowH=18;          // height of one data row (label+value)
+    int gap=16;           // vertical breathing room between sections
+    int headerH=46,footerH=58;
+
+    int bodyTop = y+headerH+gap;
+
+    // -- Trends section --
+    int trendsHeadY = bodyTop;
+    int trendsY      = trendsHeadY+20;      // rows start below the section heading
+    int trendsH      = rowH*6;
+    int trendsEndY   = trendsY+trendsH;
+
+    // -- Analytics section --
+    int analyticsHeadY = trendsEndY+gap;
+    int analyticsY      = analyticsHeadY+20;
+    int analyticsH      = rowH*5;
+    int analyticsEndY   = analyticsY+analyticsH;
+
+    // -- Compliance --
+    int complianceY   = analyticsEndY+gap;
+    int complianceH   = 15*2;
+    int complianceEndY= complianceY+complianceH;
+
+    // -- Performance (lot multiplier / float) --
+    int perfY    = complianceEndY+gap;
+    int perfH    = 17*2;
+    int perfEndY = perfY+perfH;
+
+    // -- Switch Trader bar (own row, clear of the buttons below) --
+    int switchY    = perfEndY+gap;
+    int switchH    = 22;
+    int switchEndY = switchY+switchH;
+
+    // -- Buy / Auto / Sell buttons --
+    int btnY    = switchEndY+gap;
+    int btnH    = 30;
+    int btnEndY = btnY+btnH;
+
+    // -- Footer --
+    int footerY = btnEndY+gap;
+    int panelH  = (footerY-y)+footerH;
+    FullPanelHeight = panelH;
+
+    // --- shell ---
+    CreateRect(Prefix+"BG",x,y,w,panelH,UI_BodyBg);
+    CreateRect(Prefix+"Header",x,y,w,headerH,UI_HeaderBg);
+    CreateLabel(Prefix+"Title","D.E.T | Connecting...",x+14,y+9,UI_TitleText,10,true);
+    CreateLabel(Prefix+"Subtitle","PAUSED",x+14,y+27,UI_SubText,8,false);
+    CreateButton(Prefix+"Collapse","▲",x+w-32,y+11,24,24,UI_TitleText,C'110,190,60');
+
+    // --- trends section ---
+    CreateLabel(Prefix+"TrendsHead","MARKET TRENDS",labelX,trendsHeadY,UI_SectionHd,8,true);
+    CreateLabel(Prefix+"T1","Long Trader",labelX,trendsY,UI_LabelText,8,false);
+    CreateLabel(Prefix+"T2","Swing Trader",labelX,trendsY+rowH*1,UI_LabelText,8,false);
+    CreateLabel(Prefix+"T3","Day Trader",labelX,trendsY+rowH*2,UI_LabelText,8,false);
+    CreateLabel(Prefix+"T4","Intra Trader",labelX,trendsY+rowH*3,UI_LabelText,8,false);
+    CreateLabel(Prefix+"T5","Scalpa Trader",labelX,trendsY+rowH*4,UI_LabelText,8,false);
+    CreateLabel(Prefix+"T6","Real-Time",labelX,trendsY+rowH*5,UI_LabelText,8,false);
+    CreateLabel(Prefix+"V_Long",": Syncing...",valX,trendsY,UI_ValueText,8,true);
+    CreateLabel(Prefix+"V_Swing",": Syncing...",valX,trendsY+rowH*1,UI_ValueText,8,true);
+    CreateLabel(Prefix+"V_Day",": Syncing...",valX,trendsY+rowH*2,UI_ValueText,8,true);
+    CreateLabel(Prefix+"V_Intra",": Syncing...",valX,trendsY+rowH*3,UI_ValueText,8,true);
+    CreateLabel(Prefix+"V_Scalpa",": Syncing...",valX,trendsY+rowH*4,UI_ValueText,8,true);
+    CreateLabel(Prefix+"V_Real",": Syncing...",valX,trendsY+rowH*5,UI_ValueText,8,true);
+
+    CreateRect(Prefix+"Div1",labelX,trendsEndY+(gap/2),w-32,1,UI_Divider);
+
+    // --- analytics section ---
+    CreateLabel(Prefix+"AnalyticsHead","PERFORMANCE ANALYTICS",labelX,analyticsHeadY,UI_SectionHd,8,true);
+    CreateLabel(Prefix+"AL1","Scalpa Analytics",labelX,analyticsY,UI_LabelText,8,false);
+    CreateLabel(Prefix+"AL2","Intra Analytics",labelX,analyticsY+rowH*1,UI_LabelText,8,false);
+    CreateLabel(Prefix+"AL3","Day Analytics",labelX,analyticsY+rowH*2,UI_LabelText,8,false);
+    CreateLabel(Prefix+"AL4","Swing Analytics",labelX,analyticsY+rowH*3,UI_LabelText,8,false);
+    CreateLabel(Prefix+"AL5","Long Analytics",labelX,analyticsY+rowH*4,UI_LabelText,8,false);
+    CreateLabel(Prefix+"A_Scalpa",": Syncing...",valX,analyticsY,UI_ValueText,8,true);
+    CreateLabel(Prefix+"A_Intra",": Syncing...",valX,analyticsY+rowH*1,UI_ValueText,8,true);
+    CreateLabel(Prefix+"A_Day",": Syncing...",valX,analyticsY+rowH*2,UI_ValueText,8,true);
+    CreateLabel(Prefix+"A_Swing",": Syncing...",valX,analyticsY+rowH*3,UI_ValueText,8,true);
+    CreateLabel(Prefix+"A_Long",": Syncing...",valX,analyticsY+rowH*4,UI_ValueText,8,true);
+
+    CreateRect(Prefix+"Div2",labelX,analyticsEndY+(gap/2),w-32,1,UI_Divider);
+
+    // --- compliance ---
+    CreateLabel(Prefix+"C1","D.E.T is NOT an Investment Institution or Advisor",labelX,complianceY,UI_DimText,7,false);
+    CreateLabel(Prefix+"C2","Caveat Subscriptor — no guarantees, you may lose all capital",labelX,complianceY+15,UI_DimText,7,false);
+
+    CreateRect(Prefix+"Div3",labelX,complianceEndY+(gap/2),w-32,1,UI_Divider);
+
+    // --- performance / float ---
+    CreateLabel(Prefix+"P1","Awaiting data...",labelX,perfY,UI_ValueText,9,true);
+    CreateLabel(Prefix+"Custodial","Float: $Awaiting...",labelX,perfY+17,UI_ValueText,9,true);
+
+    // --- switch trader bar (its own full row, well clear of the buttons) ---
+    CreateRect(Prefix+"SwitchBar",labelX,switchY,w-32,switchH,UI_SwitchBg);
+    CreateLabel(Prefix+"SwitchLbl","Switch Trader",labelX+((w-32)/2)-45,switchY+4,clrWhite,8,true);
+    ObjectSetInteger(0,Prefix+"SwitchLbl",OBJPROP_ZORDER,5);
+
+    // --- action buttons, evenly spaced across the full width ---
+    int btnGap=10;
+    int btnW=(w-32-btnGap*2)/3;
+    CreateButton(Prefix+"BtnBuy","BUY",labelX,btnY,btnW,btnH,clrWhite,UI_BuyBg);
+    CreateButton(Prefix+"BtnAuto","AUTO: OFF",labelX+btnW+btnGap,btnY,btnW,btnH,UI_AccentRed,UI_BtnOffBg);
+    CreateButton(Prefix+"BtnSell","SELL",labelX+(btnW+btnGap)*2,btnY,btnW,btnH,clrWhite,UI_SellBg);
+
+    // --- footer ---
+    CreateRect(Prefix+"FooterBG",x,footerY,w,footerH,UI_FooterBg);
+    CreateLabel(Prefix+"F1","100% Gain Logout: $Awaiting...",labelX,footerY+8,UI_TitleText,8,true);
+    CreateLabel(Prefix+"F2","Caveat Subscriptor — we shall not be held responsible",labelX,footerY+25,UI_SubText,7,false);
+    CreateLabel(Prefix+"F3","for your loss  ·  [T&C APPLY]  ·  Col 3:22-25",labelX,footerY+38,UI_SubText,7,false);
+
+    ChartRedraw();
+}
+
+void CreateLabel(string name,string text,int xPos,int yPos,color clr,int size,bool bold){ObjectCreate(0,name,OBJ_LABEL,0,0,0);ObjectSetInteger(0,name,OBJPROP_XDISTANCE,xPos);ObjectSetInteger(0,name,OBJPROP_YDISTANCE,yPos);ObjectSetString(0,name,OBJPROP_TEXT,text);ObjectSetInteger(0,name,OBJPROP_COLOR,clr);ObjectSetInteger(0,name,OBJPROP_FONTSIZE,size);ObjectSetString(0,name,OBJPROP_FONT,bold?"Arial Bold":"Arial");ObjectSetInteger(0,name,OBJPROP_SELECTABLE,false);}
+void CreateButton(string name,string text,int xPos,int yPos,int w,int h,color txtClr,color bgClr){ObjectCreate(0,name,OBJ_BUTTON,0,0,0);ObjectSetInteger(0,name,OBJPROP_XDISTANCE,xPos);ObjectSetInteger(0,name,OBJPROP_YDISTANCE,yPos);ObjectSetInteger(0,name,OBJPROP_XSIZE,w);ObjectSetInteger(0,name,OBJPROP_YSIZE,h);ObjectSetString(0,name,OBJPROP_TEXT,text);ObjectSetInteger(0,name,OBJPROP_COLOR,txtClr);ObjectSetInteger(0,name,OBJPROP_BGCOLOR,bgClr);ObjectSetInteger(0,name,OBJPROP_BORDER_COLOR,C'46,51,68');ObjectSetString(0,name,OBJPROP_FONT,"Arial Bold");ObjectSetInteger(0,name,OBJPROP_FONTSIZE,8);ObjectSetInteger(0,name,OBJPROP_SELECTABLE,false);ObjectSetInteger(0,name,OBJPROP_STATE,false);}
+void CreateRect(string name,int xPos,int yPos,int w,int h,color col){ObjectCreate(0,name,OBJ_RECTANGLE_LABEL,0,0,0);ObjectSetInteger(0,name,OBJPROP_XDISTANCE,xPos);ObjectSetInteger(0,name,OBJPROP_YDISTANCE,yPos);ObjectSetInteger(0,name,OBJPROP_XSIZE,w);ObjectSetInteger(0,name,OBJPROP_YSIZE,h);ObjectSetInteger(0,name,OBJPROP_BGCOLOR,col);ObjectSetInteger(0,name,OBJPROP_COLOR,col);ObjectSetInteger(0,name,OBJPROP_BACK,false);}

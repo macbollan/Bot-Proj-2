@@ -16,6 +16,96 @@ require("dotenv").config();
 const User = require("./models/User.model");
 const app = express();
 
+const emailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'nyctech002@gmail.com',
+        pass: 'wcibyjqymgbyonxt'
+    }
+});
+
+// ==========================================
+// PAYMENT CONFIRMATION EMAILS
+// ==========================================
+// Lightweight sanity check — not full RFC 5322, just enough to catch
+// missing/garbled addresses before we waste a send attempt on them.
+function isValidEmail(email) {
+    return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+// Sends the D.E.T activation code after a tier payment is confirmed.
+// Never throws — a bad/missing address or an SMTP failure is logged and
+// swallowed here so it can never break the webhook response or roll back
+// the license that was already saved.
+async function sendActivationEmail(user, tierName) {
+    if (!isValidEmail(user.email)) {
+        console.error(`[EMAIL] Skipped activation email for "${user.username}" — invalid or missing address: "${user.email}"`);
+        return false;
+    }
+    try {
+        await emailTransporter.sendMail({
+            from: '"D.E.T System" <nyctech002@gmail.com>',
+            to: user.email,
+            subject: `Your D.E.T ${tierName} Activation is Confirmed`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #1a1818; color: #fff; padding: 30px; border-radius: 12px;">
+                    <h2 style="color: #B0BF96; margin-bottom: 20px;">D.E.T System</h2>
+                    <p>Hi <strong>${user.username}</strong>, your payment has been confirmed and your <strong>${tierName}</strong> account is now active.</p>
+                    <p>Your unique 9-Digit D.E.T ID / license code is:</p>
+                    <div style="background: #322C2C; border: 1px solid rgba(176,191,150,0.25); border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                        <h1 style="font-size: 32px; letter-spacing: 6px; color: #B0BF96; margin: 0;">${user.licenseKey}</h1>
+                    </div>
+                    <p style="font-size: 13px; color: #94a3b8;">This code is tied to your account and expires on <strong>${user.licenseExpiry.toDateString()}</strong>.</p>
+                    <p style="font-size: 13px; color: #94a3b8;">Log in to your dashboard to connect your MT5 terminal and get started.</p>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+                    <p style="font-size: 11px; color: #64748b;">D.E.T System &copy; 2026</p>
+                </div>
+            `
+        });
+        console.log(`[EMAIL] Activation email sent to ${user.email}`);
+        return true;
+    } catch (emailErr) {
+        console.error(`[EMAIL] Failed to send activation email to "${user.email}":`, emailErr.message);
+        return false;
+    }
+}
+
+// Sends a training enrollment confirmation after a training payment is confirmed.
+// Same guarantee as above: failures are caught and logged, never thrown.
+async function sendTrainingConfirmationEmail(enrollment) {
+    if (!isValidEmail(enrollment.email)) {
+        console.error(`[EMAIL] Skipped training confirmation for "${enrollment.studentName}" — invalid or missing address: "${enrollment.email}"`);
+        return false;
+    }
+    try {
+        await emailTransporter.sendMail({
+            from: '"D.E.T System" <nyctech002@gmail.com>',
+            to: enrollment.email,
+            subject: `Enrollment Confirmed: ${enrollment.courseName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #1a1818; color: #fff; padding: 30px; border-radius: 12px;">
+                    <h2 style="color: #B0BF96; margin-bottom: 20px;">D.E.T System</h2>
+                    <p>Hi <strong>${enrollment.studentName}</strong>, your payment has been received and your seat is confirmed.</p>
+                    <div style="background: #322C2C; border: 1px solid rgba(176,191,150,0.25); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <p style="margin: 4px 0;"><strong>Course:</strong> ${enrollment.courseName}</p>
+                        <p style="margin: 4px 0;"><strong>Format:</strong> ${enrollment.type === 'one-on-one' ? 'One-on-One' : 'Group'}</p>
+                        <p style="margin: 4px 0;"><strong>Amount Paid:</strong> $${enrollment.amountPaid}</p>
+                        <p style="margin: 4px 0;"><strong>Reference:</strong> ${enrollment.paynowReference}</p>
+                    </div>
+                    <p style="font-size: 13px; color: #94a3b8;">Our team will reach out via WhatsApp/email with your session schedule shortly.</p>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+                    <p style="font-size: 11px; color: #64748b;">D.E.T System &copy; 2026</p>
+                </div>
+            `
+        });
+        console.log(`[EMAIL] Training confirmation sent to ${enrollment.email}`);
+        return true;
+    } catch (emailErr) {
+        console.error(`[EMAIL] Failed to send training confirmation to "${enrollment.email}":`, emailErr.message);
+        return false;
+    }
+}
+
 // ==========================================
 // GLOBAL MEMORY FOR D.E.T. DATA
 // ==========================================
@@ -27,6 +117,8 @@ const app = express();
 // =========================================
 let eaBrainStates = {}; // Keyed by symbol: { "GBPUSD": {...}, "XAUUSD": {...} }
 let activeTradesBySymbol = {}; // Keyed by symbol
+let eaBrainState = getDefaultBrainState(); // <-- ADD THIS LINE
+let activeTradesList = [];         
 
 // Default state for symbols that haven't received data yet
 function getDefaultBrainState() {
@@ -110,6 +202,10 @@ app.post("/api/paynow/update", async (req, res) => {
                     enrollment.paidAt = new Date();
                     await enrollment.save();
                     console.log(`[TRAINING] Payment confirmed: ${enrollment.studentName} - ${enrollment.courseName} ($${amount})`);
+
+                    // Send the enrollment confirmation by email. Wrapped internally so a bad
+                    // address or SMTP hiccup can never undo the save above or block the ack below.
+                    await sendTrainingConfirmationEmail(enrollment);
                 }
             } catch (err) {
                 console.error("Training webhook error:", err);
@@ -120,7 +216,41 @@ app.post("/api/paynow/update", async (req, res) => {
     
     // --- HANDLE D.E.T ACTIVATION PAYMENTS ---
     if (status === "Paid" || status === "Awaiting Delivery") {
-        // ... existing code unchanged ...
+        const parts = reference.split("-");
+        const userId = parts[0];
+        const tierName = parts[1];
+        const config = tierConfig[tierName];
+
+        try {
+            const user = await User.findById(userId);
+            if (user && !user.licenseKey) { // Prevent double-generation
+                const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
+                
+                user.licenseKey = generateDET_ID();
+                user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
+                user.currentTier = tierName;
+                user.prepaymentAmount = parseFloat(amount) || config.min; // Secures exact paid amount
+                user.termsAgreed = true;
+                user.isSuspended = false; 
+                user.accountLocked = false;
+                user.mt5AccountNumber = null; 
+                
+                await user.save();
+                
+                // PROCESS AFFILIATE COMMISSION FOR THIS PAYMENT
+                if (user.referredBy) {
+                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
+                }
+                
+                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
+
+                // Send the activation code by email. Wrapped internally so a bad
+                // address or SMTP hiccup can never undo the save above or block the ack below.
+                await sendActivationEmail(user, tierName);
+            }
+        } catch (err) {
+            console.error("Webhook database update failed:", err);
+        }
     }
     res.status(200).send("OK");
 });
@@ -417,45 +547,11 @@ app.get("/checkout/return", isLoggedIn, (req, res) => {
     res.redirect("/dashboard");
 });
 
-// 5. The Silent Webhook - Now reads EXACT amount paid
-app.post("/api/paynow/update", async (req, res) => {
-    const { reference, status, amount } = req.body;
-    
-    if (status === "Paid" || status === "Awaiting Delivery") {
-        const parts = reference.split("-");
-        const userId = parts[0];
-        const tierName = parts[1];
-        const config = tierConfig[tierName];
-
-        try {
-            const user = await User.findById(userId);
-            if (user && !user.licenseKey) { // Prevent double-generation
-                const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
-                
-                user.licenseKey = generateDET_ID();
-                user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
-                user.currentTier = tierName;
-                user.prepaymentAmount = parseFloat(amount) || config.min; // Secures exact paid amount
-                user.termsAgreed = true;
-                user.isSuspended = false; 
-                user.accountLocked = false;
-                user.mt5AccountNumber = null; 
-                
-                await user.save();
-                
-                // PROCESS AFFILIATE COMMISSION FOR THIS PAYMENT
-                if (user.referredBy) {
-                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
-                }
-                
-                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
-            }
-        } catch (err) {
-            console.error("Webhook database update failed:", err);
-        }
-    }
-    res.status(200).send("OK");
-});
+// NOTE: a second app.post("/api/paynow/update", ...) used to live here.
+// Express matches routes in registration order and the earlier handler
+// (above, near the top of the file) always sent a response first, so this
+// one could never actually run — it was dead code. Its activation logic
+// has been merged into the reachable handler above; nothing here was lost.
 
 // 6. Polling endpoint for Checkout UI
 app.get("/api/user/status", isLoggedIn, async (req, res) => {
@@ -477,21 +573,41 @@ app.get("/", (req, res) => {
 app.get("/register", (req, res) => {
     const referralCode = req.query.ref || '';
     const redirect = req.query.redirect || '';
+    const selectedTier = req.query.tier || null;
     res.render("register", { 
-        error: null, 
-        selectedTier: null,
+        selectedTier: selectedTier,
         referralCode: referralCode,
         redirect: redirect
     });
 });
 
 app.post("/register", async (req, res) => {
+  let redirectUrl = "/register";
+  const params = new URLSearchParams();
+
   try {
     const referralCode = req.body.ref || req.query.ref || null;
+    const emailToCheck = req.body.email ? req.body.email.toLowerCase().trim() : "";
+
+    // Preserve query parameters so users don't lose their place if an error occurs
+    if (referralCode) params.append('ref', referralCode);
+    if (req.body.redirect) params.append('redirect', req.body.redirect);
+    if (req.body.selectedTier && req.body.selectedTier !== 'None') params.append('tier', req.body.selectedTier);
+    const queryString = params.toString();
+    if (queryString) redirectUrl += `?${queryString}`;
+
+    // 1. EXPLICIT EMAIL CHECK
+    if (emailToCheck) {
+        const existingEmail = await User.findOne({ email: new RegExp('^' + emailToCheck + '$', 'i') });
+        if (existingEmail) {
+            req.flash("error", "An account with that email address already exists.");
+            return req.session.save(() => res.redirect(redirectUrl));
+        }
+    }
     
     const newUser = new User({ 
         username: req.body.username, 
-        email: req.body.email,
+        email: emailToCheck,
         whatsapp: req.body.whatsapp || "",
         country: req.body.country || "",
         currentTier: req.body.selectedTier || "None",
@@ -500,59 +616,79 @@ app.post("/register", async (req, res) => {
         targetBalance: 0,
         accountLocked: false,
         isSuspended: false,
-        referredBy: referralCode  // ALWAYS save the referral code
+        referredBy: referralCode
     });
 
+    // 2. PASSPORT REGISTRATION (This catches duplicate usernames automatically)
     const registeredUser = await User.register(newUser, req.body.password);
     
-    // If user was referred, create a pending referral record
+    // 3. AFFILIATE TRACKING LOGIC
     if (referralCode) {
         try {
+            const Affiliate = require("./models/Affiliate.model");
             const affiliate = await Affiliate.findOne({ referralCode: referralCode });
             if (affiliate) {
-                // Check if this user was already tracked
-                const alreadyTracked = affiliate.referrals.some(
-                    r => r.userId && r.userId.toString() === registeredUser._id.toString()
-                );
-                
+                const alreadyTracked = affiliate.referrals.some(r => r.userId && r.userId.toString() === registeredUser._id.toString());
                 if (!alreadyTracked) {
                     affiliate.referrals.push({
-                        userId: registeredUser._id,
-                        username: registeredUser.username,
-                        email: registeredUser.email,
-                        tier: 'Pending',
-                        amountPaid: 0,
-                        commissionEarned: 0,
-                        status: 'pending',
-                        referredAt: new Date()
+                        userId: registeredUser._id, username: registeredUser.username, email: registeredUser.email,
+                        tier: 'Pending', amountPaid: 0, commissionEarned: 0, status: 'pending', referredAt: new Date()
                     });
                     affiliate.totalReferrals += 1;
                     await affiliate.save();
-                    console.log(`[AFFILIATE] New referral tracked: ${registeredUser.username} via ${affiliate.username}'s link`);
                 }
             }
-        } catch (trackErr) {
-            console.error("Referral tracking error:", trackErr);
-        }
+        } catch (trackErr) { console.error("Referral tracking error:", trackErr); }
     }
     
+    // 4. AUTO LOGIN AND SUCCESS REDIRECT
     req.login(registeredUser, (err) => {
         if(err) {
-            req.flash("error", "Auto login session failure.");
-            return res.redirect("/login");
+            req.flash("error", "Account created, but auto-login failed. Please login manually.");
+            return req.session.save(() => res.redirect("/login"));
         }
         req.flash("success", "Account created successfully! Welcome to D.E.T System.");
-        const redirectTo = req.body.selectedTier ? 
+        const redirectTo = req.body.selectedTier && req.body.selectedTier !== 'None' ? 
             `/checkout?tier=${encodeURIComponent(req.body.selectedTier)}` : 
             (req.body.redirect === 'affiliate' ? "/affiliate" : "/dashboard");
         res.redirect(redirectTo);
     });
+
   } catch (err) {
-    req.flash("error", err.message);
-    res.redirect("/register");
+    console.error("Registration Error:", err);
+    
+    // 5. MASTER ERROR HANDLER
+    let errorMessage = "Registration failed. Please check your details and try again.";
+    
+    // Check if the username is already taken (Thrown by Passport)
+    if (err.name === 'UserExistsError') {
+        errorMessage = "That username is already taken. Please choose another one.";
+    } 
+    // Check for MongoDB Duplicate Key errors (e.g., if a unique index was hit)
+    else if (err.code === 11000) {
+        if (err.message && err.message.includes('email')) {
+            errorMessage = "An account with that email address already exists.";
+        } else {
+            errorMessage = "A duplicate record was found. Please check your details.";
+        }
+    } 
+    // Check for missing required fields (Thrown by Mongoose Validation)
+    else if (err.name === 'ValidationError') {
+        errorMessage = err.message; // E.g., "User validation failed: email: Path `email` is required."
+    }
+    // Fallback to standard error string
+    else if (err.message) {
+        errorMessage = err.message;
+    }
+
+    req.flash("error", errorMessage);
+    
+    // Save session before redirecting to ensure the flash message renders
+    req.session.save(() => {
+        res.redirect(redirectUrl);
+    });
   }
 });
-
 
 // --- HOW IT WORKS PAGE ---
 app.get("/how-it-works", (req, res) => {
@@ -592,11 +728,11 @@ app.get("/login", (req, res) => {
 });
 
 // Send reset code
+// Send reset code
 app.post("/forgot-password", async (req, res) => {
     const { identifier, resetMethod } = req.body;
     
     try {
-        // Find user by email or username
         const user = await User.findOne({
             $or: [
                 { email: identifier },
@@ -609,30 +745,66 @@ app.post("/forgot-password", async (req, res) => {
             return res.redirect("/login?forgot=true");
         }
         
+        if (!user.email || !user.email.includes('@')) {
+            req.flash("error", "This account has no valid email address. Contact support.");
+            return res.redirect("/login?forgot=true");
+        }
+        
         // Generate 6-digit code
         const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         const resetToken = crypto.randomBytes(32).toString('hex');
         
-        // Store token
+        // Store token (15 minute expiry)
         resetTokens[resetToken] = {
             userId: user._id.toString(),
             code: resetCode,
-            expires: Date.now() + 15 * 60 * 1000 // 15 minutes
+            expires: Date.now() + 15 * 60 * 1000
         };
         
-        // In production, send via WhatsApp API or email
-        // For now, log it and show on screen
-        console.log(`[PASSWORD RESET] Code for ${user.username}: ${resetCode} (via ${resetMethod})`);
+        // Send via email
+        if (resetMethod === 'email') {
+            try {
+                await emailTransporter.sendMail({
+                    from: '"D.E.T System" <nyctech002@gmail.com>',
+                    to: user.email,
+                    subject: 'D.E.T Password Reset Code',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #1a1818; color: #fff; padding: 30px; border-radius: 12px;">
+                            <h2 style="color: #B0BF96; margin-bottom: 20px;">D.E.T System</h2>
+                            <p>You requested a password reset for <strong>${user.username}</strong>.</p>
+                            <p>Your reset code is:</p>
+                            <div style="background: #322C2C; border: 1px solid rgba(176,191,150,0.25); border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                                <h1 style="font-size: 36px; letter-spacing: 8px; color: #B0BF96; margin: 0;">${resetCode}</h1>
+                            </div>
+                            <p style="font-size: 13px; color: #94a3b8;">This code expires in <strong>15 minutes</strong>.</p>
+                            <p style="font-size: 13px; color: #94a3b8;">If you didn't request this, please ignore this email.</p>
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+                            <p style="font-size: 11px; color: #64748b;">D.E.T System &copy; 2026</p>
+                        </div>
+                    `
+                });
+                console.log(`[PASSWORD RESET] Email sent to ${user.email} with code: ${resetCode}`);
+                req.flash("success", "Reset code sent to your email. Check your inbox.");
+            } catch (emailErr) {
+                console.error("Email send failed:", emailErr);
+                req.flash("error", "Could not send email. Please try again or contact support.");
+                return res.redirect("/login?forgot=true");
+            }
+        } else {
+            // WhatsApp method — logs code for now (integrate Twilio/WATI later)
+            console.log(`[PASSWORD RESET] WhatsApp code for ${user.username}: ${resetCode}`);
+            req.flash("success", "Reset code sent via WhatsApp. Check your phone.");
+        }
         
-        req.flash("success", `Reset code sent to your ${resetMethod}. For demo: code is ${resetCode}`);
         res.redirect(`/login?reset=true&token=${resetToken}&uid=${user._id}`);
         
     } catch (err) {
         console.error("Forgot password error:", err);
-        req.flash("error", "Could not process request.");
+        req.flash("error", "Could not process request. Please try again.");
         res.redirect("/login?forgot=true");
     }
 });
+
 
 // Reset password
 app.post("/reset-password", async (req, res) => {
@@ -684,54 +856,49 @@ app.post("/reset-password", async (req, res) => {
 });
 
 app.post("/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
-        if (err) {
-            console.log("Login error:", err);
-            return next(err);
+    const loginField = req.body.username.trim(); // Holds either Email OR Username
+    
+    // Check if the input matches an email in the database (case-insensitive)
+    User.findOne({ email: new RegExp('^' + loginField + '$', 'i') }).then(userByEmail => {
+        
+        // IF it's an email, swap the request body to use their actual username
+        if (userByEmail) {
+            req.body.username = userByEmail.username;
         }
-        if (!user) {
-            console.log("Login failed - info:", info); // Debug log
-            req.flash("error", "Invalid username or password.");
-            return res.redirect("/login");
-        }
-        req.logIn(user, (err) => {
-            if (err) {
-                console.log("Login session error:", err);
-                return next(err);
-            }
-            
-            req.flash("success", `Welcome back, ${user.username}!`);
-            
-            // SMART REDIRECT: Check if they were trying to purchase
-            const pendingTier = req.body.pendingTier;
-            if (pendingTier && pendingTier !== "None" && pendingTier !== "") {
-                return res.redirect(`/checkout?tier=${encodeURIComponent(pendingTier)}`);
-            }
-            // Check if they came from affiliate page
 
-                       
-            const redirect = req.body.redirect;
-            if (redirect === 'affiliate') {
-                return res.redirect("/affiliate");
+        // Run the authentication check ONCE for both cases
+        passport.authenticate("local", (err, user, info) => {
+            if (err) return next(err);
+            if (!user) {
+                req.flash("error", "Invalid username/email or password.");
+                // MUST save session before redirect to guarantee flash message shows
+                return req.session.save(() => res.redirect("/login")); 
             }
-            if (redirect === 'training') {
-                const course = req.body.course || '';
-                const type = req.body.type || 'group';
-                if (course) {
-                    return res.redirect(`/training/enroll/${course}/${type}`);
-                }
-                return res.redirect("/training");
-            }
-
-            
-            // Regular login goes to dashboard
-            return res.redirect("/dashboard");
- 
-
-
-        });
-    })(req, res, next);
+            req.logIn(user, (err) => {
+                if (err) return next(err);
+                req.flash("success", `Welcome back, ${user.username}!`);
+                handleLoginRedirect(req, res);
+            });
+        })(req, res, next);
+        
+    }).catch(err => next(err));
 });
+
+function handleLoginRedirect(req, res) {
+    const pendingTier = req.body.pendingTier;
+    if (pendingTier && pendingTier !== "None" && pendingTier !== "") {
+        return res.redirect(`/checkout?tier=${encodeURIComponent(pendingTier)}`);
+    }
+    const redirect = req.body.redirect;
+    if (redirect === 'affiliate') return res.redirect("/affiliate");
+    if (redirect === 'training') {
+        const course = req.body.course || '';
+        const type = req.body.type || 'group';
+        if (course) return res.redirect(`/training/enroll/${course}/${type}`);
+        return res.redirect("/training");
+    }
+    return res.redirect("/dashboard");
+}
 
 app.get("/logout", (req, res) => {
     req.logout((err) => {

@@ -184,7 +184,7 @@
                 
                 <label class="form-label">Reset Method</label>
                 <select name="resetMethod" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 6px; font-size: 16px; width: 100%; margin-bottom: 20px;">
-                    <option value="whatsapp">Send via WhatsApp</option>
+
                     <option value="email">Send via Email</option>
                 </select>
                 
@@ -272,7 +272,8 @@
                 </div>
             <% } %>
 
-            <form action="/login" method="POST">
+            
+<form action="/login" method="POST">
                 <% if (locals.pendingTier) { %>
                     <input type="hidden" name="pendingTier" value="<%= pendingTier %>">
                 <% } %>
@@ -280,8 +281,9 @@
                     <input type="hidden" name="redirect" value="<%= redirect %>">
                 <% } %>
                 
-                <label class="form-label">Username</label>
-                <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+                <!-- Updated Label and Placeholder -->
+                <label class="form-label">Email or Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Enter your email or username" required>
                 
                 <label class="form-label">Password</label>
                 <input type="password" name="password" class="form-control" placeholder="Enter your password" required>

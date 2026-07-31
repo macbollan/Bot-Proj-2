@@ -58,6 +58,125 @@
     .warning-box p { margin-bottom: 0; font-size: 12px; color: #cbd5e1 !important; line-height: 1.6; }
     .warning-box strong { color: #f0c040; }
 
+    /* Mobile Notice Banner */
+    .mobile-notice-banner {
+        max-width: 750px;
+        margin: 0 auto 25px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+        border: 2px solid #ffffff;
+        border-radius: 14px;
+        padding: 22px 28px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(255,255,255,0.08);
+    }
+    .mobile-notice-banner .notice-icon {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 8px;
+    }
+    .mobile-notice-banner .notice-text {
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        line-height: 1.5;
+    }
+    .mobile-notice-banner .notice-subtext {
+        color: #cbd5e1 !important;
+        font-size: 12px;
+        margin-bottom: 14px;
+    }
+    .btn-mobile-faq {
+        background: #ffffff;
+        color: #1a1818 !important;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .btn-mobile-faq:hover {
+        background: #e2e8f0;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255,255,255,0.2);
+        color: #000 !important;
+    }
+
+    /* FAQ Section */
+    .faq-section {
+        max-width: 750px;
+        margin: 0 auto 30px;
+    }
+    .faq-item {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+    .faq-item:hover {
+        border-color: rgba(255,255,255,0.3);
+    }
+    .faq-question {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #ffffff !important;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 18px 20px;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+    .faq-question:hover {
+        background: rgba(255,255,255,0.03);
+    }
+    .faq-question i {
+        font-size: 16px;
+        color: var(--det-green);
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    .faq-item.open .faq-question i {
+        transform: rotate(180deg);
+    }
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .faq-item.open .faq-answer {
+        max-height: 600px;
+    }
+    .faq-answer-inner {
+        padding: 0 20px 20px;
+        color: #cbd5e1 !important;
+        font-size: 13px;
+        line-height: 1.8;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .faq-answer-inner p {
+        color: #cbd5e1 !important;
+        margin-bottom: 10px;
+    }
+    .faq-answer-inner p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Modal Styles */
     .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
     .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
     .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
@@ -82,11 +201,73 @@
     .btn-det-modal:disabled { background-color: #475569 !important; color: #cbd5e1 !important; cursor: not-allowed; opacity: 1 !important; }
 
     .sticky-agreement-bar { position: sticky; bottom: 0; background: var(--det-card); border-top: 1px solid var(--det-border); padding: 16px 0 4px; margin-top: 20px; z-index: 5; }
+
+    @media (max-width: 768px) {
+        .mobile-notice-banner {
+            padding: 18px 16px;
+            margin: 0 10px 25px;
+        }
+        .mobile-notice-banner .notice-text {
+            font-size: 14px;
+        }
+        .faq-question {
+            font-size: 13px;
+            padding: 15px 16px;
+        }
+        .faq-answer-inner {
+            padding: 0 16px 16px;
+            font-size: 12px;
+        }
+    }
 </style>
 
 <div class="container flex-grow-1">
     <div class="page-heading">
         <h2>Choose Your Subscription Level</h2>
+    </div>
+
+    <!-- ===== MOBILE NOTICE BANNER ===== -->
+    <div class="mobile-notice-banner" id="mobileNotice">
+        <span class="notice-icon">💻</span>
+        <p class="notice-text">
+            D.E.T is currently available on <strong style="color: #ffffff;">laptops and desktop computers only</strong>.
+        </p>
+        <p class="notice-subtext">
+            Mobile phone support is not yet available.
+        </p>
+        <button class="btn-mobile-faq" onclick="scrollToFAQ()">
+            <i class="bi bi-question-circle-fill"></i> Click to know more
+        </button>
+    </div>
+
+    <!-- ===== FAQ SECTION ===== -->
+    <div class="faq-section" id="faqSection">
+        <div class="faq-item" id="faq1">
+            <button class="faq-question" onclick="toggleFAQ('faq1')">
+                <span><i class="bi bi-laptop me-2"></i> Why is D.E.T not available on mobile phones?</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    <p>For the best trading experience, D.E.T is currently available on <strong style="color: #fff;">laptops and desktop computers only</strong>. Mobile phone support is not yet available.</p>
+                    <p>D.E.T is built around <strong style="color: var(--det-green);">CornerStore</strong> — its professional trading dashboard, installed on your laptop or desktop computer. CornerStore displays real-time analytics, market movements, trade opportunities, alerts, and decision-support tools within a single, easy-to-use interface, giving traders the workspace needed to monitor the markets efficiently and make informed trading decisions.</p>
+                    <p>For that reason, mobile phone support is not yet available.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item" id="faq2">
+            <button class="faq-question" onclick="toggleFAQ('faq2')">
+                <span><i class="bi bi-phone me-2"></i> Can I monitor my trading account from my mobile phone?</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    <p><strong style="color: #fff;">Yes.</strong> You can use your broker's mobile trading application to monitor your trading account, including your balance, equity, open positions, account history, and running profit or loss.</p>
+                    <p>This allows you to stay informed and keep track of your trades wherever you are. However, <strong style="color: var(--det-green);">active trading and the full D.E.T experience</strong> are currently available on laptops and desktop computers only.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
         
@@ -510,6 +691,30 @@
 </div>
 
 <script>
+    // ===== FAQ TOGGLE =====
+    function toggleFAQ(faqId) {
+        const faqItem = document.getElementById(faqId);
+        if (faqItem) {
+            faqItem.classList.toggle('open');
+        }
+    }
+
+    // ===== SCROLL TO FAQ =====
+    function scrollToFAQ() {
+        const faqSection = document.getElementById('faqSection');
+        if (faqSection) {
+            faqSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Auto-open the first FAQ
+            setTimeout(() => {
+                const faq1 = document.getElementById('faq1');
+                if (faq1 && !faq1.classList.contains('open')) {
+                    faq1.classList.add('open');
+                }
+            }, 500);
+        }
+    }
+
+    // ===== TERMS MODAL LOGIC =====
     document.addEventListener('DOMContentLoaded', function() {
         const termsModalEl = document.getElementById('termsModal');
         const termsModal = termsModalEl ? new bootstrap.Modal(termsModalEl) : null;
