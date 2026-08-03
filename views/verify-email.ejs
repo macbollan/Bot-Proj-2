@@ -1,0 +1,203 @@
+<%- include('partials/header', { title: 'Verify Email | D.E.T System', page: 'verify' }) %>
+
+<style>
+    .verify-container {
+        min-height: calc(100vh - 300px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    .verify-card {
+        background: var(--det-card);
+        border: 1px solid var(--det-border);
+        border-radius: 12px;
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        text-align: center;
+    }
+    .verify-card h2 {
+        color: var(--det-green);
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .verify-subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+    .verification-code-input {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 25px;
+    }
+    .code-digit {
+        width: 45px;
+        height: 55px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        color: white;
+        font-size: 22px;
+        text-align: center;
+        font-weight: 700;
+        transition: all 0.3s;
+    }
+    .code-digit:focus {
+        border-color: var(--det-green);
+        box-shadow: 0 0 0 0.25rem rgba(176,191,150,0.15);
+        outline: none;
+    }
+    .btn-verify {
+        background: var(--det-green);
+        color: var(--det-dark);
+        border: none;
+        border-radius: 6px;
+        padding: 14px;
+        font-weight: 700;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-verify:hover {
+        background: var(--det-green-hover);
+        transform: translateY(-2px);
+    }
+    .resend-link {
+        color: #94a3b8;
+        font-size: 13px;
+        margin-top: 20px;
+    }
+    .resend-link a, .resend-link button {
+        color: var(--det-green);
+        font-weight: 600;
+        text-decoration: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    .resend-link a:hover, .resend-link button:hover {
+        text-decoration: underline;
+    }
+    .alert-danger {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid #ef4444;
+        color: #fca5a5;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    .alert-success {
+        background: rgba(34,197,94,0.1);
+        border: 1px solid #22c55e;
+        color: #86efac;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="verify-container">
+    <div class="verify-card">
+        <h2>Verify Your Email</h2>
+        <p class="verify-subtitle">
+            We sent a 6-digit code to <strong style="color: var(--det-green);"><%= currentUser.email %></strong>.
+            Enter it below to activate your account.
+        </p>
+
+        <% if (locals.error && locals.error.length > 0) { %>
+            <div class="alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i><%= error[0] %>
+            </div>
+        <% } %>
+        <% if (locals.success && locals.success.length > 0) { %>
+            <div class="alert-success">
+                <i class="bi bi-check-circle me-2"></i><%= success[0] %>
+            </div>
+        <% } %>
+
+        <form action="/verify-email" method="POST" id="verifyForm">
+            <div class="verification-code-input" id="codeInputs">
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+            <input type="hidden" name="code" id="fullCode">
+            
+            <button type="submit" class="btn-verify">
+                <i class="bi bi-shield-check me-2"></i>Verify & Activate Account
+            </button>
+        </form>
+
+        <div class="resend-link">
+            Didn't receive the code? 
+            <form action="/verify-email/resend" method="POST" style="display: inline;">
+                <button type="submit">Resend Code</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-focus and auto-tab between code inputs
+    const inputs = document.querySelectorAll('.code-digit');
+    
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            // Only allow numbers
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            
+            if (e.target.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            updateFullCode();
+        });
+        
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+        
+        // Handle paste
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = pasted.replace(/[^0-9]/g, '').slice(0, 6);
+            
+            digits.split('').forEach((digit, i) => {
+                if (inputs[i]) {
+                    inputs[i].value = digit;
+                }
+            });
+            
+            const nextEmpty = Math.min(digits.length, inputs.length - 1);
+            inputs[nextEmpty].focus();
+            updateFullCode();
+        });
+    });
+    
+    function updateFullCode() {
+        let code = '';
+        inputs.forEach(input => {
+            code += input.value;
+        });
+        document.getElementById('fullCode').value = code;
+    }
+    
+    // Auto-focus first input
+    inputs[0].focus();
+</script>
+
+<%- include('partials/footer') %>

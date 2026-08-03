@@ -165,12 +165,25 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 
-// Security Middleware
+
+// Enhanced security middleware
 function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) return next();
+    if (req.isAuthenticated()) {
+        // Check if user is verified
+        if (req.user.isVerified) {
+            return next();
+        }
+        // Allow access to verification-related routes
+        if (req.path === '/verify-email' || req.path === '/verify-email/resend' || req.path === '/logout') {
+            return next();
+        }
+        req.flash("error", "Please verify your email first.");
+        return res.redirect("/verify-email");
+    }
     req.flash("error", "Please login first.");
     res.redirect("/login");
 }
+
 function isAdmin(req, res, next) {
     if (req.isAuthenticated() && req.user.username === "admin") return next();
     req.flash("error", "Admin access required.");
@@ -585,6 +598,8 @@ app.get("/register", (req, res) => {
     });
 });
 
+
+
 app.post("/register", async (req, res) => {
   let redirectUrl = "/register";
   const params = new URLSearchParams();
@@ -593,7 +608,6 @@ app.post("/register", async (req, res) => {
     const referralCode = req.body.ref || req.query.ref || null;
     const emailToCheck = req.body.email ? req.body.email.toLowerCase().trim() : "";
 
-    // Preserve query parameters so users don't lose their place if an error occurs
     if (referralCode) params.append('ref', referralCode);
     if (req.body.redirect) params.append('redirect', req.body.redirect);
     if (req.body.selectedTier && req.body.selectedTier !== 'None') params.append('tier', req.body.selectedTier);
@@ -609,6 +623,9 @@ app.post("/register", async (req, res) => {
         }
     }
     
+    // Generate verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
     const newUser = new User({ 
         username: req.body.username, 
         email: emailToCheck,
@@ -620,13 +637,48 @@ app.post("/register", async (req, res) => {
         targetBalance: 0,
         accountLocked: false,
         isSuspended: false,
-        referredBy: referralCode
+        referredBy: referralCode,
+        // NEW: Verification fields
+        isVerified: false,
+        verificationCode: verificationCode,
+        verificationCodeExpires: Date.now() + 30 * 60 * 1000 // 30 minutes
     });
 
-    // 2. PASSPORT REGISTRATION (This catches duplicate usernames automatically)
+    // 2. PASSPORT REGISTRATION
     const registeredUser = await User.register(newUser, req.body.password);
     
-    // 3. AFFILIATE TRACKING LOGIC
+    // 3. SEND VERIFICATION EMAIL - WAIT FOR IT TO COMPLETE
+    let emailSent = false;
+    try {
+        await emailTransporter.sendMail({
+            from: '"D.E.T System" <nyctech002@gmail.com>',
+            to: registeredUser.email,
+            subject: 'Verify Your D.E.T Account - Action Required',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #1a1818; color: #fff; padding: 30px; border-radius: 12px;">
+                    <h2 style="color: #B0BF96; margin-bottom: 20px;">Verify Your D.E.T Account</h2>
+                    <p>Hi <strong>${registeredUser.username}</strong>, welcome to D.E.T System!</p>
+                    <p>Your verification code is:</p>
+                    <div style="background: #322C2C; border: 1px solid rgba(176,191,150,0.25); border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                        <h1 style="font-size: 36px; letter-spacing: 8px; color: #B0BF96; margin: 0;">${verificationCode}</h1>
+                    </div>
+                    <p style="font-size: 13px; color: #94a3b8;">This code expires in <strong>30 minutes</strong>.</p>
+                    <p style="font-size: 13px; color: #94a3b8;">Enter this code on the verification page to activate your account.</p>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+                    <p style="font-size: 11px; color: #64748b;">If you didn't create this account, please ignore this email.</p>
+                    <p style="font-size: 11px; color: #64748b;">D.E.T System &copy; 2026</p>
+                </div>
+            `
+        });
+        emailSent = true;
+        console.log(`[VERIFICATION] Code sent to ${registeredUser.email}: ${verificationCode}`);
+    } catch (emailErr) {
+        console.error("Verification email failed:", emailErr);
+        // Still log the code so user can be helped manually
+        console.log(`[VERIFICATION] Code for ${registeredUser.email} (email failed): ${verificationCode}`);
+    }
+    
+    // 4. AFFILIATE TRACKING LOGIC
     if (referralCode) {
         try {
             const Affiliate = require("./models/Affiliate.model");
@@ -645,30 +697,38 @@ app.post("/register", async (req, res) => {
         } catch (trackErr) { console.error("Referral tracking error:", trackErr); }
     }
     
-    // 4. AUTO LOGIN AND SUCCESS REDIRECT
+    // 5. AUTO LOGIN - After email is sent
     req.login(registeredUser, (err) => {
         if(err) {
             req.flash("error", "Account created, but auto-login failed. Please login manually.");
             return req.session.save(() => res.redirect("/login"));
         }
-        req.flash("success", "Account created successfully! Welcome to D.E.T System.");
-        const redirectTo = req.body.selectedTier && req.body.selectedTier !== 'None' ? 
-            `/checkout?tier=${encodeURIComponent(req.body.selectedTier)}` : 
-            (req.body.redirect === 'affiliate' ? "/affiliate" : "/dashboard");
-        res.redirect(redirectTo);
+        
+        if (emailSent) {
+            req.flash("success", "Account created! Please check your email for the verification code.");
+        } else {
+            req.flash("success", "Account created! Click 'Resend Code' if you don't receive the verification email within a few minutes.");
+        }
+        
+        // Store pending tier in session for after verification
+        if (req.body.selectedTier && req.body.selectedTier !== 'None') {
+            req.session.pendingTier = req.body.selectedTier;
+        }
+        
+        // Save session before redirect
+        req.session.save(() => {
+            res.redirect("/verify-email");
+        });
     });
 
   } catch (err) {
     console.error("Registration Error:", err);
     
-    // 5. MASTER ERROR HANDLER
     let errorMessage = "Registration failed. Please check your details and try again.";
     
-    // Check if the username is already taken (Thrown by Passport)
     if (err.name === 'UserExistsError') {
         errorMessage = "That username is already taken. Please choose another one.";
     } 
-    // Check for MongoDB Duplicate Key errors (e.g., if a unique index was hit)
     else if (err.code === 11000) {
         if (err.message && err.message.includes('email')) {
             errorMessage = "An account with that email address already exists.";
@@ -676,23 +736,132 @@ app.post("/register", async (req, res) => {
             errorMessage = "A duplicate record was found. Please check your details.";
         }
     } 
-    // Check for missing required fields (Thrown by Mongoose Validation)
     else if (err.name === 'ValidationError') {
-        errorMessage = err.message; // E.g., "User validation failed: email: Path `email` is required."
+        errorMessage = err.message;
     }
-    // Fallback to standard error string
     else if (err.message) {
         errorMessage = err.message;
     }
 
     req.flash("error", errorMessage);
-    
-    // Save session before redirecting to ensure the flash message renders
     req.session.save(() => {
         res.redirect(redirectUrl);
     });
   }
 });
+
+
+// --- VERIFICATION PAGE ---
+app.get("/verify-email", isLoggedIn, (req, res) => {
+    // If already verified, redirect to dashboard
+    if (req.user.isVerified) {
+        req.flash("success", "Your account is already verified.");
+        return res.redirect("/dashboard");
+    }
+    res.render("verify-email", { currentUser: req.user });
+});
+
+// --- VERIFY CODE ---
+app.post("/verify-email", isLoggedIn, async (req, res) => {
+    const { code } = req.body;
+    
+    try {
+        const user = await User.findById(req.user._id);
+        
+        if (!user) {
+            req.flash("error", "User not found.");
+            return res.redirect("/login");
+        }
+        
+        if (user.isVerified) {
+            req.flash("success", "Account already verified.");
+            return res.redirect("/dashboard");
+        }
+        
+        // Check if code has expired
+        if (user.verificationCodeExpires < Date.now()) {
+            req.flash("error", "Verification code has expired. Please request a new one.");
+            return res.redirect("/verify-email");
+        }
+        
+        // Check code
+        if (user.verificationCode !== code) {
+            req.flash("error", "Invalid verification code. Please try again.");
+            return res.redirect("/verify-email");
+        }
+        
+        // Verify the user
+        user.isVerified = true;
+        user.verificationCode = undefined;
+        user.verificationCodeExpires = undefined;
+        await user.save();
+        
+        req.flash("success", "Email verified successfully! Welcome to D.E.T System.");
+        
+        // Redirect to checkout if user was signing up for a tier
+        const redirectTo = req.session.pendingTier ? 
+            `/checkout?tier=${encodeURIComponent(req.session.pendingTier)}` : 
+            "/dashboard";
+        
+        delete req.session.pendingTier;
+        res.redirect(redirectTo);
+        
+    } catch (err) {
+        console.error("Verification error:", err);
+        req.flash("error", "Could not verify email. Please try again.");
+        res.redirect("/verify-email");
+    }
+});
+
+// --- RESEND VERIFICATION CODE ---
+app.post("/verify-email/resend", isLoggedIn, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        
+        if (user.isVerified) {
+            req.flash("success", "Account already verified.");
+            return res.redirect("/dashboard");
+        }
+        
+        // Generate new code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.verificationCode = verificationCode;
+        user.verificationCodeExpires = Date.now() + 30 * 60 * 1000;
+        await user.save();
+        
+        // Send email
+        try {
+            await emailTransporter.sendMail({
+                from: '"D.E.T System" <nyctech002@gmail.com>',
+                to: user.email,
+                subject: 'New Verification Code - D.E.T System',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; background: #1a1818; color: #fff; padding: 30px; border-radius: 12px;">
+                        <h2 style="color: #B0BF96; margin-bottom: 20px;">New Verification Code</h2>
+                        <p>Hi <strong>${user.username}</strong>, here's your new verification code:</p>
+                        <div style="background: #322C2C; border: 1px solid rgba(176,191,150,0.25); border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                            <h1 style="font-size: 36px; letter-spacing: 8px; color: #B0BF96; margin: 0;">${verificationCode}</h1>
+                        </div>
+                        <p style="font-size: 13px; color: #94a3b8;">This code expires in 30 minutes.</p>
+                    </div>
+                `
+            });
+            console.log(`[VERIFICATION] New code sent to ${user.email}: ${verificationCode}`);
+        } catch (emailErr) {
+            console.error("Resend verification email failed:", emailErr);
+        }
+        
+        req.flash("success", "New verification code sent to your email.");
+        res.redirect("/verify-email");
+        
+    } catch (err) {
+        console.error("Resend verification error:", err);
+        req.flash("error", "Could not resend code.");
+        res.redirect("/verify-email");
+    }
+});
+
+
 
 // --- HOW IT WORKS PAGE ---
 app.get("/how-it-works", (req, res) => {
@@ -859,25 +1028,35 @@ app.post("/reset-password", async (req, res) => {
     }
 });
 
+
+
 app.post("/login", (req, res, next) => {
-    const loginField = req.body.username.trim(); // Holds either Email OR Username
+    const loginField = req.body.username.trim();
     
-    // Check if the input matches an email in the database (case-insensitive)
     User.findOne({ email: new RegExp('^' + loginField + '$', 'i') }).then(userByEmail => {
         
-        // IF it's an email, swap the request body to use their actual username
         if (userByEmail) {
             req.body.username = userByEmail.username;
         }
 
-        // Run the authentication check ONCE for both cases
         passport.authenticate("local", (err, user, info) => {
             if (err) return next(err);
             if (!user) {
                 req.flash("error", "Invalid username/email or password.");
-                // MUST save session before redirect to guarantee flash message shows
                 return req.session.save(() => res.redirect("/login")); 
             }
+            
+            // NEW: Check if user is verified
+            if (!user.isVerified) {
+                // Log them in but redirect to verification page
+                req.logIn(user, (err) => {
+                    if (err) return next(err);
+                    req.flash("error", "Please verify your email before accessing your account. If you didn't get the code, please press Resend");
+                    return res.redirect("/verify-email");
+                });
+                return;
+            }
+            
             req.logIn(user, (err) => {
                 if (err) return next(err);
                 req.flash("success", `Welcome back, ${user.username}!`);
@@ -887,6 +1066,9 @@ app.post("/login", (req, res, next) => {
         
     }).catch(err => next(err));
 });
+
+
+
 
 function handleLoginRedirect(req, res) {
     const pendingTier = req.body.pendingTier;
