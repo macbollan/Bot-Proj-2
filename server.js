@@ -258,6 +258,10 @@ app.post("/api/paynow/update", async (req, res) => {
 // 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
 
+app.get("/faqs", (req, res) => {
+    res.render("faqs");
+});
+
 // A. Master EA Endpoint
 // A. Master EA Endpoint (SECURED)
 // =========================================

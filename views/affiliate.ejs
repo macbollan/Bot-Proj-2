@@ -106,6 +106,7 @@
         height: 18px;
         accent-color: var(--det-green);
         flex-shrink: 0;
+        cursor: pointer;
     }
     .agreement-check-item label {
         font-size: 13px;
@@ -199,16 +200,46 @@
     .progress-step.done {
         background: var(--det-green);
     }
+
+    .btn-det-modal {
+        background-color: var(--det-green) !important;
+        color: var(--det-dark) !important;
+        font-weight: 700 !important;
+        border: none !important;
+        padding: 10px 20px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-det-modal:disabled {
+        background-color: #475569 !important;
+        color: #cbd5e1 !important;
+        cursor: not-allowed;
+        opacity: 1 !important;
+    }
+
+    @media (max-width: 768px) {
+        .affiliate-hero { padding: 30px 18px; }
+        .affiliate-hero h1 { font-size: 26px; }
+        .agreement-check-item { padding: 12px; }
+        .agreement-check-item label { font-size: 12px; }
+        .affiliate-agreement-box { height: 280px; padding: 14px; }
+    }
 </style>
 
 <div class="container" style="max-width: 1000px; margin-top: 30px; margin-bottom: 60px;">
 
     <% if(isAffiliate && affiliate) { %>
+        <!-- ===== ALREADY AN AFFILIATE ===== -->
         <div class="already-affiliate mb-5">
             <div style="font-size: 50px; margin-bottom: 15px;">🎯</div>
             <h2 class="fw-bold mb-2">You're Already an Affiliate!</h2>
-            <p style="color: #cbd5e1; font-size: 16px; margin-bottom: 20px;">
+            <p style="color: #cbd5e1; font-size: 16px; margin-bottom: 8px;">
                 You joined on <%= new Date(affiliate.joinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+            </p>
+            <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">
+                Your referral code: <strong style="color: var(--det-green);"><%= affiliate.referralCode %></strong>
             </p>
             
             <div class="row g-3 mb-4">
@@ -238,6 +269,7 @@
         </div>
         
     <% } else { %>
+        <!-- ===== JOIN AFFILIATE PROGRAM ===== -->
         <div class="affiliate-hero">
             <span style="background: rgba(176,191,150,0.15); color: var(--det-green); padding: 6px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">D.E.T Affiliate Program</span>
             <h1 class="fw-bold mt-3 mb-2" style="font-size: 36px;">Earn 20% Commission<br>on Every Referral</h1>
@@ -246,21 +278,22 @@
             </p>
             
             <% if(currentUser) { %>
-                <form action="/affiliate/join" method="POST">
-                    <button type="submit" class="btn-affiliate">
-                        <i class="bi bi-rocket-takeoff me-2"></i> Join Affiliate Program Now
-                    </button>
-                </form>
-                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Instant activation · Start earning today</p>
-            <% } else { %>
+                <!-- Logged in: Show button that opens the agreement modal -->
                 <button type="button" class="btn-affiliate" data-bs-toggle="modal" data-bs-target="#affiliateAgreementModal">
-                    <i class="bi bi-box-arrow-in-right me-2"></i> Login to Join
+                    <i class="bi bi-rocket-takeoff me-2"></i> Join Affiliate Program Now
+                </button>
+                <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Review & sign the affiliate agreement to activate your account</p>
+            <% } else { %>
+                <!-- Not logged in: Show button that opens the agreement modal -->
+                <button type="button" class="btn-affiliate" data-bs-toggle="modal" data-bs-target="#affiliateAgreementModal">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Join Affiliate Program
                 </button>
                 <p class="mt-2" style="font-size: 12px; color: #94a3b8;">Don't have an account? <a href="/register?redirect=affiliate" style="color: var(--det-green);">Register here</a></p>
             <% } %>
         </div>
     <% } %>
 
+    <!-- ===== HOW IT WORKS (shown to everyone) ===== -->
     <h3 class="fw-bold text-center mb-4">How It Works</h3>
     <div class="row g-3 mb-5">
         <div class="col-md-4">
@@ -289,6 +322,7 @@
         </div>
     </div>
 
+    <!-- ===== COMMISSION BREAKDOWN ===== -->
     <div class="row g-4 mb-5">
         <div class="col-lg-6">
             <div class="commission-card">
@@ -319,7 +353,7 @@
                 <ul class="text-start" style="list-style: none; padding: 0;">
                     <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
                         <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
-                        <strong>Instant Activation</strong> — Start earning immediately
+                        <strong>Instant Activation</strong> — Start earning immediately after signing
                     </li>
                     <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
                         <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
@@ -328,6 +362,10 @@
                     <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
                         <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
                         <strong>Weekly Payouts</strong> — Request payout anytime above $50
+                    </li>
+                    <li style="color: #cbd5e1; margin-bottom: 12px; font-size: 14px;">
+                        <i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i>
+                        <strong>Protected Program</strong> — Clear terms protect both you and D.E.T
                     </li>
                 </ul>
             </div>
@@ -365,47 +403,47 @@
                     </p>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check1')">
-                        <input type="checkbox" id="check1" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check1').closest('.agreement-check-item'), 'check1')">
+                        <input type="checkbox" id="check1" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check1')">
                         <label for="check1">As an Affiliate I will <strong>not</strong> offer "Any Guarantees".</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check2')">
-                        <input type="checkbox" id="check2" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check2').closest('.agreement-check-item'), 'check2')">
+                        <input type="checkbox" id="check2" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check2')">
                         <label for="check2">As an Affiliate if I offer guarantees my commission will be <strong>suspended</strong> pending investigation, <strong>blocked instantly</strong>, or <strong>banned permanently</strong> at D.E.T discretion.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check3')">
-                        <input type="checkbox" id="check3" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check3').closest('.agreement-check-item'), 'check3')">
+                        <input type="checkbox" id="check3" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check3')">
                         <label for="check3">As an Affiliate it is <strong>D.E.T results</strong> that I shall be marketing.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check4')">
-                        <input type="checkbox" id="check4" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check4').closest('.agreement-check-item'), 'check4')">
+                        <input type="checkbox" id="check4" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check4')">
                         <label for="check4">I agree that <strong>D.E.T is not liable</strong> for my individual guarantees, false promises, or false hope that I may make to potential participants, or any such promises to get commissions.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check5')">
-                        <input type="checkbox" id="check5" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check5').closest('.agreement-check-item'), 'check5')">
+                        <input type="checkbox" id="check5" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check5')">
                         <label for="check5"><strong>D.E.T is result oriented</strong>, so it is its results ONLY that I am assigned to market as an affiliate.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check6')">
-                        <input type="checkbox" id="check6" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check6').closest('.agreement-check-item'), 'check6')">
+                        <input type="checkbox" id="check6" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check6')">
                         <label for="check6">D.E.T is <strong>"NOT an Advisory Institution"</strong>.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check7')">
-                        <input type="checkbox" id="check7" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check7').closest('.agreement-check-item'), 'check7')">
+                        <input type="checkbox" id="check7" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check7')">
                         <label for="check7">D.E.T is <strong>"NOT an Investment Institution"</strong>.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check8')">
-                        <input type="checkbox" id="check8" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check8').closest('.agreement-check-item'), 'check8')">
+                        <input type="checkbox" id="check8" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check8')">
                         <label for="check8">D.E.T is <strong>"NOT an Investment Advisor"</strong>.</label>
                     </div>
 
                     <div class="agreement-check-item" onclick="toggleCheck(this, 'check9')">
-                        <input type="checkbox" id="check9" onclick="event.stopPropagation(); toggleCheck(document.getElementById('check9').closest('.agreement-check-item'), 'check9')">
+                        <input type="checkbox" id="check9" onclick="event.stopPropagation(); toggleCheck(this.closest('.agreement-check-item'), 'check9')">
                         <label for="check9">D.E.T offers <strong>"NO Guarantees"</strong> — and as an affiliate I will do the same.</label>
                     </div>
                 </div>
@@ -501,9 +539,9 @@
                     </div>
 
                     <div class="form-check mt-3 d-flex align-items-start gap-2 text-start">
-                        <input class="form-check-input mt-1" type="checkbox" id="finalAgreementCheck">
-                        <label class="form-check-label text-white small" for="finalAgreementCheck" style="cursor: pointer;">
-                            <strong>☐ I ACCEPT THE D.E.T AFFILIATE AGREEMENT</strong>
+                        <input class="form-check-input mt-1" type="checkbox" id="finalAgreementCheck" style="background-color: var(--det-dark); border: 1px solid var(--det-green); width: 20px; height: 20px; cursor: pointer;">
+                        <label class="form-check-label text-white small" for="finalAgreementCheck" style="cursor: pointer; font-size: 13px;">
+                            <strong>I ACCEPT THE D.E.T AFFILIATE AGREEMENT</strong>
                         </label>
                     </div>
                 </div>
@@ -514,9 +552,19 @@
                 <button type="button" class="btn-det-modal" id="agreeProceedBtn" disabled onclick="handleAgreementProceed()">
                     Review All Clauses <i class="bi bi-arrow-right ms-1"></i>
                 </button>
-                <a href="/login?redirect=affiliate" id="finalLoginLink" class="btn-det-modal" style="display: none; text-decoration: none;">
-                    <i class="bi bi-check-circle me-1"></i> I Agree — Proceed to Login
-                </a>
+                <% if(currentUser) { %>
+                    <!-- Logged in: After agreeing, submit to join directly -->
+                    <form action="/affiliate/join" method="POST" id="affiliateJoinForm" style="display: none;">
+                        <button type="submit" class="btn-det-modal">
+                            <i class="bi bi-check-circle me-1"></i> I Agree — Join Affiliate Program
+                        </button>
+                    </form>
+                <% } else { %>
+                    <!-- Not logged in: After agreeing, go to login page with redirect -->
+                    <a href="/login?redirect=affiliate" id="finalLoginLink" class="btn-det-modal" style="display: none; text-decoration: none;">
+                        <i class="bi bi-check-circle me-1"></i> I Agree — Proceed to Login
+                    </a>
+                <% } %>
             </div>
         </div>
     </div>
@@ -525,9 +573,11 @@
 <script>
     const allChecks = ['check1', 'check2', 'check3', 'check4', 'check5', 'check6', 'check7', 'check8', 'check9'];
     let currentStep = 1;
+    const isLoggedIn = <%= currentUser ? 'true' : 'false' %>;
 
     function toggleCheck(element, checkId) {
         const checkbox = document.getElementById(checkId);
+        if (!checkbox) return;
         checkbox.checked = !checkbox.checked;
         
         if (checkbox.checked) {
@@ -540,63 +590,109 @@
     }
 
     function updateProceedButton() {
-        const allChecked = allChecks.every(id => document.getElementById(id).checked);
+        const allChecked = allChecks.every(id => {
+            const cb = document.getElementById(id);
+            return cb && cb.checked;
+        });
         const btn = document.getElementById('agreeProceedBtn');
-        const finalCheck = document.getElementById('finalAgreementCheck');
         
-        if (currentStep === 1) {
+        if (currentStep === 1 && btn) {
             btn.disabled = !allChecked;
             btn.innerHTML = allChecked ? 
                 'Continue to Agreement <i class="bi bi-arrow-right ms-1"></i>' : 
                 'Review All Clauses <i class="bi bi-arrow-right ms-1"></i>';
-        } else {
-            btn.style.display = 'none';
-            const finalLink = document.getElementById('finalLoginLink');
-            if (finalCheck) {
-                finalCheck.addEventListener('change', function() {
-                    finalLink.style.display = this.checked ? 'inline-block' : 'none';
-                });
-            }
         }
     }
 
     function handleAgreementProceed() {
         if (currentStep === 1) {
+            // Move to Step 2: Full Agreement
             document.getElementById('clausesSection').style.display = 'none';
             document.getElementById('agreementSection').style.display = 'block';
             document.getElementById('step1').classList.add('done');
+            document.getElementById('step1').classList.remove('active');
             document.getElementById('step2').classList.add('active');
-            document.getElementById('stepLabel').innerText = 'Step 2: Review Full Agreement';
+            document.getElementById('stepLabel').innerText = 'Step 2: Review & Accept Full Agreement';
             
+            // Hide the proceed button
             document.getElementById('agreeProceedBtn').style.display = 'none';
-            document.getElementById('finalLoginLink').style.display = 'none';
             
             currentStep = 2;
             
+            // Set up final agreement checkbox listener
             const finalCheck = document.getElementById('finalAgreementCheck');
-            finalCheck.addEventListener('change', function() {
-                document.getElementById('finalLoginLink').style.display = this.checked ? 'inline-block' : 'none';
-            });
+            if (finalCheck) {
+                // Clone to remove old listeners
+                const newCheck = finalCheck.cloneNode(true);
+                finalCheck.parentNode.replaceChild(newCheck, finalCheck);
+                
+                newCheck.addEventListener('change', function() {
+                    if (isLoggedIn) {
+                        const joinForm = document.getElementById('affiliateJoinForm');
+                        if (joinForm) {
+                            joinForm.style.display = this.checked ? 'block' : 'none';
+                        }
+                    } else {
+                        const loginLink = document.getElementById('finalLoginLink');
+                        if (loginLink) {
+                            loginLink.style.display = this.checked ? 'inline-block' : 'none';
+                        }
+                    }
+                });
+            }
         }
     }
 
-    document.getElementById('affiliateAgreementModal').addEventListener('show.bs.modal', function() {
-        allChecks.forEach(id => {
-            document.getElementById(id).checked = false;
-            document.getElementById(id).closest('.agreement-check-item').classList.remove('checked');
+    // Reset modal when opened
+    const modalEl = document.getElementById('affiliateAgreementModal');
+    if (modalEl) {
+        modalEl.addEventListener('show.bs.modal', function() {
+            // Reset all clause checkboxes
+            allChecks.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    const item = checkbox.closest('.agreement-check-item');
+                    if (item) item.classList.remove('checked');
+                }
+            });
+            
+            // Reset final agreement checkbox
+            const finalCheck = document.getElementById('finalAgreementCheck');
+            if (finalCheck) {
+                const newCheck = finalCheck.cloneNode(true);
+                finalCheck.parentNode.replaceChild(newCheck, finalCheck);
+                newCheck.checked = false;
+            }
+            
+            // Reset to Step 1
+            document.getElementById('clausesSection').style.display = 'block';
+            document.getElementById('agreementSection').style.display = 'none';
+            
+            const agreeBtn = document.getElementById('agreeProceedBtn');
+            if (agreeBtn) {
+                agreeBtn.style.display = 'inline-block';
+                agreeBtn.disabled = true;
+            }
+            
+            // Hide both final buttons
+            if (isLoggedIn) {
+                const joinForm = document.getElementById('affiliateJoinForm');
+                if (joinForm) joinForm.style.display = 'none';
+            } else {
+                const loginLink = document.getElementById('finalLoginLink');
+                if (loginLink) loginLink.style.display = 'none';
+            }
+            
+            // Reset progress indicators
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step1').classList.remove('done');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('stepLabel').innerText = 'Step 1: Accept Affiliate Clauses';
+            
+            currentStep = 1;
         });
-        document.getElementById('finalAgreementCheck').checked = false;
-        document.getElementById('clausesSection').style.display = 'block';
-        document.getElementById('agreementSection').style.display = 'none';
-        document.getElementById('agreeProceedBtn').style.display = 'inline-block';
-        document.getElementById('agreeProceedBtn').disabled = true;
-        document.getElementById('finalLoginLink').style.display = 'none';
-        document.getElementById('step1').classList.add('active');
-        document.getElementById('step1').classList.remove('done');
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('stepLabel').innerText = 'Step 1: Accept Affiliate Clauses';
-        currentStep = 1;
-    });
+    }
 </script>
 
 <%- include('partials/footer') %>

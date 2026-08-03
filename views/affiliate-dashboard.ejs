@@ -55,31 +55,50 @@
         cursor: pointer;
         font-size: 13px;
         white-space: nowrap;
+        transition: all 0.2s;
     }
     .copy-btn:hover { background: var(--det-green-hover); }
+    .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #475569; color: #cbd5e1; }
     
-    .table-dark-custom { background: var(--det-dark); }
     .table thead th { 
-        background: #111; color: #94a3b8; font-size: 11px; 
-        text-transform: uppercase; letter-spacing: 1px; padding: 12px; border-bottom: 2px solid var(--det-border);
+        background: #111 !important; 
+        color: #cbd5e1 !important; 
+        font-size: 11px; 
+        text-transform: uppercase; 
+        letter-spacing: 1px; 
+        padding: 14px 15px; 
+        border-bottom: 2px solid var(--det-border); 
+        font-weight: 600;
+        white-space: nowrap;
     }
     .table tbody td { 
-        padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; 
-        color: #fff; font-size: 13px;
+        padding: 14px 15px; 
+        border-bottom: 1px solid rgba(255,255,255,0.05); 
+        vertical-align: middle; 
+        background: transparent;
+        color: #fff !important; 
+        font-size: 13px;
+    }
+    .table tbody tr:hover td {
+        background: rgba(176,191,150,0.03) !important;
     }
     
     @media (max-width: 768px) {
         .stat-value { font-size: 22px; }
         .referral-link-box { flex-direction: column; text-align: center; }
         .referral-link-box code { font-size: 12px; }
+        .dashboard-card { padding: 18px; }
+        .table thead th { padding: 10px; font-size: 10px; }
+        .table tbody td { padding: 10px; font-size: 12px; }
     }
 </style>
 
 <div class="container" style="max-width: 900px; margin-top: 30px; margin-bottom: 60px;">
 
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h3 class="fw-bold mb-1">Affiliate Dashboard</h3>
+            <h3 class="fw-bold mb-1" style="color: #fff;">Affiliate Dashboard</h3>
             <p style="color: #94a3b8; font-size: 14px;">Welcome back, <%= affiliate.username %> 🎯</p>
         </div>
         <span style="background: rgba(176,191,150,0.15); color: var(--det-green); border: 1px solid rgba(176,191,150,0.3); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
@@ -117,98 +136,100 @@
 
     <!-- Referral Link -->
     <div class="dashboard-card">
-        <h5 class="fw-bold mb-3"><i class="bi bi-link-45deg me-2" style="color: var(--det-green);"></i>Your Referral Link</h5>
+        <h5 class="fw-bold mb-3" style="color: #fff;"><i class="bi bi-link-45deg me-2" style="color: var(--det-green);"></i>Your Referral Link</h5>
         <div class="referral-link-box">
-            <code id="refLink">https://bot-proj-2-1.onrender.com<%=affiliate.affiliateLink %></code>
+            <code id="refLink">https://bot-proj-2-1.onrender.com<%= affiliate.affiliateLink %></code>
             <button class="copy-btn" onclick="copyRefLink()">
                 <i class="bi bi-clipboard me-1"></i> Copy Link
             </button>
         </div>
         <small style="color: #94a3b8; display: block; margin-top: 8px;">
-            Share this link anywhere. You earn 20% commission when someone subscribes through it.
+            Share this link anywhere. You earn <strong style="color: var(--det-green);">20% commission</strong> when someone subscribes through it.
         </small>
     </div>
 
-<!-- Recent Referrals -->
-<div class="dashboard-card">
-    <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2" style="color: var(--det-green);"></i>Recent Referrals</h5>
-    
-    <% if(recentReferrals && recentReferrals.length > 0) { %>
-        <div class="table-responsive">
-            <table class="table align-middle mb-0" style="background: var(--det-dark); border-radius: 8px; overflow: hidden;">
-                <thead>
-                    <tr style="background: #111 !important;">
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">User</th>
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">Tier</th>
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">Amount</th>
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">Commission</th>
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">Status</th>
-                        <th style="background: #111 !important; color: #cbd5e1 !important; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 15px; border-bottom: 2px solid var(--det-border); font-weight: 600;">Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% recentReferrals.forEach(ref => { %>
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <div class="fw-bold" style="color: #fff !important; font-size: 13px;"><%= ref.username %></div>
-                                <small style="color: #94a3b8 !important; font-size: 11px;"><%= ref.email %></small>
-                            </td>
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <span style="background: rgba(0,0,0,0.3); border: 1px solid var(--det-border); color: #cbd5e1 !important; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;"><%= ref.tier %></span>
-                            </td>
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff !important; font-size: 13px;">
-                                $<%= (ref.amountPaid || 0).toFixed(2) %>
-                            </td>
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--det-green) !important; font-weight: 600; font-size: 13px;">
-                                $<%= (ref.commissionEarned || 0).toFixed(2) %>
-                            </td>
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <% if(ref.status === 'confirmed') { %>
-                                    <span style="background: rgba(34,197,94,0.15); color: #22c55e !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(34,197,94,0.3);">
-                                        <i class="bi bi-check-circle me-1"></i> Confirmed
-                                    </span>
-                                <% } else if(ref.status === 'paid') { %>
-                                    <span style="background: rgba(56,189,248,0.15); color: #38bdf8 !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(56,189,248,0.3);">
-                                        <i class="bi bi-cash me-1"></i> Paid
-                                    </span>
-                                <% } else { %>
-                                    <span style="background: rgba(245,158,11,0.15); color: #f59e0b !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(245,158,11,0.3);">
-                                        <i class="bi bi-hourglass-split me-1"></i> Pending
-                                    </span>
-                                <% } %>
-                            </td>
-                            <td style="padding: 14px 15px; vertical-align: middle; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #94a3b8 !important;">
-                                <%= new Date(ref.referredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
-                            </td>
+    <!-- Recent Referrals -->
+    <div class="dashboard-card">
+        <h5 class="fw-bold mb-3" style="color: #fff;"><i class="bi bi-people-fill me-2" style="color: var(--det-green);"></i>Recent Referrals</h5>
+        
+        <% if(recentReferrals && recentReferrals.length > 0) { %>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="background: var(--det-dark); border-radius: 8px; overflow: hidden;">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Tier</th>
+                            <th>Amount</th>
+                            <th>Commission</th>
+                            <th>Status</th>
+                            <th>Date</th>
                         </tr>
-                    <% }) %>
-                </tbody>
-            </table>
-        </div>
-    <% } else { %>
-        <div style="text-align: center; padding: 50px 20px; color: #94a3b8;">
-            <i class="bi bi-people" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
-            <p class="fw-bold" style="color: #cbd5e1 !important; font-size: 16px; margin-bottom: 5px;">No referrals yet</p>
-            <p style="font-size: 13px; color: #94a3b8 !important;">Share your link to start earning commissions!</p>
-        </div>
-    <% } %>
-</div>
-
+                    </thead>
+                    <tbody>
+                        <% recentReferrals.forEach(ref => { %>
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: #fff !important; font-size: 13px;"><%= ref.username %></div>
+                                    <small style="color: #94a3b8 !important; font-size: 11px;"><%= ref.email %></small>
+                                </td>
+                                <td>
+                                    <span style="background: rgba(0,0,0,0.3); border: 1px solid var(--det-border); color: #cbd5e1 !important; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;"><%= ref.tier %></span>
+                                </td>
+                                <td style="color: #fff !important; font-size: 13px;">
+                                    $<%= (ref.amountPaid || 0).toFixed(2) %>
+                                </td>
+                                <td style="color: var(--det-green) !important; font-weight: 600; font-size: 13px;">
+                                    $<%= (ref.commissionEarned || 0).toFixed(2) %>
+                                </td>
+                                <td>
+                                    <% if(ref.status === 'confirmed') { %>
+                                        <span style="background: rgba(34,197,94,0.15); color: #22c55e !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(34,197,94,0.3); white-space: nowrap;">
+                                            <i class="bi bi-check-circle me-1"></i> Confirmed
+                                        </span>
+                                    <% } else if(ref.status === 'paid') { %>
+                                        <span style="background: rgba(56,189,248,0.15); color: #38bdf8 !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(56,189,248,0.3); white-space: nowrap;">
+                                            <i class="bi bi-cash me-1"></i> Paid
+                                        </span>
+                                    <% } else { %>
+                                        <span style="background: rgba(245,158,11,0.15); color: #f59e0b !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(245,158,11,0.3); white-space: nowrap;">
+                                            <i class="bi bi-hourglass-split me-1"></i> Pending
+                                        </span>
+                                    <% } %>
+                                </td>
+                                <td style="font-size: 12px; color: #94a3b8 !important;">
+                                    <%= new Date(ref.referredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div style="text-align: center; padding: 50px 20px; color: #94a3b8;">
+                <i class="bi bi-people" style="font-size: 48px; display: block; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p class="fw-bold" style="color: #cbd5e1 !important; font-size: 16px; margin-bottom: 5px;">No referrals yet</p>
+                <p style="font-size: 13px; color: #94a3b8 !important;">Share your link to start earning commissions!</p>
+            </div>
+        <% } %>
+    </div>
 
     <!-- Request Payout -->
     <div class="dashboard-card">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h5 class="fw-bold mb-1"><i class="bi bi-cash-stack me-2" style="color: var(--det-green);"></i>Request Payout</h5>
-                <p style="color: #94a3b8; font-size: 13px;">Minimum payout: $50.00</p>
+                <h5 class="fw-bold mb-1" style="color: #fff;"><i class="bi bi-cash-stack me-2" style="color: var(--det-green);"></i>Request Payout</h5>
+                <p style="color: #94a3b8; font-size: 13px;">Minimum payout: <strong style="color: #fff;">$50.00</strong></p>
             </div>
             <form action="/affiliate/request-payout" method="POST">
                 <input type="hidden" name="method" value="bank_transfer">
-                <button type="submit" class="copy-btn" <%= affiliate.pendingEarnings < 50 ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : '' %>>
+                <button type="submit" class="copy-btn" <%= affiliate.pendingEarnings < 50 ? 'disabled' : '' %>>
                     <i class="bi bi-wallet2 me-1"></i> Withdraw $<%= affiliate.pendingEarnings.toFixed(2) %>
                 </button>
             </form>
         </div>
+        <% if(affiliate.pendingEarnings < 50) { %>
+            <small style="color: #64748b; display: block; margin-top: 8px;">You need $<%= (50 - affiliate.pendingEarnings).toFixed(2) %> more to request a payout.</small>
+        <% } %>
     </div>
 </div>
 
@@ -224,9 +245,11 @@ function copyRefLink() {
             btn.innerHTML = original;
             btn.style.background = '';
         }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        alert('Link: ' + link);
     });
 }
-</script
+</script>
 
 <%- include('partials/footer') %>
-
