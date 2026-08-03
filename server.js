@@ -17,7 +17,7 @@ const User = require("./models/User.model");
 const app = express();
 
 const emailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: 'smtp.gmail.com',
     auth: {
         user: 'nyctech002@gmail.com',
         pass: 'wcibyjqymgbyonxt'
