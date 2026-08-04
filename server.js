@@ -16,13 +16,48 @@ require("dotenv").config();
 const User = require("./models/User.model");
 const app = express();
 
-const emailTransporter = nodemailer.createTransport({
-    service: 'smtp.gmail.com',
-    auth: {
-        user: 'nyctech002@gmail.com',
-        pass: 'wcibyjqymgbyonxt'
+// ==========================================
+// EMAIL TRANSPORT — HTTPS API, NOT SMTP
+// ==========================================
+// Render (and most PaaS hosts) block or throttle outbound SMTP ports
+// (25/465/587), and Gmail's SMTP often silently drops/delays connections
+// from datacenter IPs anyway. Sending over HTTPS (port 443) via Brevo's
+// API sidesteps both problems. Set BREVO_API_KEY, EMAIL_FROM_ADDRESS, and
+// EMAIL_FROM_NAME in your environment (locally in .env, and in Render's
+// dashboard under Environment for the deployed service).
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || "nyctech002@gmail.com";
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "D.E.T System";
+
+const emailTransporter = {
+    // Kept the same shape as nodemailer's sendMail({ to, subject, html })
+    // so every existing call site below needs zero changes.
+    async sendMail({ to, subject, html }) {
+        if (!BREVO_API_KEY) {
+            throw new Error("BREVO_API_KEY is not set in environment variables");
+        }
+        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+            method: "POST",
+            headers: {
+                "api-key": BREVO_API_KEY,
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                sender: { name: EMAIL_FROM_NAME, email: EMAIL_FROM_ADDRESS },
+                to: [{ email: to }],
+                subject,
+                htmlContent: html
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Brevo API error ${response.status}: ${errText}`);
+        }
+        return response.json();
     }
-});
+};
 
 // ==========================================
 // PAYMENT CONFIRMATION EMAILS
@@ -169,6 +204,10 @@ passport.deserializeUser(User.deserializeUser());
 // Enhanced security middleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
+        // Admin account is exempt from email verification
+        if (req.user.username === "admin") {
+            return next();
+        }
         // Check if user is verified
         if (req.user.isVerified) {
             return next();
@@ -1046,8 +1085,8 @@ app.post("/login", (req, res, next) => {
                 return req.session.save(() => res.redirect("/login")); 
             }
             
-            // NEW: Check if user is verified
-            if (!user.isVerified) {
+            // NEW: Check if user is verified (admin account is exempt)
+            if (!user.isVerified && user.username !== "admin") {
                 // Log them in but redirect to verification page
                 req.logIn(user, (err) => {
                     if (err) return next(err);

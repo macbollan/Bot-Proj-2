@@ -5,306 +5,618 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>D.E.T System | Master Node Console</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <style>
         :root {
             --det-green: #B0BF96;
             --det-green-hover: #96a67c;
-            --det-dark: #1a1818;
-            --det-card: #322C2C;
-            --det-border: rgba(176, 191, 150, 0.25);
+            --det-dark: #0a0a0a;
+            --det-card: #141414;
+            --det-card-hover: #1a1a1a;
+            --det-border: rgba(176, 191, 150, 0.15);
+            --det-border-active: rgba(176, 191, 150, 0.35);
             --det-red: #ef4444;
             --det-amber: #f59e0b;
             --det-blue: #38bdf8;
             --det-purple: #a78bfa;
-            --sidebar-width: 268px;
+            --det-emerald: #10b981;
+            --sidebar-width: 280px;
+            --transition-speed: 0.25s;
         }
+
+        * { scrollbar-width: thin; scrollbar-color: var(--det-border) transparent; }
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 3px; }
+        *::-webkit-scrollbar-thumb:hover { background: var(--det-green); }
 
         body { 
             background-color: var(--det-dark); 
-            color: #f8fafc; 
-            font-family: 'Poppins', sans-serif; 
+            color: #e2e8f0; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
             overflow-x: hidden; 
             margin: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        p, span, div, h1, h2, h3, h4, h5, h6, label { color: #f8fafc; }
-        .text-muted { color: #cbd5e1 !important; } 
-        .text-secondary { color: #e2e8f0 !important; }
-
         /* =========================================
-           INSTITUTIONAL SIDEBAR
+           PREMIUM SIDEBAR
         ========================================= */
         .sidebar {
             position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-width);
-            background-color: var(--det-card); border-right: 1px solid var(--det-border);
-            z-index: 1050; display: flex; flex-direction: column; transition: transform 0.3s ease;
+            background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+            border-right: 1px solid var(--det-border);
+            z-index: 1050; display: flex; flex-direction: column; 
+            transition: transform var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
-        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid var(--det-border); }
-        .text-logo { color: var(--det-green) !important; font-size: 22px; font-weight: 800; text-decoration: none; letter-spacing: 1px; }
-        .text-logo span { color: #ffffff !important; font-weight: 300; }
+        .sidebar-header { 
+            padding: 28px 24px; 
+            border-bottom: 1px solid var(--det-border);
+            background: linear-gradient(135deg, rgba(176,191,150,0.05) 0%, transparent 100%);
+        }
+        .text-logo { 
+            color: var(--det-green) !important; 
+            font-size: 24px; 
+            font-weight: 800; 
+            text-decoration: none; 
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .text-logo span { 
+            color: #ffffff !important; 
+            font-weight: 400;
+            font-size: 16px;
+            background: rgba(176,191,150,0.1);
+            padding: 4px 12px;
+            border-radius: 6px;
+            letter-spacing: 2px;
+        }
         
-        .sidebar-nav { padding: 20px 10px; flex-grow: 1; overflow-y: auto; }
-        .nav-item { margin-bottom: 5px; }
-        .nav-link {
-            display: flex; align-items: center; padding: 11px 15px; color: #cbd5e1 !important;
-            text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 13.5px; transition: all 0.2s;
+        .sidebar-nav { 
+            padding: 20px 12px; 
+            flex-grow: 1; 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .nav-link i { margin-right: 12px; font-size: 17px; width: 18px; text-align: center; }
-        .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.05); }
-        .nav-link.active { color: var(--det-dark) !important; background: var(--det-green); font-weight: 600; }
-        .nav-link .badge { font-size: 9px; }
+        .nav-section {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #64748b !important;
+            padding: 16px 16px 8px;
+            margin-top: 8px;
+        }
+        .nav-section:first-child { margin-top: 0; }
+        
+        .nav-link {
+            display: flex; align-items: center; padding: 12px 16px; 
+            color: #94a3b8 !important;
+            text-decoration: none; border-radius: 10px; font-weight: 500; 
+            font-size: 13.5px; transition: all var(--transition-speed); position: relative;
+            margin: 1px 0;
+        }
+        .nav-link i { margin-right: 12px; font-size: 18px; width: 20px; text-align: center; opacity: 0.7; transition: all var(--transition-speed); }
+        .nav-link:hover { 
+            color: #fff !important; 
+            background: rgba(255,255,255,0.04); 
+            transform: translateX(2px);
+        }
+        .nav-link:hover i { opacity: 1; }
+        .nav-link.active { 
+            color: var(--det-dark) !important; 
+            background: linear-gradient(135deg, var(--det-green) 0%, var(--det-green-hover) 100%);
+            font-weight: 600; 
+            box-shadow: 0 4px 12px rgba(176,191,150,0.25);
+        }
+        .nav-link.active i { opacity: 1; color: var(--det-dark); }
+        .nav-link .badge { 
+            font-size: 9px; 
+            padding: 3px 8px; 
+            border-radius: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge-beta { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .badge-locked { background: rgba(100,116,139,0.2); color: #94a3b8; }
 
-        .sidebar-nav::-webkit-scrollbar { width: 4px; }
-        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
-        .sidebar-footer { padding: 20px; border-top: 1px solid var(--det-border); font-size: 12px; color: #cbd5e1; }
+        .sidebar-footer { 
+            padding: 20px 24px; 
+            border-top: 1px solid var(--det-border); 
+            font-size: 12px; 
+            color: #64748b;
+            background: rgba(0,0,0,0.3);
+        }
 
         /* =========================================
            MAIN CONTENT AREA
         ========================================= */
-        .main-content { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; transition: margin-left 0.3s ease; }
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            transition: margin-left var(--transition-speed);
+            background: radial-gradient(ellipse at top right, rgba(176,191,150,0.03) 0%, transparent 60%);
+        }
 
         .top-bar {
-            background-color: var(--det-dark); padding: 15px 30px; border-bottom: 1px solid var(--det-border);
-            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1040;
+            background: rgba(10,10,10,0.8); 
+            backdrop-filter: blur(20px);
+            padding: 16px 32px; 
+            border-bottom: 1px solid var(--det-border);
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 1040;
         }
-        .mobile-toggle { display: none; color: var(--det-green); font-size: 24px; cursor: pointer; background: none; border: none; }
+        .mobile-toggle { display: none; color: var(--det-green); font-size: 24px; cursor: pointer; background: none; border: none; padding: 8px; border-radius: 8px; transition: all var(--transition-speed); }
+        .mobile-toggle:hover { background: rgba(176,191,150,0.1); }
         
-        /* Navigation buttons in top bar */
         .nav-quick-btn {
-            background: var(--det-card); border: 1px solid var(--det-border); color: var(--det-green);
-            padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
-            text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+            background: var(--det-card); border: 1px solid var(--det-border); 
+            color: #94a3b8; padding: 8px 18px; border-radius: 10px; 
+            font-size: 12.5px; font-weight: 500; text-decoration: none; 
+            transition: all var(--transition-speed); display: inline-flex; align-items: center; gap: 7px;
         }
-        .nav-quick-btn:hover { background: var(--det-green); color: var(--det-dark); border-color: var(--det-green); }
+        .nav-quick-btn:hover { 
+            background: rgba(176,191,150,0.1); 
+            color: var(--det-green); 
+            border-color: var(--det-border-active); 
+            transform: translateY(-1px);
+        }
 
-        .dashboard-wrapper { padding: 30px; max-width: 1680px; width: 100%; margin: 0 auto; }
-        .glass-card { background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 25px; height: 100%; }
+        .dashboard-wrapper { padding: 32px; max-width: 1800px; width: 100%; margin: 0 auto; }
+        
+        /* =========================================
+           GLASS CARDS & KPI
+        ========================================= */
+        .glass-card { 
+            background: var(--det-card); 
+            border: 1px solid var(--det-border); 
+            border-radius: 16px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3); 
+            padding: 28px; 
+            height: 100%;
+            transition: all var(--transition-speed);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(176,191,150,0.1), transparent);
+        }
+        .glass-card:hover {
+            border-color: var(--det-border-active);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
 
         .section-heading {
-            display: flex; justify-content: between; align-items: center; justify-content: space-between;
-            margin: 38px 0 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 40px 0 20px;
         }
+        .section-heading:first-of-type { margin-top: 0; }
         .section-heading h6 {
-            font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
-            color: #94a3b8 !important; margin: 0; display: flex; align-items: center; gap: 8px;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
+            color: #64748b !important; margin: 0; display: flex; align-items: center; gap: 10px;
         }
-        .section-heading h6 i { color: var(--det-green); }
-        .section-heading:first-of-type { margin-top: 4px; }
+        .section-heading h6 i { color: var(--det-green); font-size: 16px; }
 
-        /* KPI Strip */
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
         .kpi-card {
-            background: var(--det-card); border: 1px solid var(--det-border); border-radius: 12px;
-            padding: 20px; display: flex; align-items: center; gap: 14px; height: 100%;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.18); transition: transform 0.2s, border-color 0.2s;
+            background: var(--det-card); 
+            border: 1px solid var(--det-border); 
+            border-radius: 16px;
+            padding: 24px; 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            transition: all var(--transition-speed);
+            cursor: default;
         }
-        .kpi-card:hover { transform: translateY(-2px); border-color: rgba(176, 191, 150, 0.45); }
+        .kpi-card:hover { 
+            transform: translateY(-2px); 
+            border-color: var(--det-border-active);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
         .kpi-icon {
-            width: 46px; height: 46px; min-width: 46px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            width: 52px; height: 52px; min-width: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; font-size: 22px;
         }
-        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #94a3b8 !important; font-weight: 600; margin-bottom: 3px; }
-        .kpi-value { font-size: 22px; font-weight: 800; color: #fff !important; line-height: 1.1; }
-        .kpi-sub { font-size: 11px; color: #94a3b8 !important; margin-top: 2px; }
+        .kpi-content { flex: 1; min-width: 0; }
+        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #64748b !important; font-weight: 600; margin-bottom: 4px; }
+        .kpi-value { font-size: 26px; font-weight: 800; color: #fff !important; line-height: 1.1; margin-bottom: 2px; }
+        .kpi-sub { font-size: 11px; color: #64748b !important; }
 
-        .metric-box { background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; }
-        .metric-title { font-size: 11px; color: #cbd5e1 !important; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
-        .metric-value { font-size: 24px; font-weight: 800; color: #fff !important; margin: 0; }
-        .metric-value.accent { color: var(--det-green) !important; }
+        /* =========================================
+           TABLES & PAGINATION
+        ========================================= */
+        .table-container {
+            border-radius: 12px;
+            border: 1px solid var(--det-border);
+            overflow: hidden;
+            background: var(--det-dark);
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .table {
+            margin-bottom: 0;
+            color: #e2e8f0 !important;
+            min-width: 900px;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th { 
+            background: #0a0a0a; 
+            color: #94a3b8 !important; 
+            font-weight: 600; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            border-bottom: 2px solid var(--det-border); 
+            padding: 16px;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .table tbody td { 
+            padding: 16px; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+            vertical-align: middle; 
+            background-color: transparent; 
+            color: #e2e8f0 !important;
+            font-size: 14px;
+        }
+        .table tbody tr { transition: all var(--transition-speed); }
+        .table tbody tr:hover td { background-color: rgba(176, 191, 150, 0.03); }
+        .table tbody tr.row-hidden { display: none; }
 
-        canvas { max-height: 260px; width: 100%; }
-        .chart-wrap { position: relative; height: 260px; }
-        .chart-wrap.short { height: 210px; }
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border-top: 1px solid var(--det-border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .pagination-info {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pagination {
+            display: flex;
+            gap: 4px;
+            margin: 0;
+            list-style: none;
+            padding: 0;
+        }
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--det-border);
+            background: var(--det-card);
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            user-select: none;
+        }
+        .page-btn:hover:not(:disabled):not(.active) {
+            border-color: var(--det-green);
+            color: var(--det-green);
+            background: rgba(176,191,150,0.05);
+        }
+        .page-btn.active {
+            background: var(--det-green);
+            color: var(--det-dark);
+            border-color: var(--det-green);
+            font-weight: 700;
+        }
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .page-size-select {
+            background: var(--det-card);
+            border: 1px solid var(--det-border);
+            color: #94a3b8;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+        }
+        .page-size-select:focus {
+            border-color: var(--det-green);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .bg-det-green { background: rgba(176, 191, 150, 0.12); color: var(--det-green) !important; border: 1px solid rgba(176, 191, 150, 0.25); }
+        .bg-det-red { background: rgba(239, 68, 68, 0.12); color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.25); }
+        .bg-det-warn { background: rgba(245, 158, 11, 0.12); color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.25); }
+        .bg-det-blue { background: rgba(56, 189, 248, 0.12); color: var(--det-blue) !important; border: 1px solid rgba(56, 189, 248, 0.25); }
+        .bg-det-slate { background: rgba(100, 116, 139, 0.15); color: #94a3b8 !important; border: 1px solid rgba(100, 116, 139, 0.25); }
+
+        .code-pill { 
+            background: #0a0a0a; 
+            border: 1px solid var(--det-border); 
+            color: var(--det-green) !important; 
+            padding: 5px 12px; 
+            border-radius: 8px; 
+            font-family: 'SF Mono', 'Fira Code', monospace; 
+            font-size: 12px; 
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Action Buttons */
+        .btn-det { 
+            background: linear-gradient(135deg, var(--det-green) 0%, var(--det-green-hover) 100%);
+            color: var(--det-dark) !important; 
+            font-weight: 600; 
+            transition: all var(--transition-speed); 
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+        .btn-det:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(176,191,150,0.3);
+            color: #000 !important; 
+        }
+        
+        .action-group {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        .action-btn {
+            width: 36px; 
+            height: 36px; 
+            border-radius: 10px; 
+            border: 1px solid var(--det-border); 
+            background: var(--det-card);
+            color: #94a3b8; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all var(--transition-speed); 
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .action-btn:hover { transform: translateY(-1px); }
+        .btn-manage:hover { border-color: var(--det-green); color: var(--det-green); background: rgba(176,191,150,0.08); }
+        .btn-ban:hover { border-color: var(--det-amber); color: var(--det-amber); background: rgba(245,158,11,0.08); }
+        .btn-delete:hover { border-color: var(--det-red); color: var(--det-red); background: rgba(239,68,68,0.08); }
+        .btn-details:hover { border-color: var(--det-blue); color: var(--det-blue); background: rgba(56,189,248,0.08); }
+
+        /* Terminal indicator */
+        .terminal-active { color: var(--det-emerald) !important; }
+        .terminal-inactive { color: #64748b !important; }
+
+        /* Search */
+        .search-box {
+            position: relative;
+            min-width: 280px;
+        }
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 16px;
+        }
+        .search-input {
+            background: #0a0a0a !important;
+            border: 1px solid var(--det-border) !important;
+            color: #e2e8f0 !important;
+            padding: 10px 16px 10px 42px;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 100%;
+            transition: all var(--transition-speed);
+        }
+        .search-input:focus {
+            border-color: var(--det-green) !important;
+            box-shadow: 0 0 0 3px rgba(176,191,150,0.1) !important;
+            outline: none;
+        }
+        .search-input::placeholder { color: #64748b; }
 
         /* Empty states */
         .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; padding: 34px 20px; color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
         }
-        .empty-state i { font-size: 30px; color: var(--det-border); margin-bottom: 10px; }
-        .empty-state strong { color: #cbd5e1; font-size: 14px; display: block; margin-bottom: 4px; }
-        .empty-state span { font-size: 12.5px; max-width: 320px; }
+        .empty-state i { 
+            font-size: 40px; 
+            color: var(--det-border); 
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .empty-state strong { color: #94a3b8; font-size: 15px; display: block; margin-bottom: 6px; }
+        .empty-state span { font-size: 13px; max-width: 360px; line-height: 1.5; }
 
-        /* Mini list rows */
+        /* Mini rows */
         .mini-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            padding: 12px 14px; border-radius: 8px; background: var(--det-dark);
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;
+            padding: 14px 16px; border-radius: 10px; background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.03); margin-bottom: 8px;
+            transition: all var(--transition-speed);
         }
+        .mini-row:hover { border-color: var(--det-border); background: var(--det-card); }
         .mini-row:last-child { margin-bottom: 0; }
         .rank-badge {
-            width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 800; background: rgba(176,191,150,0.12); color: var(--det-green);
+            width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; background: rgba(176,191,150,0.1); color: var(--det-green);
             flex-shrink: 0;
         }
-        .rank-badge.rank-1 { background: rgba(176,191,150,0.9); color: var(--det-dark); }
+        .rank-badge.rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        .rank-badge.rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); color: #000; }
+        .rank-badge.rank-3 { background: linear-gradient(135deg, #cd853f, #8b6914); color: #000; }
 
-        /* =========================================
-           Institutional Table Styling (Ledger)
-        ========================================= */
-        .table-responsive-wrapper { border-radius: 8px; border: 1px solid var(--det-border); overflow: hidden; }
-        .table-responsive {
-            overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin; scrollbar-color: var(--det-green) transparent;
+        /* Modal */
+        .modal-content { 
+            background-color: var(--det-card) !important; 
+            color: #e2e8f0 !important; 
+            border: 1px solid var(--det-border); 
+            border-radius: 16px; 
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
         }
-        .table-responsive::-webkit-scrollbar { height: 6px; }
-        .table-responsive::-webkit-scrollbar-thumb { background: var(--det-border); border-radius: 4px; }
-        .table-responsive::-webkit-scrollbar-thumb:hover { background: var(--det-green); }
-
-        .table { margin-bottom: 0; color: #fff !important; min-width: 900px; }
-        .table-dark-custom { background-color: var(--det-dark); }
-        .table thead th { 
-            background-color: #111; color: #cbd5e1 !important; font-weight: 600; font-size: 12px; 
-            text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--det-border); padding: 15px;
-            white-space: nowrap;
+        .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 24px 28px; }
+        .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 20px 28px; }
+        .modal-body { padding: 24px 28px; }
+        .form-control, .form-select { 
+            background-color: #0a0a0a !important; 
+            border: 1px solid var(--det-border) !important; 
+            color: #e2e8f0 !important; 
+            padding: 12px 16px; 
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all var(--transition-speed);
         }
-        .table tbody td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; background-color: transparent; color: #fff !important; }
-        .table tbody tr:hover td { background-color: rgba(176, 191, 150, 0.05); }
-        .table tbody tr.row-hidden { display: none; }
-
-        .swipe-hint { display: none; align-items: center; gap: 6px; font-size: 11px; color: #cbd5e1; margin-bottom: 10px; letter-spacing: 0.5px; }
-        .swipe-hint i { color: var(--det-green); animation: swipeMove 1.4s ease-in-out infinite; }
-        @keyframes swipeMove { 0%, 100% { transform: translateX(0); opacity: 0.6; } 50% { transform: translateX(6px); opacity: 1; } }
-        @media (max-width: 767px) { .swipe-hint { display: flex; } }
-        
-        .code-pill { background: #1a1818; border: 1px solid var(--det-border); color: var(--det-green) !important; padding: 4px 10px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: 600; }
-        
-        .btn-det { background: var(--det-green); color: var(--det-dark) !important; font-weight: 600; transition: all 0.3s; border: none; }
-        .btn-det:hover { background: var(--det-green-hover); color: #000 !important; }
-
-        .ledger-search {
-            background: var(--det-dark) !important; border: 1px solid var(--det-border) !important; color: #fff !important;
-            padding: 9px 14px 9px 38px; border-radius: 8px; font-size: 14px; max-width: 320px;
+        .form-control:focus, .form-select:focus { 
+            border-color: var(--det-green) !important; 
+            box-shadow: 0 0 0 3px rgba(176, 191, 150, 0.1) !important; 
         }
-        .ledger-search:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.2rem rgba(176,191,150,0.15) !important; }
-        .search-wrap { position: relative; }
-        .search-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        .bg-det-green { background: rgba(176, 191, 150, 0.15); color: var(--det-green) !important; border: 1px solid rgba(176, 191, 150, 0.3); }
-        .bg-det-red { background: rgba(239, 68, 68, 0.15); color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .bg-det-warn { background: rgba(245, 158, 11, 0.15); color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3); }
-
-        .action-btn {
-            width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--det-border); background: var(--det-dark);
-            color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;
-        }
-        .btn-manage:hover { border-color: var(--det-green); color: var(--det-green); }
-        .btn-ban:hover { border-color: var(--det-amber); color: var(--det-amber); }
-        .btn-delete:hover { border-color: var(--det-red); color: var(--det-red); background: rgba(239,68,68,0.08); }
-        .btn-details:hover { border-color: var(--det-blue); color: var(--det-blue); }
-
-        /* Active terminal indicator */
-        .terminal-active { color: #22c55e !important; }
-        .terminal-inactive { color: #94a3b8 !important; }
-
-        /* Modal Overrides */
-        .modal-content { background-color: var(--det-card) !important; color: #fff !important; border: 1px solid var(--det-border); border-radius: 12px; }
-        .modal-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .modal-footer { border-top: 1px solid rgba(255,255,255,0.05); }
-        .form-control, .form-select { background-color: var(--det-dark) !important; border: 1px solid var(--det-border) !important; color: #fff !important; padding: 12px; }
-        .form-control:focus, .form-select:focus { border-color: var(--det-green) !important; box-shadow: 0 0 0 0.25rem rgba(176, 191, 150, 0.25) !important; color: #fff !important;}
         .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
 
-        /* Detail modal specs */
+        /* Detail rows */
         .detail-row {
-            display: flex; justify-content: space-between; padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .detail-value { color: #fff; font-weight: 600; font-size: 14px; }
+        .detail-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .detail-value { color: #e2e8f0; font-weight: 600; font-size: 14px; text-align: right; }
 
-        @media (max-width: 991px) {
+        /* Charts */
+        .chart-wrap { position: relative; height: 280px; }
+        .chart-wrap.short { height: 220px; }
+
+        /* Responsive */
+        @media (max-width: 1199px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.show { transform: translateX(0); }
             .main-content { margin-left: 0; }
             .mobile-toggle { display: block; }
-            .dashboard-wrapper { padding: 20px 15px; }
+            .dashboard-wrapper { padding: 20px 16px; }
+            .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        }
+        @media (max-width: 767px) {
+            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .kpi-value { font-size: 22px; }
+            .top-bar { padding: 12px 16px; }
+            .nav-quick-btn { display: none; }
+            .search-box { min-width: 100%; }
+            .pagination-container { flex-direction: column; align-items: flex-start; }
         }
 
-                .sidebar-backdrop {
+        .sidebar-backdrop {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             z-index: 1049;
+            backdrop-filter: blur(2px);
         }
-        .sidebar-backdrop.show {
-            display: block;
-        }
+        .sidebar-backdrop.show { display: block; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="/admin" class="text-logo">D.E.T <span>ADMIN</span></a>
+            <a href="/admin" class="text-logo">
+                <i class="bi bi-cpu-fill"></i> D.E.T <span>ADMIN</span>
+            </a>
         </div>
         <div class="sidebar-nav">
-            <small class="text-uppercase fw-bold ms-3 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Core Systems</small>
-            <div class="nav-item">
-                <a href="#overview" class="nav-link active"><i class="bi bi-cpu"></i> Master Node Console</a>
-            </div>
-            <div class="nav-item">
-                <a href="#analytics" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Network Analytics</a>
-            </div>
-            <div class="nav-item">
-                <a href="#live-feed" class="nav-link"><i class="bi bi-broadcast"></i> Live S.M.A.R.T Feed</a>
-            </div>
-            <div class="nav-item">
-                <a href="#negative-logouts" class="nav-link"><i class="bi bi-shield-lock-fill"></i> Negative Account Logouts</a>
-            </div>
-            <div class="nav-item">
-                <a href="#top-earners" class="nav-link"><i class="bi bi-trophy"></i> Top Earners Awards</a>
-            </div>
-            <div class="nav-item">
-                <a href="#ledger" class="nav-link"><i class="bi bi-people"></i> Participant Ledger</a>
-            </div>
+            <div class="nav-section">Core Systems</div>
+            <a href="#overview" class="nav-link active"><i class="bi bi-grid-1x2-fill"></i> Master Console</a>
+            <a href="#analytics" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Network Analytics</a>
+            <a href="#live-feed" class="nav-link"><i class="bi bi-broadcast"></i> Live S.M.A.R.T Feed</a>
+            <a href="#logouts" class="nav-link"><i class="bi bi-shield-lock-fill"></i> Account Logouts</a>
+            <a href="#top-earners" class="nav-link"><i class="bi bi-trophy-fill"></i> Top Earners</a>
+            <a href="#ledger" class="nav-link"><i class="bi bi-people-fill"></i> Participant Ledger</a>
 
-            <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Network Engines (v2.0)</small>
-            <div class="nav-item">
-                <a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3"></i> Affiliate Network <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">BETA</span></a>
-            </div>
-            <div class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-globe"></i> Geo-Block Config <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">LOCKED</span></a>
-            </div>
-            <div class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-shield-lock"></i> Pilot Access Wall <span class="badge ms-auto text-dark" style="background: #cbd5e1 !important;">LOCKED</span></a>
-            </div>
+            <div class="nav-section">Network Engines v2.0</div>
+            <a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3-fill"></i> Affiliate Network <span class="badge badge-beta">BETA</span></a>
+            <a href="#" class="nav-link"><i class="bi bi-globe2"></i> Geo-Block Config <span class="badge badge-locked">LOCKED</span></a>
 
-            <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">Quick Navigate</small>
-            <div class="nav-item">
-                <a href="/" class="nav-link" target="_blank"><i class="bi bi-house"></i> Public Homepage</a>
-            </div>
-            <div class="nav-item">
-                <a href="/pricing" class="nav-link" target="_blank"><i class="bi bi-tags"></i> Pricing Page</a>
-            </div>
-            <div class="nav-item">
-                <a href="/training" class="nav-link" target="_blank"><i class="bi bi-mortarboard"></i> Training Portal</a>
-            </div>
-            <div class="nav-item">
-                <a href="/affiliate" class="nav-link" target="_blank"><i class="bi bi-diagram-3"></i> Affiliate Page</a>
-            </div>
-            <div class="nav-item">
-                <a href="/dashboard" class="nav-link" target="_blank"><i class="bi bi-speedometer2"></i> User Dashboard</a>
-            </div>
+            <div class="nav-section">Quick Navigate</div>
+            <a href="/" class="nav-link" target="_blank"><i class="bi bi-house"></i> Public Homepage</a>
+            <a href="/pricing" class="nav-link" target="_blank"><i class="bi bi-tags"></i> Pricing Page</a>
+            <a href="/dashboard" class="nav-link" target="_blank"><i class="bi bi-speedometer2"></i> User Dashboard</a>
 
-            <small class="text-uppercase fw-bold ms-3 mt-4 mb-2 d-block" style="font-size: 11px; color: #cbd5e1;">System</small>
-            <div class="nav-item">
-                <a href="/logout" class="nav-link text-danger"><i class="bi bi-power"></i> Kill Session</a>
-            </div>
+            <div class="nav-section">System</div>
+            <a href="/logout" class="nav-link" style="color: #ef4444 !important;"><i class="bi bi-power"></i> Kill Session</a>
         </div>
         <div class="sidebar-footer d-flex justify-content-between align-items-center">
             <div><span class="spinner-grow spinner-grow-sm text-success me-2" style="width: 8px; height: 8px;"></span>Node Routing</div>
-            <span>v2.0</span>
+            <span style="color: var(--det-green);">v2.0.1</span>
         </div>
     </nav>
 
@@ -313,25 +625,25 @@
         <header class="top-bar">
             <div class="d-flex align-items-center gap-3">
                 <button class="mobile-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
-                <h5 class="mb-0 fw-bold d-none d-md-block text-white">Central Command Hub</h5>
+                <div>
+                    <h5 class="mb-0 fw-bold text-white d-none d-md-block">Central Command Hub</h5>
+                    <small class="d-none d-md-block" style="color: #64748b; font-size: 11px;">Real-time network monitoring & control</small>
+                </div>
             </div>
             
             <div class="d-flex align-items-center gap-3">
-                <!-- Quick Navigation Buttons -->
-                <a href="/" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Public Homepage">
+                <a href="/" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex">
                     <i class="bi bi-house"></i> <span>Site</span>
                 </a>
-                <a href="/pricing" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Pricing">
+                <a href="/pricing" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex">
                     <i class="bi bi-tags"></i> <span>Pricing</span>
                 </a>
-                <a href="/training" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="Training">
-                    <i class="bi bi-mortarboard"></i> <span>Training</span>
-                </a>
-                <a href="/dashboard" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex" title="User Dashboard">
+                <a href="/dashboard" target="_blank" class="nav-quick-btn d-none d-lg-inline-flex">
                     <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                 </a>
+                <div class="vr d-none d-sm-block" style="height: 24px; background: var(--det-border);"></div>
                 <div class="text-end d-none d-sm-block">
-                    <small class="d-block" style="font-size: 11px; line-height: 1; color: #cbd5e1;">Administrator</small>
+                    <small class="d-block" style="font-size: 10px; line-height: 1; color: #64748b; letter-spacing: 1px; text-transform: uppercase;">Administrator</small>
                     <span class="fw-bold" style="font-size: 14px; color: var(--det-green) !important;"><%= currentUser.username.toUpperCase() %></span>
                 </div>
             </div>
@@ -340,104 +652,108 @@
         <div class="dashboard-wrapper">
             
             <% if(success && success.length > 0) { %> 
-                <div class="alert bg-success bg-opacity-10 border-success text-success fw-bold" style="border-radius: 8px;"><i class="bi bi-check-circle me-2"></i><%= success %></div> 
+                <div class="alert bg-success bg-opacity-10 border-success text-success fw-medium mb-4" style="border-radius: 10px; border-left: 3px solid #22c55e;">
+                    <i class="bi bi-check-circle-fill me-2"></i><%= success %>
+                </div> 
             <% } %>
             <% if(error && error.length > 0) { %> 
-                <div class="alert bg-danger bg-opacity-10 border-danger text-danger fw-bold" style="border-radius: 8px;"><i class="bi bi-exclamation-triangle me-2"></i><%= error %></div> 
+                <div class="alert bg-danger bg-opacity-10 border-danger text-danger fw-medium mb-4" style="border-radius: 10px; border-left: 3px solid #ef4444;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><%= error %>
+                </div> 
             <% } %>
 
-            <!-- =========================================
-                 OVERVIEW — KPI STRIP (with total visitors)
-            ========================================= -->
+            <!-- KPI GRID -->
             <div id="overview"></div>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-6 g-3 mb-2">
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);"><i class="bi bi-people-fill"></i></div>
-                        <div>
-                            <div class="kpi-label">Total Visitors</div>
-                            <div class="kpi-value"><%= stats.totalVisitors.toLocaleString() %></div>
-                            <div class="kpi-sub">All-time site visits</div>
-                        </div>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(176,191,150,0.1); color: var(--det-green);">
+                        <i class="bi bi-eye-fill"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Total Visitors</div>
+                        <div class="kpi-value"><%= stats.totalVisitors.toLocaleString() %></div>
+                        <div class="kpi-sub">All-time site visits</div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(56,189,248,0.12); color: var(--det-blue);"><i class="bi bi-person-check"></i></div>
-                        <div>
-                            <div class="kpi-label">Total Accounts</div>
-                            <div class="kpi-value"><%= stats.total %></div>
-                            <div class="kpi-sub">Registered participants</div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(56,189,248,0.1); color: var(--det-blue);">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Total Accounts</div>
+                        <div class="kpi-value"><%= stats.total %></div>
+                        <div class="kpi-sub">Registered participants</div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(56,189,248,0.12); color: var(--det-blue);"><i class="bi bi-shield-check"></i></div>
-                        <div>
-                            <div class="kpi-label">Active Licenses</div>
-                            <div class="kpi-value"><%= stats.active %></div>
-                            <div class="kpi-sub"><%= stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0 %>% of network</div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(16,185,129,0.1); color: var(--det-emerald);">
+                        <i class="bi bi-shield-check-fill"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Active Licenses</div>
+                        <div class="kpi-value"><%= stats.active %></div>
+                        <div class="kpi-sub"><%= stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0 %>% of network</div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: var(--det-red);"><i class="bi bi-shield-lock-fill"></i></div>
-                        <div>
-                            <div class="kpi-label">Negative Logouts</div>
-                            <div class="kpi-value"><%= stats.locked %></div>
-                            <div class="kpi-sub">Zero-Hedge closures</div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(239,68,68,0.1); color: var(--det-red);">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Negative Logouts</div>
+                        <div class="kpi-value"><%= stats.locked %></div>
+                        <div class="kpi-sub">Zero-Hedge closures</div>
                     </div>
                 </div>
-
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(34, 197, 94, 0.12); color: #22c55e;"><i class="bi bi-graph-up-arrow"></i></div>
-                        <div>
-                            <div class="kpi-label">Positive Logouts</div>
-                            <div class="kpi-value"><%= stats.locked %></div>
-                            <div class="kpi-sub">100% gain achieved</div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(16,185,129,0.1); color: var(--det-emerald);">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Positive Logouts</div>
+                        <div class="kpi-value"><%= stats.locked %></div>
+                        <div class="kpi-sub">100% gain achieved</div>
                     </div>
                 </div>
-
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);"><i class="bi bi-cash-stack"></i></div>
-                        <div>
-                            <div class="kpi-label">Total Revenue</div>
-                            <div class="kpi-value">$<%= stats.totalRevenue.toLocaleString() %></div>
-                            <div class="kpi-sub">Payouts to affiliates: $<%= stats.totalAffiliatePayouts.toLocaleString() %></div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(176,191,150,0.1); color: var(--det-green);">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Total Revenue</div>
+                        <div class="kpi-value">$<%= stats.totalRevenue.toLocaleString() %></div>
+                        <div class="kpi-sub">Payouts: $<%= stats.totalAffiliatePayouts.toLocaleString() %></div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="kpi-card">
-                        <div class="kpi-icon" style="background: rgba(245,158,11,0.12); color: var(--det-amber);"><i class="bi bi-hourglass-split"></i></div>
-                        <div>
-                            <div class="kpi-label">Unlicensed / Pending</div>
-                            <div class="kpi-value"><%= stats.unlicensed %></div>
-                            <div class="kpi-sub"><%= stats.suspended %> banned · <%= stats.expired %> expired</div>
-                        </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: rgba(245,158,11,0.1); color: var(--det-amber);">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Unlicensed / Pending</div>
+                        <div class="kpi-value"><%= stats.unlicensed %></div>
+                        <div class="kpi-sub"><%= stats.suspended %> banned · <%= stats.expired %> expired</div>
                     </div>
                 </div>
             </div>
 
-            <!-- =========================================
-                 ANALYTICS — CHARTS
-            ========================================= -->
+            <!-- ANALYTICS CHARTS -->
             <div id="analytics"></div>
             <div class="section-heading">
                 <h6><i class="bi bi-graph-up-arrow"></i> Network Analytics</h6>
+                <span style="font-size: 10px; color: #64748b; letter-spacing: 1px;">UPDATED LIVE</span>
             </div>
 
             <div class="row g-4 mb-4">
                 <div class="col-xl-8">
                     <div class="glass-card">
-                        <h6 class="fw-bold mb-1 text-white">Registrations — Last 30 Days</h6>
-                        <p class="text-secondary small mb-3">New accounts created per day, network-wide.</p>
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-white">Registrations — Last 30 Days</h6>
+                                <p class="text-secondary small mb-0">New accounts created per day, network-wide</p>
+                            </div>
+                            <span class="status-badge bg-det-green"><span class="status-dot" style="background: #10b981;"></span>Live</span>
+                        </div>
                         <div class="chart-wrap">
                             <canvas id="registrationChart"></canvas>
                         </div>
@@ -445,10 +761,22 @@
                 </div>
                 <div class="col-xl-4">
                     <div class="glass-card">
-                        <h6 class="fw-bold mb-1 text-white">Account Status Breakdown</h6>
-                        <p class="text-secondary small mb-3">Live standing across every participant.</p>
+                        <h6 class="fw-bold mb-1 text-white">Account Status</h6>
+                        <p class="text-secondary small mb-3">Real-time breakdown</p>
                         <div class="chart-wrap">
                             <canvas id="statusChart"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <% 
+                            const statusLabels = ['Active', 'Banned', 'Locked', 'Expired', 'Unlicensed'];
+                            const statusValues = [stats.active, stats.suspended, stats.locked, stats.expired, stats.unlicensed];
+                            const statusColors = ['#B0BF96', '#f59e0b', '#ef4444', '#94a3b8', '#38bdf8'];
+                            for(let i = 0; i < statusLabels.length; i++) { %>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="font-size: 11px; color: #94a3b8;"><span style="color: <%= statusColors[i] %>;">●</span> <%= statusLabels[i] %></span>
+                                    <span class="fw-bold text-white" style="font-size: 13px;"><%= statusValues[i] %></span>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -458,190 +786,162 @@
                 <div class="col-xl-6">
                     <div class="glass-card">
                         <h6 class="fw-bold mb-1 text-white">Revenue by D.E.T Plan</h6>
-                        <p class="text-secondary small mb-3">Verified revenue attributed to each tier.</p>
-                        <% if(revenueByTier && revenueByTier.length > 0) { %>
-                            <div class="chart-wrap">
-                                <canvas id="revenueChart"></canvas>
-                            </div>
-                        <% } else { %>
-                            <div class="empty-state">
-                                <i class="bi bi-bar-chart"></i>
-                                <strong>No verified sales yet</strong>
-                                <span>This chart activates automatically the moment a Paynow payment is confirmed for any tier.</span>
-                            </div>
-                        <% } %>
+                        <p class="text-secondary small mb-3">Verified revenue per tier</p>
+                        <div class="chart-wrap">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
                     </div>
                 </div>
                 <div class="col-xl-6">
                     <div class="glass-card">
                         <h6 class="fw-bold mb-1 text-white">Top Accounts by Region</h6>
-                        <p class="text-secondary small mb-3">Where your participant base is registered from.</p>
-                        <% if(topAccountsByRegion && topAccountsByRegion.length > 0) { %>
-                            <div class="chart-wrap">
-                                <canvas id="regionChart"></canvas>
-                            </div>
-                        <% } else { %>
-                            <div class="empty-state">
-                                <i class="bi bi-globe-americas"></i>
-                                <strong>No region data yet</strong>
-                                <span>Populates automatically once participants register with a country set.</span>
-                            </div>
-                        <% } %>
+                        <p class="text-secondary small mb-3">Geographic distribution</p>
+                        <div class="chart-wrap">
+                            <canvas id="regionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- =========================================
-                 LIVE FEED + NEGATIVE ACCOUNT LOGOUTS
-            ========================================= -->
+            <!-- LIVE FEED + LOGOUTS -->
             <div id="live-feed"></div>
+            <div id="logouts"></div>
             <div class="row g-4 mb-4">
-                <div class="col-xl-8 col-lg-7">
+                <div class="col-xl-8">
                     <div class="glass-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3" style="border-color: var(--det-border) !important;">
-                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-broadcast text-accent me-2"></i>S.M.A.R.T Master Feed</h5>
-                            <span class="status-badge bg-det-green"><span class="spinner-grow spinner-grow-sm me-2" style="width: 0.5rem; height: 0.5rem;"></span>Transmitting</span>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold m-0 text-white"><i class="bi bi-broadcast me-2" style="color: var(--det-green);"></i>S.M.A.R.T Master Feed</h5>
+                                <small style="color: #64748b;">Real-time trading signals</small>
+                            </div>
+                            <span class="status-badge bg-det-green">
+                                <span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px;"></span>Transmitting
+                            </span>
                         </div>
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-3 col-6">
-                                <div class="metric-box h-100">
-                                    <small class="metric-title">Active Asset</small>
-                                    <h5 id="ea-symbol" class="fw-bold text-white mt-1 mb-0">--</h5>
+                                <div style="background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                                    <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Active Asset</small>
+                                    <h5 id="ea-symbol" class="fw-bold text-white mt-1 mb-0" style="font-size: 18px;">--</h5>
                                 </div>
                             </div>
                             <div class="col-md-3 col-6">
-                                <div class="metric-box h-100">
-                                    <small class="metric-title">Live Price</small>
-                                    <h5 id="ea-price" class="text-accent fw-bold mt-1 mb-0">0.00</h5>
+                                <div style="background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                                    <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Live Price</small>
+                                    <h5 id="ea-price" class="fw-bold mt-1 mb-0" style="font-size: 18px; color: var(--det-green);">0.00</h5>
                                 </div>
                             </div>
                             <div class="col-md-3 col-6">
-                                <div class="metric-box h-100">
-                                    <small class="metric-title">A.I. Trend</small>
-                                    <h5 id="ea-trend" class="fw-bold mt-1 mb-0 text-white">--</h5>
+                                <div style="background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                                    <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">A.I. Trend</small>
+                                    <h5 id="ea-trend" class="fw-bold mt-1 mb-0 text-white" style="font-size: 18px;">--</h5>
                                 </div>
                             </div>
                             <div class="col-md-3 col-6">
-                                <div class="metric-box h-100">
-                                    <small class="metric-title">Open Trades</small>
-                                    <h5 id="ea-trades" class="text-white fw-bold mt-1 mb-0">0</h5>
+                                <div style="background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                                    <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Open Trades</small>
+                                    <h5 id="ea-trades" class="text-white fw-bold mt-1 mb-0" style="font-size: 18px;">0</h5>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <small class="metric-title d-block mb-2">Live Equity Curve (Master Account)</small>
-                            <div class="metric-box">
-                                <canvas id="equityChart"></canvas>
+                            <small style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Live Equity Curve</small>
+                            <div style="background: #0a0a0a; border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
+                                <canvas id="equityChart" style="max-height: 200px;"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-4 col-lg-5" id="positive-logouts">
-                    <div class="glass-card" id="negative-logouts">
-                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-shield-lock-fill text-danger me-2"></i>Negative Account Logouts</h5>
-                        <p class="text-secondary small mb-3">Accounts force-closed after reaching below the minimum required equity (Zero-Hedge Lock).</p>
+                <div class="col-xl-4">
+                    <div class="glass-card mb-4">
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-shield-lock-fill me-2" style="color: #ef4444;"></i>Negative Account Logouts</h5>
+                        <p class="text-secondary small mb-3">Zero-Hedge forced closures</p>
 
                         <% if(negativeLogouts && negativeLogouts.length > 0) { %>
-                            <div style="max-height: 380px; overflow-y: auto;">
+                            <div style="max-height: 250px; overflow-y: auto;">
                                 <% negativeLogouts.forEach(acc => { %>
                                     <div class="mini-row">
                                         <div>
-                                            <div class="fw-bold text-white" style="font-size: 13.5px;"><%= acc.username %></div>
-                                            <small style="color: #94a3b8;"><%= acc.tier %> · $<%= acc.startingBalance.toLocaleString() %> → $<%= acc.targetBalance.toLocaleString() %></small>
+                                            <div class="fw-bold text-white" style="font-size: 13px;"><%= acc.username %></div>
+                                            <small style="color: #64748b;"><%= acc.tier %> · $<%= acc.startingBalance.toLocaleString() %></small>
                                         </div>
                                         <span class="status-badge bg-det-red">Locked</span>
                                     </div>
                                 <% }) %>
                             </div>
                         <% } else { %>
-                            <div class="empty-state">
+                            <div class="empty-state" style="padding: 24px;">
                                 <i class="bi bi-shield-check"></i>
-                                <strong>No forced closures</strong>
-                                <span>No participant has triggered a Zero-Hedge lock yet. This list updates in real time.</span>
+                                <strong>No Forced Closures</strong>
+                                <span>No participant has triggered a Zero-Hedge lock yet.</span>
                             </div>
                         <% } %>
 
-                        <!-- Negative Account Offer Service -->
-                        <div class="mt-4 pt-3 border-top" style="border-color: var(--det-border) !important;">
-                            <h6 class="fw-bold text-white mb-2"><i class="bi bi-gift text-amber me-2" style="color: var(--det-amber);"></i>Negative Account Offer Service</h6>
-                            <p class="text-secondary small mb-3">Grant 1-week free access to accounts blown by D.E.T.</p>
-                            <button class="btn btn-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#negativeOfferModal" style="font-weight: 600;">
-                                <i class="bi bi-gift-fill me-1"></i> View Blown Accounts & Issue Free Week
-                            </button>
-                        </div>
+                        <button class="btn btn-warning btn-sm w-100 mt-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#negativeOfferModal" style="border-radius: 10px;">
+                            <i class="bi bi-gift-fill me-1"></i> Issue Free Week Pass
+                        </button>
+                    </div>
+
+                    <div class="glass-card">
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-graph-up-arrow me-2" style="color: #10b981;"></i>Positive Logouts</h5>
+                        <p class="text-secondary small mb-3">Profitable completions (100% gain)</p>
+
+                        <% if(positiveLogouts && positiveLogouts.length > 0) { %>
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                <% positiveLogouts.forEach(acc => { %>
+                                    <div class="mini-row">
+                                        <div>
+                                            <div class="fw-bold text-white" style="font-size: 13px;"><%= acc.username %></div>
+                                            <small style="color: #64748b;"><%= acc.tier %> · +$<%= acc.profit.toLocaleString() %></small>
+                                        </div>
+                                        <span class="status-badge" style="background: rgba(16,185,129,0.12); color: #10b981 !important; border: 1px solid rgba(16,185,129,0.25);">
+                                            +$<%= acc.profit.toLocaleString() %>
+                                        </span>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state" style="padding: 24px;">
+                                <i class="bi bi-emoji-smile"></i>
+                                <strong>No Profitable Completions Yet</strong>
+                                <span>Accounts that successfully double will appear here.</span>
+                            </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
 
-      
-
-        <!-- POSITIVE LOGOUTS (beside negative) -->
-        <div class="col-xl-4 col-lg-5" id="positive-logouts">
-            <div class="glass-card">
-                <h5 class="fw-bold mb-1 text-white"><i class="bi bi-graph-up-arrow me-2" style="color: #22c55e !important;"></i>Positive Logouts</h5>
-                <p class="text-secondary small mb-3">Profitable accounts that successfully doubled their capital (100% gain).</p>
-
-                <% if(positiveLogouts && positiveLogouts.length > 0) { %>
-                    <div style="max-height: 380px; overflow-y: auto;">
-                        <% positiveLogouts.forEach(acc => { %>
-                            <div class="mini-row">
-                                <div>
-                                    <div class="fw-bold text-white" style="font-size: 13.5px;"><%= acc.username %></div>
-                                    <small style="color: #94a3b8;"><%= acc.tier %> · $<%= acc.startingBalance.toLocaleString() %> → $<%= acc.targetBalance.toLocaleString() %></small>
-                                </div>
-                                <span class="status-badge" style="background: rgba(34, 197, 94, 0.15); color: #22c55e !important; border: 1px solid rgba(34, 197, 94, 0.3);">
-                                    +$<%= acc.profit.toLocaleString() %>
-                                </span>
-                            </div>
-                        <% }) %>
-                    </div>
-                <% } else { %>
-                    <div class="empty-state">
-                        <i class="bi bi-emoji-smile"></i>
-                        <strong>No profitable completions yet</strong>
-                        <span>Accounts that successfully double will appear here.</span>
-                    </div>
-                <% } %>
-            </div>
-        </div>
-
-        <div class="row g-4 mb-4">
-            <!-- =========================================
-                 TOP EARNERS + TOP AFFILIATES
-            ========================================= -->
-
-            <!-- =========================================
-                 TOP EARNERS + TOP AFFILIATES
-            ========================================= -->
+            <!-- TOP EARNERS + AFFILIATES -->
+            <div id="top-earners"></div>
             <div class="row g-4 mb-4">
-                <div class="col-xl-6" id="top-earners">
+                <div class="col-xl-6">
                     <div class="glass-card">
-                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-trophy text-accent me-2"></i>Top Earners Awards</h5>
-                        <p class="text-secondary small mb-3">Highest verified revenue per licensed account.</p>
+                        <h5 class="fw-bold mb-1 text-white"><i class="bi bi-trophy-fill me-2" style="color: #f59e0b;"></i>Top Earners Awards</h5>
+                        <p class="text-secondary small mb-3">Highest verified revenue per licensed account</p>
 
                         <% if(topEarners && topEarners.length > 0) { %>
                             <div>
                                 <% topEarners.forEach((earner, i) => { %>
                                     <div class="mini-row">
                                         <div class="d-flex align-items-center gap-3">
-                                            <span class="rank-badge <%= i === 0 ? 'rank-1' : '' %>">#<%= i + 1 %></span>
+                                            <span class="rank-badge <%= i < 3 ? 'rank-' + (i+1) : '' %>">#<%= i + 1 %></span>
                                             <div>
-                                                <div class="fw-bold text-white" style="font-size: 13.5px;"><%= earner.username %></div>
-                                                <small style="color: #94a3b8;"><%= earner.tier %> · <%= earner.country %></small>
+                                                <div class="fw-bold text-white" style="font-size: 13px;"><%= earner.username %></div>
+                                                <small style="color: #64748b;"><%= earner.tier %> · <%= earner.country %></small>
                                             </div>
                                         </div>
-                                        <span class="fw-bold text-accent">$<%= earner.revenue.toLocaleString() %></span>
+                                        <span class="fw-bold" style="color: var(--det-green);">$<%= earner.revenue.toLocaleString() %></span>
                                     </div>
                                 <% }) %>
                             </div>
                         <% } else { %>
                             <div class="empty-state">
                                 <i class="bi bi-trophy"></i>
-                                <strong>No revenue-generating accounts yet</strong>
-                                <span>The leaderboard fills in automatically as Paynow payments are confirmed.</span>
+                                <strong>Leaderboard Empty</strong>
+                                <span>Fills automatically as payments are confirmed.</span>
                             </div>
                         <% } %>
                     </div>
@@ -650,37 +950,37 @@
                 <div class="col-xl-6" id="affiliates">
                     <div class="glass-card">
                         <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-diagram-3 text-accent me-2"></i>Top Affiliates Awards</h5>
-                            <span class="badge text-dark" style="background: #cbd5e1 !important; font-size: 10px;">ENGINE v2</span>
+                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-diagram-3-fill me-2" style="color: var(--det-purple);"></i>Top Affiliates</h5>
+                            <span class="badge badge-beta">ENGINE v2</span>
                         </div>
-                        <p class="text-secondary small mb-3">Referral performance & total payouts.</p>
+                        <p class="text-secondary small mb-3">Referral performance & total payouts</p>
 
                         <% if(topAffiliates && topAffiliates.length > 0) { %>
                             <div>
                                 <% topAffiliates.forEach((aff, i) => { %>
                                     <div class="mini-row">
                                         <div class="d-flex align-items-center gap-3">
-                                            <span class="rank-badge <%= i === 0 ? 'rank-1' : '' %>">#<%= i + 1 %></span>
+                                            <span class="rank-badge <%= i < 3 ? 'rank-' + (i+1) : '' %>">#<%= i + 1 %></span>
                                             <div>
-                                                <div class="fw-bold text-white" style="font-size: 13.5px;"><%= aff.username %></div>
-                                                <small style="color: #94a3b8;"><%= aff.referrals %> referrals</small>
+                                                <div class="fw-bold text-white" style="font-size: 13px;"><%= aff.username %></div>
+                                                <small style="color: #64748b;"><%= aff.referrals %> referrals</small>
                                             </div>
                                         </div>
-                                        <span class="fw-bold text-accent">$<%= aff.commission.toLocaleString() %></span>
+                                        <span class="fw-bold" style="color: var(--det-green);">$<%= aff.commission.toLocaleString() %></span>
                                     </div>
                                 <% }) %>
                             </div>
                         <% } else { %>
                             <div class="empty-state">
                                 <i class="bi bi-diagram-3"></i>
-                                <strong>Affiliate Architecture Pending Deployment</strong>
-                                <span>This panel is wired for live data and will populate the moment referral tracking is enabled network-wide.</span>
+                                <strong>Affiliate Engine Pending</strong>
+                                <span>Wired for live data — activates on first referral.</span>
                             </div>
                         <% } %>
 
                         <div class="mt-3 pt-3 border-top" style="border-color: var(--det-border) !important;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-secondary small">Total Affiliate Payouts:</span>
+                                <span class="text-secondary small">Total Payouts:</span>
                                 <span class="fw-bold" style="color: var(--det-green);">$<%= stats.totalAffiliatePayouts.toLocaleString() %></span>
                             </div>
                         </div>
@@ -688,33 +988,30 @@
                 </div>
             </div>
 
-            <!-- =========================================
-                 PARTICIPANT LEDGER (with terminal status)
-            ========================================= -->
+            <!-- PARTICIPANT LEDGER WITH PAGINATION -->
             <div class="row" id="ledger">
                 <div class="col-12">
                     <div class="glass-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 border-bottom pb-3" style="border-color: var(--det-border) !important;">
-                            <h5 class="fw-bold m-0 text-white"><i class="bi bi-database text-accent me-2"></i>Participant Ledger</h5>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <div class="search-wrap">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                            <div>
+                                <h5 class="fw-bold m-0 text-white"><i class="bi bi-database me-2" style="color: var(--det-green);"></i>Participant Ledger</h5>
+                                <small style="color: #64748b; font-size: 11px;">Complete network registry</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <div class="search-box">
                                     <i class="bi bi-search"></i>
-                                    <input type="text" id="ledgerSearch" class="ledger-search" placeholder="Search username or email...">
+                                    <input type="text" id="ledgerSearch" class="search-input" placeholder="Search by username or email...">
                                 </div>
-                                <button id="exportCsvBtn" class="btn btn-sm btn-outline-light text-white" style="border-color: var(--det-border);">
+                                <button id="exportCsvBtn" class="btn btn-sm" style="background: var(--det-card); border: 1px solid var(--det-border); color: #94a3b8; border-radius: 10px; padding: 10px 16px; font-weight: 500; transition: all var(--transition-speed);">
                                     <i class="bi bi-download me-1"></i> Export CSV
                                 </button>
                             </div>
                         </div>
 
-                        <div class="swipe-hint">
-                            <i class="bi bi-arrow-left-right"></i> Swipe table to see more
-                        </div>
-                        
-                        <div class="table-responsive-wrapper">
+                        <div class="table-container">
                             <div class="table-responsive">
                                 <table class="table align-middle mb-0" id="participantTable">
-                                    <thead class="table-dark-custom">
+                                    <thead>
                                         <tr>
                                             <th>Participant</th>
                                             <th>Status</th>
@@ -722,163 +1019,105 @@
                                             <th>Integration ID</th>
                                             <th>D.E.T Plan</th>
                                             <th>Cycle Expires</th>
-                                            <th class="text-end">Command Controls</th>
+                                            <th class="text-end">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="ledgerTableBody">
                                         <% users.forEach(client => { %>
                                             <%
-                                                // Determine terminal active status
                                                 let isTerminalActive = false;
                                                 if (client.licenseKey && !client.isSuspended && !client.accountLocked) {
                                                     const now = new Date();
                                                     const expiry = new Date(client.licenseExpiry);
                                                     if (expiry > now) isTerminalActive = true;
                                                 }
+                                                
+                                                let statusClass = 'bg-det-slate';
+                                                let statusText = 'UNLICENSED';
+                                                if(client.accountLocked) { statusClass = 'bg-det-red'; statusText = 'ZERO-HEDGE LOCK'; }
+                                                else if(client.isSuspended) { statusClass = 'bg-det-warn'; statusText = 'BANNED'; }
+                                                else if(new Date() > new Date(client.licenseExpiry) && client.licenseKey) { statusClass = 'bg-det-slate'; statusText = 'EXPIRED'; }
+                                                else if(client.licenseKey) { statusClass = 'bg-det-green'; statusText = 'ACTIVE'; }
                                             %>
-                                            <tr data-search="<%= (client.username + ' ' + (client.email || '')).toLowerCase() %>">
+                                            <tr data-search="<%= (client.username + ' ' + (client.email || '')).toLowerCase() %>" data-status="<%= statusText.toLowerCase() %>">
                                                 <td>
-                                                    <div class="fw-bold text-white fs-6"><%= client.username %></div>
-                                                    <small style="color: #cbd5e1 !important;"><%= client.email %></small>
+                                                    <div class="fw-bold text-white" style="font-size: 14px;"><%= client.username %></div>
+                                                    <small style="color: #64748b;"><%= client.email || 'N/A' %></small>
                                                 </td>
                                                 <td>
-                                                    <% if(client.accountLocked) { %> 
-                                                        <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444 !important;">ZERO-HEDGE LOCK</span>
-                                                    <% } else if(client.isSuspended) { %> 
-                                                        <span class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b !important;">BANNED</span>
-                                                    <% } else if(new Date() > new Date(client.licenseExpiry)) { %> 
-                                                        <span class="status-badge" style="background: rgba(100, 116, 139, 0.3); color: #cbd5e1 !important;">EXPIRED</span>
-                                                    <% } else if(client.licenseKey) { %> 
-                                                        <span class="status-badge" style="background: rgba(176, 191, 150, 0.2); color: var(--det-green) !important;">ACTIVE</span>
-                                                    <% } else { %> 
-                                                        <span class="status-badge" style="background: #475569; color: #fff !important;">UNLICENSED</span> 
-                                                    <% } %>
+                                                    <span class="status-badge <%= statusClass %>">
+                                                        <span class="status-dot" style="background: currentColor;"></span><%= statusText %>
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <% if(isTerminalActive) { %>
-                                                        <span class="terminal-active"><i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i> Active</span>
+                                                        <span class="terminal-active"><i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i> Active</span>
                                                     <% } else { %>
-                                                        <span class="terminal-inactive"><i class="bi bi-circle me-1" style="font-size: 8px;"></i> Offline</span>
+                                                        <span class="terminal-inactive"><i class="bi bi-circle me-1" style="font-size: 6px;"></i> Offline</span>
                                                     <% } %>
                                                 </td>
                                                 <td><span class="code-pill"><%= client.licenseKey || '---' %></span></td>
-                                                <td><span class="badge border text-white fs-6" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= client.currentTier || 'None' %></span></td>
-                                                <td class="fw-semibold <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : 'text-white' %>">
-                                                    <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %>
+                                                <td><span class="badge border text-white" style="background: #0a0a0a; border-color: var(--det-border) !important; padding: 6px 12px; font-size: 12px; font-weight: 500; border-radius: 8px;"><%= client.currentTier || 'None' %></span></td>
+                                                <td class="fw-semibold <%= new Date() > new Date(client.licenseExpiry) && client.licenseKey ? 'text-danger' : 'text-white' %>" style="font-size: 13px;">
+                                                    <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %>
                                                 </td>
                                                 <td class="text-end">
-                                                    <div class="d-flex justify-content-end gap-2">
-                                                        
-                                                        <!-- DETAILS BUTTON (opens participant detail modal) -->
-                                                        <button class="action-btn btn-details" data-bs-toggle="modal" data-bs-target="#detailModal<%= client._id %>" title="View Details & Equity">
+                                                    <div class="action-group">
+                                                        <button class="action-btn btn-details" title="View Details" data-bs-toggle="modal" data-bs-target="#detailModal<%= client._id %>">
                                                             <i class="bi bi-info-circle-fill"></i>
                                                         </button>
-
-                                                        <button class="action-btn btn-manage" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" title="Manage License">
+                                                        <button class="action-btn btn-manage" title="Manage License" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>">
                                                             <i class="bi bi-key-fill"></i>
                                                         </button>
-
                                                         <% if(client.licenseKey) { %>
                                                             <form action="/admin/suspend-license/<%= client._id %>" method="POST" class="d-inline">
-                                                                <button type="submit" class="action-btn btn-ban" title="<%= client.isSuspended ? 'Unban Account' : 'Ban Account' %>">
+                                                                <button type="submit" class="action-btn btn-ban" title="<%= client.isSuspended ? 'Unban' : 'Ban' %> Account">
                                                                     <i class="bi <%= client.isSuspended ? 'bi-shield-check' : 'bi-shield-lock-fill' %>"></i>
                                                                 </button>
                                                             </form>
                                                         <% } %>
-
-                                                        <button class="action-btn btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal<%= client._id %>" title="Delete Participant">
+                                                        <button class="action-btn btn-delete" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteModal<%= client._id %>">
                                                             <i class="bi bi-trash3-fill"></i>
                                                         </button>
-
                                                     </div>
                                                 </td>
                                             </tr>
 
-                                            <!-- PARTICIPANT DETAIL MODAL (Equity & Info) -->
+                                            <!-- Detail Modal -->
                                             <div class="modal fade" id="detailModal<%= client._id %>" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title fw-bold text-white"><i class="bi bi-person-badge me-2"></i><%= client.username %> — Participant Dossier</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            <h5 class="modal-title fw-bold text-white"><i class="bi bi-person-badge me-2"></i><%= client.username %> — Dossier</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                         </div>
                                                         <div class="modal-body">
                                                             <div class="row g-4">
                                                                 <div class="col-md-6">
-                                                                    <h6 class="fw-bold text-white mb-3">Account Information</h6>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Username</span>
-                                                                        <span class="detail-value"><%= client.username %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Email</span>
-                                                                        <span class="detail-value"><%= client.email || 'N/A' %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">WhatsApp</span>
-                                                                        <span class="detail-value"><%= client.whatsapp || 'N/A' %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Country</span>
-                                                                        <span class="detail-value"><%= (client.country && client.country.trim()) || 'Unknown' %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">D.E.T Plan</span>
-                                                                        <span class="detail-value"><%= client.currentTier || 'None' %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Integration ID</span>
-                                                                        <span class="detail-value"><%= client.licenseKey || 'Not Issued' %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">License Expiry</span>
-                                                                        <span class="detail-value <%= new Date() > new Date(client.licenseExpiry) ? 'text-danger' : '' %>">
-                                                                            <%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %>
-                                                                        </span>
-                                                                    </div>
+                                                                    <h6 class="fw-bold text-white mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b;">Account Information</h6>
+                                                                    <div class="detail-row"><span class="detail-label">Username</span><span class="detail-value"><%= client.username %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><%= client.email || 'N/A' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">WhatsApp</span><span class="detail-value"><%= client.whatsapp || 'N/A' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Country</span><span class="detail-value"><%= (client.country && client.country.trim()) || 'Unknown' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">D.E.T Plan</span><span class="detail-value"><%= client.currentTier || 'None' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Integration ID</span><span class="detail-value"><%= client.licenseKey || 'Not Issued' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">License Expiry</span><span class="detail-value <%= new Date() > new Date(client.licenseExpiry) && client.licenseKey ? 'text-danger' : '' %>"><%= client.licenseExpiry ? new Date(client.licenseExpiry).toLocaleDateString() : 'N/A' %></span></div>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <h6 class="fw-bold text-white mb-3">Equity & Trading Stats</h6>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Starting Balance</span>
-                                                                        <span class="detail-value">$<%= (Number(client.startingBalance) || 0).toLocaleString() %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Target Balance (2x)</span>
-                                                                        <span class="detail-value">$<%= (Number(client.targetBalance) || 0).toLocaleString() %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Prepayment Amount</span>
-                                                                        <span class="detail-value">$<%= (Number(client.prepaymentAmount) || 0).toLocaleString() %></span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Account Locked</span>
-                                                                        <span class="detail-value <%= client.accountLocked ? 'text-danger' : 'text-success' %>">
-                                                                            <%= client.accountLocked ? 'YES — Zero-Hedge' : 'No' %>
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Suspended</span>
-                                                                        <span class="detail-value <%= client.isSuspended ? 'text-warning' : 'text-success' %>">
-                                                                            <%= client.isSuspended ? 'BANNED' : 'Clear' %>
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Terminal Status</span>
-                                                                        <span class="detail-value <%= isTerminalActive ? 'text-success' : '' %>">
-                                                                            <%= isTerminalActive ? 'Active & Trading' : 'Offline' %>
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="detail-row">
-                                                                        <span class="detail-label">Registered</span>
-                                                                        <span class="detail-value"><%= client._id.getTimestamp().toLocaleDateString() %></span>
-                                                                    </div>
+                                                                    <h6 class="fw-bold text-white mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b;">Equity & Trading</h6>
+                                                                    <div class="detail-row"><span class="detail-label">Starting Balance</span><span class="detail-value">$<%= (Number(client.startingBalance) || 0).toLocaleString() %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Target Balance</span><span class="detail-value">$<%= (Number(client.targetBalance) || 0).toLocaleString() %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Prepayment</span><span class="detail-value">$<%= (Number(client.prepaymentAmount) || 0).toLocaleString() %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Account Locked</span><span class="detail-value <%= client.accountLocked ? 'text-danger' : 'text-success' %>"><%= client.accountLocked ? 'YES' : 'No' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Suspended</span><span class="detail-value <%= client.isSuspended ? 'text-warning' : 'text-success' %>"><%= client.isSuspended ? 'BANNED' : 'Clear' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Terminal</span><span class="detail-value <%= isTerminalActive ? 'text-success' : '' %>"><%= isTerminalActive ? 'Active' : 'Offline' %></span></div>
+                                                                    <div class="detail-row"><span class="detail-label">Registered</span><span class="detail-value"><%= client._id.getTimestamp().toLocaleDateString() %></span></div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Close</button>
-                                                            <button type="button" class="btn btn-det" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" data-bs-dismiss="modal">
+                                                            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Close</button>
+                                                            <button type="button" class="btn-det" data-bs-toggle="modal" data-bs-target="#manageModal<%= client._id %>" data-bs-dismiss="modal">
                                                                 <i class="bi bi-key-fill me-1"></i> Manage License
                                                             </button>
                                                         </div>
@@ -886,75 +1125,86 @@
                                                 </div>
                                             </div>
 
-                                            <!-- MANAGE LICENSE MODAL -->
+                                            <!-- Manage License Modal -->
                                             <div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title fw-bold text-white">Manage D.E.T Access</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                         </div>
                                                         <form action="/admin/generate-license/<%= client._id %>" method="POST">
                                                             <div class="modal-body">
-                                                                <p class="mb-4" style="color: #cbd5e1; font-size: 14px;">You are generating a new secure key for <strong class="text-white"><%= client.username %></strong>. This will override their current access.</p>
-                                                                
-                                                                <div class="mb-3 text-start">
-                                                                    <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Select Trading Level</label>
+                                                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Generating a new key for <strong class="text-white"><%= client.username %></strong>.</p>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px;">Trading Level</label>
                                                                     <select class="form-select" name="tierLevel" required>
-                                                                        <option value="Amber" <%= client.currentTier == 'Amber' ? 'selected' : '' %>>Amber (No Trading)</option>
-                                                                        <option value="Amethyst" <%= client.currentTier == 'Amethyst' ? 'selected' : '' %>>Amethyst ($50 - $199)</option>
-                                                                        <option value="Topaz" <%= client.currentTier == 'Topaz' ? 'selected' : '' %>>Topaz ($200 - $1K)</option>
-                                                                        <option value="Tanzanite" <%= client.currentTier == 'Tanzanite' ? 'selected' : '' %>>Tanzanite ($1K - $10K)</option>
-                                                                        <option value="Sapphire" <%= client.currentTier == 'Sapphire' ? 'selected' : '' %>>Sapphire ($10K - $100K)</option>
-                                                                        <option value="Emerald" <%= client.currentTier == 'Emerald' ? 'selected' : '' %>>Emerald ($100K - $1M)</option>
+                                                                        <% ['Amber', 'Amethyst', 'Topaz', 'Tanzanite', 'Sapphire', 'Emerald'].forEach(tier => { %>
+                                                                            <option value="<%= tier %>" <%= client.currentTier == tier ? 'selected' : '' %>><%= tier %></option>
+                                                                        <% }) %>
                                                                     </select>
                                                                 </div>
-
-                                                                <div class="mb-3 text-start">
-                                                                    <label class="form-label fw-bold small text-uppercase" style="color: var(--det-green) !important;">Duration (Days)</label>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px;">Duration (Days)</label>
                                                                     <input type="number" name="durationDays" class="form-control" value="30" required>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
-                                                                <button type="submit" class="btn btn-det"><i class="bi bi-lightning-charge-fill me-1"></i> Issue Key</button>
+                                                                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Cancel</button>
+                                                                <button type="submit" class="btn-det"><i class="bi bi-lightning-charge-fill me-1"></i> Issue Key</button>
                                                             </div>
                                                         </form>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- DELETE MODAL -->
+                                            <!-- Delete Modal -->
                                             <div class="modal fade" id="deleteModal<%= client._id %>" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered">
-                                                    <div class="modal-content" style="border-color: #ef4444;">
-                                                        <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.2);">
+                                                    <div class="modal-content" style="border-color: rgba(239,68,68,0.3);">
+                                                        <div class="modal-header" style="border-bottom-color: rgba(239,68,68,0.1);">
                                                             <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                         </div>
-                                                        <div class="modal-body text-start">
-                                                            <p style="color: #cbd5e1; font-size: 14px;">Are you sure you want to completely delete <strong class="text-white"><%= client.username %></strong> from the network?</p>
-                                                            <p class="text-danger small mb-0 fw-bold">This action cannot be undone, and their EA will immediately disconnect.</p>
+                                                        <div class="modal-body">
+                                                            <p style="color: #94a3b8; font-size: 14px;">Delete <strong class="text-white"><%= client.username %></strong> permanently?</p>
+                                                            <p class="text-danger small mb-0 fw-bold">This is irreversible. Their EA will disconnect immediately.</p>
                                                         </div>
-                                                        <div class="modal-footer" style="border-top-color: rgba(239, 68, 68, 0.2);">
-                                                            <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Cancel</button>
+                                                        <div class="modal-footer" style="border-top-color: rgba(239,68,68,0.1);">
+                                                            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Cancel</button>
                                                             <form action="/admin/delete-user/<%= client._id %>" method="POST">
-                                                                <button type="submit" class="btn btn-danger">Yes, Nuke Account</button>
+                                                                <button type="submit" class="btn btn-danger" style="border-radius: 10px;">Nuke Account</button>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
                                         <% }) %>
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!-- Pagination -->
+                            <div class="pagination-container" id="paginationContainer">
+                                <div class="pagination-info">
+                                    Showing <span id="showingStart">0</span>-<span id="showingEnd">0</span> of <span id="totalRecords">0</span> participants
+                                </div>
+                                <div class="pagination-controls">
+                                    <select class="page-size-select" id="pageSizeSelect">
+                                        <option value="10">10 per page</option>
+                                        <option value="25">25 per page</option>
+                                        <option value="50">50 per page</option>
+                                        <option value="100">100 per page</option>
+                                    </select>
+                                    <div class="pagination" id="pagination"></div>
+                                </div>
+                            </div>
                         </div>
+                        
                         <div id="noResultsMsg" class="empty-state" style="display: none;">
                             <i class="bi bi-search"></i>
                             <strong>No matches found</strong>
-                            <span>Try a different username or email.</span>
+                            <span>Try a different search term.</span>
                         </div>
                     </div>
                 </div>
@@ -963,20 +1213,16 @@
         </div>
     </main>
 
-    <!-- NEGATIVE ACCOUNT OFFER SERVICE MODAL -->
+    <!-- Negative Account Offer Modal -->
     <div class="modal fade" id="negativeOfferModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold text-white"><i class="bi bi-gift-fill me-2" style="color: var(--det-amber);"></i>Negative Account Offer Service</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-secondary mb-4">These accounts have been locked by the Negative-Zero-Hedge protocol after losing their starting balance. You can grant them a 1-week free access pass to continue trading.
-
-
-When a participant loses all their float in their trading account using D.E.T, they'll appear here for the free week offer, valid for two months
-</p>
+                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 24px;">Accounts locked by Zero-Hedge protocol. Grant 1-week free access to continue trading.</p>
                     
                     <% 
                     let blownAccounts = users.filter(c => c.accountLocked);
@@ -984,12 +1230,12 @@ When a participant loses all their float in their trading account using D.E.T, t
                     %>
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
-                                <thead style="background: #111;">
+                                <thead style="background: #0a0a0a;">
                                     <tr>
-                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Participant</th>
-                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Tier</th>
-                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Start → Target</th>
-                                        <th style="color: #cbd5e1; font-size: 11px; text-transform: uppercase;">Action</th>
+                                        <th style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Participant</th>
+                                        <th style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Tier</th>
+                                        <th style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Balance Range</th>
+                                        <th style="color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -997,14 +1243,14 @@ When a participant loses all their float in their trading account using D.E.T, t
                                         <tr>
                                             <td>
                                                 <div class="fw-bold text-white"><%= acc.username %></div>
-                                                <small style="color: #94a3b8;"><%= acc.email %></small>
+                                                <small style="color: #64748b;"><%= acc.email %></small>
                                             </td>
-                                            <td><span class="badge border text-white" style="background: var(--det-dark); border-color: var(--det-border) !important;"><%= acc.currentTier || 'None' %></span></td>
-                                            <td class="text-white">$<%= (Number(acc.startingBalance) || 0).toLocaleString() %> → $<%= (Number(acc.targetBalance) || 0).toLocaleString() %></td>
+                                            <td><span class="badge border text-white" style="background: #0a0a0a; border-color: var(--det-border) !important;"><%= acc.currentTier || 'None' %></span></td>
+                                            <td style="color: #e2e8f0;">$<%= (Number(acc.startingBalance) || 0).toLocaleString() %> → $<%= (Number(acc.targetBalance) || 0).toLocaleString() %></td>
                                             <td>
                                                 <form action="/admin/offer-free-week/<%= acc._id %>" method="POST">
-                                                    <button type="submit" class="btn btn-warning btn-sm" style="font-weight: 600;">
-                                                        <i class="bi bi-gift me-1"></i> Grant 1-Week Free
+                                                    <button type="submit" class="btn btn-warning btn-sm fw-semibold" style="border-radius: 8px;">
+                                                        <i class="bi bi-gift me-1"></i> Grant Free Week
                                                     </button>
                                                 </form>
                                             </td>
@@ -1016,13 +1262,13 @@ When a participant loses all their float in their trading account using D.E.T, t
                     <% } else { %>
                         <div class="empty-state">
                             <i class="bi bi-shield-check"></i>
-                            <strong>No blown accounts</strong>
-                            <span>when participant losses their trading float, they'll appear here for the free week offer.</span>
+                            <strong>No Blown Accounts</strong>
+                            <span>Locked accounts will appear here automatically.</span>
                         </div>
                     <% } %>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-light text-white" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Close</button>
                 </div>
             </div>
         </div>
@@ -1030,236 +1276,473 @@ When a participant loses all their float in their trading account using D.E.T, t
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sidebar Toggle
-        // Sidebar Toggle with backdrop
+        // ==========================================
+        // SAFE DATA PARSING - Ensures data exists even if server doesn't send it
+        // ==========================================
+        const registrationTrend = <%- JSON.stringify(registrationTrend || []) %>;
+        const revenueByTier = <%- JSON.stringify(revenueByTier || []) %>;
+        const topAccountsByRegion = <%- JSON.stringify(topAccountsByRegion || []) %>;
+        const statusBreakdown = [
+            { label: 'Active', value: <%= stats.active || 0 %>, color: '#B0BF96' },
+            { label: 'Banned', value: <%= stats.suspended || 0 %>, color: '#f59e0b' },
+            { label: 'Locked', value: <%= stats.locked || 0 %>, color: '#ef4444' },
+            { label: 'Expired', value: <%= stats.expired || 0 %>, color: '#94a3b8' },
+            { label: 'Unlicensed', value: <%= stats.unlicensed || 0 %>, color: '#38bdf8' }
+        ];
+
+        // ==========================================
+        // SIDEBAR TOGGLE
+        // ==========================================
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
-
-        // Create backdrop element
         const backdrop = document.createElement('div');
         backdrop.className = 'sidebar-backdrop';
         document.body.appendChild(backdrop);
 
-        function openSidebar() {
-            sidebar.classList.add('show');
-            backdrop.classList.add('show');
-        }
+        function openSidebar() { sidebar.classList.add('show'); backdrop.classList.add('show'); }
+        function closeSidebar() { sidebar.classList.remove('show'); backdrop.classList.remove('show'); }
+        sidebarToggle.addEventListener('click', () => sidebar.classList.contains('show') ? closeSidebar() : openSidebar());
+        backdrop.addEventListener('click', closeSidebar);
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => link.addEventListener('click', closeSidebar));
 
-        function closeSidebar() {
-            sidebar.classList.remove('show');
-            backdrop.classList.remove('show');
-        }
+        // ==========================================
+        // CHARTS INITIALIZATION
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Registration Trend Chart
+            const regCtx = document.getElementById('registrationChart');
+            if (regCtx && registrationTrend.length > 0) {
+                new Chart(regCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: registrationTrend.map(d => {
+                            try {
+                                return new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                            } catch(e) {
+                                return d.date || '';
+                            }
+                        }),
+                        datasets: [{
+                            label: 'New Accounts',
+                            data: registrationTrend.map(d => d.count || 0),
+                            borderColor: '#B0BF96',
+                            backgroundColor: 'rgba(176, 191, 150, 0.1)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#B0BF96'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        scales: {
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { size: 11 } } 
+                            },
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(255,255,255,0.03)' }, 
+                                ticks: { precision: 0, font: { size: 11 } } 
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
 
-        sidebarToggle.addEventListener('click', function() {
-            if (sidebar.classList.contains('show')) {
-                closeSidebar();
-            } else {
-                openSidebar();
+            // Status Breakdown Chart
+            const statusCtx = document.getElementById('statusChart');
+            if (statusCtx) {
+                new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusBreakdown.map(d => d.label),
+                        datasets: [{
+                            data: statusBreakdown.map(d => d.value),
+                            backgroundColor: statusBreakdown.map(d => d.color),
+                            borderColor: '#141414',
+                            borderWidth: 4,
+                            hoverBorderColor: '#141414',
+                            hoverBorderWidth: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: { 
+                                callbacks: { 
+                                    label: function(ctx) {
+                                        return ' ' + ctx.label + ': ' + ctx.parsed + ' accounts';
+                                    } 
+                                } 
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Revenue Chart
+            const revCtx = document.getElementById('revenueChart');
+            if (revCtx && revenueByTier.length > 0) {
+                const colors = ['rgba(176,191,150,0.9)', 'rgba(56,189,248,0.8)', 'rgba(245,158,11,0.8)', 'rgba(167,139,250,0.8)', 'rgba(16,185,129,0.8)', 'rgba(239,68,68,0.7)'];
+                new Chart(revCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: revenueByTier.map(t => t.tier),
+                        datasets: [{
+                            label: 'Revenue (USD)',
+                            data: revenueByTier.map(t => t.revenue),
+                            backgroundColor: revenueByTier.map((_, i) => colors[i % colors.length]),
+                            borderRadius: 8,
+                            maxBarThickness: 48,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(255,255,255,0.03)' }, 
+                                ticks: { 
+                                    callback: function(v) { return '$' + v.toLocaleString(); }, 
+                                    font: { size: 11 } 
+                                } 
+                            }
+                        },
+                        plugins: { 
+                            legend: { display: false }, 
+                            tooltip: { 
+                                callbacks: { 
+                                    label: function(ctx) { return '$' + ctx.parsed.y.toLocaleString(); } 
+                                } 
+                            } 
+                        }
+                    }
+                });
+            }
+
+            // Region Chart
+            const regionCtx = document.getElementById('regionChart');
+            if (regionCtx && topAccountsByRegion.length > 0) {
+                new Chart(regionCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topAccountsByRegion.map(r => r.region),
+                        datasets: [{
+                            label: 'Accounts',
+                            data: topAccountsByRegion.map(r => r.count),
+                            backgroundColor: ['#B0BF96', '#38bdf8', '#f59e0b', '#a78bfa', '#94a3b8', '#10b981', '#ef4444'],
+                            borderRadius: 8,
+                            maxBarThickness: 32,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(255,255,255,0.03)' }, 
+                                ticks: { precision: 0, font: { size: 11 } } 
+                            },
+                            y: { 
+                                grid: { display: false }, 
+                                ticks: { font: { size: 11 } } 
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Live Equity Curve
+            const equityCtx = document.getElementById('equityChart');
+            if (equityCtx) {
+                window.equityChart = new Chart(equityCtx.getContext('2d'), {
+                    type: 'line',
+                    data: { 
+                        labels: Array(50).fill(''), 
+                        datasets: [{ 
+                            label: 'Master Equity', 
+                            data: Array(50).fill(0), 
+                            borderColor: '#B0BF96', 
+                            backgroundColor: 'rgba(176, 191, 150, 0.1)',
+                            borderWidth: 2, 
+                            fill: true, 
+                            tension: 0.3, 
+                            pointRadius: 0 
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        scales: { 
+                            x: { display: false }, 
+                            y: { 
+                                display: true, 
+                                grid: { color: 'rgba(255,255,255,0.03)' }, 
+                                ticks: { color: '#94a3b8', font: { size: 10 } } 
+                            } 
+                        }, 
+                        plugins: { legend: { display: false } }, 
+                        animation: { duration: 0 } 
+                    }
+                });
             }
         });
 
-        // Close sidebar when clicking backdrop
-        backdrop.addEventListener('click', closeSidebar);
-
-        // Close sidebar when clicking any nav link
-        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-            link.addEventListener('click', closeSidebar);
-        });
-
         // ==========================================
-        // LEDGER SEARCH / FILTER
+        // LEDGER PAGINATION SYSTEM
         // ==========================================
         const ledgerSearchInput = document.getElementById('ledgerSearch');
-        const ledgerRows = Array.from(document.querySelectorAll('#participantTable tbody tr[data-search]'));
+        const ledgerTableBody = document.getElementById('ledgerTableBody');
         const noResultsMsg = document.getElementById('noResultsMsg');
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const paginationDiv = document.getElementById('pagination');
+        const showingStart = document.getElementById('showingStart');
+        const showingEnd = document.getElementById('showingEnd');
+        const totalRecords = document.getElementById('totalRecords');
 
-        ledgerSearchInput.addEventListener('input', function() {
-            const term = this.value.trim().toLowerCase();
-            let visibleCount = 0;
-            ledgerRows.forEach(row => {
-                const matches = row.getAttribute('data-search').includes(term);
-                row.classList.toggle('row-hidden', !matches);
-                if (matches) visibleCount++;
-            });
-            noResultsMsg.style.display = (term.length > 0 && visibleCount === 0) ? 'flex' : 'none';
-        });
+        let currentPage = 1;
+        let pageSize = 10;
+        let allRows = [];
+        let filteredRows = [];
 
-        // CSV Export Function
-        document.getElementById('exportCsvBtn').addEventListener('click', function() {
-            let csv = [];
-            let rows = document.querySelectorAll("#participantTable tr");
-            for (let i = 0; i < rows.length; i++) {
-                if (rows[i].classList.contains('row-hidden')) continue;
-                let row = [], cols = rows[i].querySelectorAll("td, th");
-                for (let j = 0; j < cols.length - 1; j++) { 
-                    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
-                    row.push('"' + data.replace(/"/g, '""') + '"');
+        // Initialize: grab all rows from the table
+        if (ledgerTableBody) {
+            allRows = Array.from(ledgerTableBody.querySelectorAll('tr[data-search]'));
+            filteredRows = [...allRows];
+        }
+
+        function updatePagination() {
+            const total = filteredRows.length;
+            const totalPages = Math.ceil(total / pageSize);
+            const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, total);
+
+            // Update info text
+            if (showingStart) showingStart.textContent = start;
+            if (showingEnd) showingEnd.textContent = end;
+            if (totalRecords) totalRecords.textContent = total;
+
+            // Show/hide rows
+            allRows.forEach(row => row.classList.add('row-hidden'));
+            filteredRows.forEach((row, i) => {
+                if (i >= (currentPage - 1) * pageSize && i < currentPage * pageSize) {
+                    row.classList.remove('row-hidden');
                 }
-                csv.push(row.join(","));
+            });
+
+            // Build pagination buttons
+            if (paginationDiv) {
+                paginationDiv.innerHTML = '';
+                
+                // Previous button
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'page-btn';
+                prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        updatePagination();
+                    }
+                });
+                paginationDiv.appendChild(prevBtn);
+
+                // Page numbers
+                const maxVisible = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                if (endPage - startPage < maxVisible - 1) {
+                    startPage = Math.max(1, endPage - maxVisible + 1);
+                }
+
+                if (startPage > 1) {
+                    const firstBtn = document.createElement('button');
+                    firstBtn.className = 'page-btn';
+                    firstBtn.textContent = '1';
+                    firstBtn.addEventListener('click', () => {
+                        currentPage = 1;
+                        updatePagination();
+                    });
+                    paginationDiv.appendChild(firstBtn);
+                    
+                    if (startPage > 2) {
+                        const dots = document.createElement('span');
+                        dots.className = 'page-btn';
+                        dots.textContent = '...';
+                        dots.style.cursor = 'default';
+                        dots.style.pointerEvents = 'none';
+                        paginationDiv.appendChild(dots);
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                    pageBtn.textContent = i;
+                    pageBtn.addEventListener('click', () => {
+                        currentPage = i;
+                        updatePagination();
+                    });
+                    paginationDiv.appendChild(pageBtn);
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const dots = document.createElement('span');
+                        dots.className = 'page-btn';
+                        dots.textContent = '...';
+                        dots.style.cursor = 'default';
+                        dots.style.pointerEvents = 'none';
+                        paginationDiv.appendChild(dots);
+                    }
+                    
+                    const lastBtn = document.createElement('button');
+                    lastBtn.className = 'page-btn';
+                    lastBtn.textContent = totalPages;
+                    lastBtn.addEventListener('click', () => {
+                        currentPage = totalPages;
+                        updatePagination();
+                    });
+                    paginationDiv.appendChild(lastBtn);
+                }
+
+                // Next button
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'page-btn';
+                nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+                nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        updatePagination();
+                    }
+                });
+                paginationDiv.appendChild(nextBtn);
             }
-            let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
-            let downloadLink = document.createElement("a");
-            downloadLink.download = "DET_Participant_Ledger.csv";
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        });
+
+            // Show/hide no results message
+            if (noResultsMsg) {
+                const searchTerm = ledgerSearchInput ? ledgerSearchInput.value.trim() : '';
+                noResultsMsg.style.display = (filteredRows.length === 0 && searchTerm.length > 0) ? 'flex' : 'none';
+            }
+        }
+
+        // Search handler
+        if (ledgerSearchInput) {
+            ledgerSearchInput.addEventListener('input', function() {
+                const term = this.value.trim().toLowerCase();
+                filteredRows = allRows.filter(row => {
+                    const searchData = row.getAttribute('data-search') || '';
+                    return searchData.includes(term);
+                });
+                currentPage = 1;
+                updatePagination();
+            });
+        }
+
+        // Page size change handler
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value);
+                currentPage = 1;
+                updatePagination();
+            });
+        }
+
+        // Initial pagination
+        updatePagination();
 
         // ==========================================
-        // CHART.JS GLOBAL DEFAULTS (dark theme)
+        // CSV EXPORT
         // ==========================================
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.font.family = "'Poppins', sans-serif";
+        const exportBtn = document.getElementById('exportCsvBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                let csv = [];
+                const table = document.getElementById('participantTable');
+                if (!table) return;
+                
+                const rows = table.querySelectorAll('tr');
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].classList.contains('row-hidden')) continue;
+                    let row = [];
+                    const cols = rows[i].querySelectorAll('td, th');
+                    // Skip the last column (Actions)
+                    for (let j = 0; j < cols.length - 1; j++) { 
+                        let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
+                        row.push('"' + data.replace(/"/g, '""') + '"');
+                    }
+                    csv.push(row.join(','));
+                }
+                
+                if (csv.length === 0) return;
+                
+                const csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
+                const downloadLink = document.createElement('a');
+                downloadLink.download = 'DET_Participant_Ledger.csv';
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+        }
 
         // ==========================================
-        // SERVER-DERIVED DATA
+        // LIVE DATA POLLING
         // ==========================================
-        const registrationTrend = <%- JSON.stringify(registrationTrend) %>;
-        const revenueByTier = <%- JSON.stringify(revenueByTier) %>;
-        const topAccountsByRegion = <%- JSON.stringify(topAccountsByRegion) %>;
-        const totalAccounts = <%= stats.total %>;
-        const statusBreakdown = [
-            { label: 'Active', value: <%= stats.active %>, color: '#B0BF96' },
-            { label: 'Banned', value: <%= stats.suspended %>, color: '#f59e0b' },
-            { label: 'Zero-Hedge Locked', value: <%= stats.locked %>, color: '#ef4444' },
-            { label: 'Expired', value: <%= stats.expired %>, color: '#94a3b8' },
-            { label: 'Unlicensed', value: <%= stats.unlicensed %>, color: '#38bdf8' }
-        ];
-        // --- Registration Trend (Line) ---
-        new Chart(document.getElementById('registrationChart').getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: registrationTrend.map(d => new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-                datasets: [{
-                    label: 'New Accounts',
-                    data: registrationTrend.map(d => d.count),
-                    borderColor: '#B0BF96',
-                    backgroundColor: 'rgba(176, 191, 150, 0.12)',
-                    borderWidth: 2, fill: true, tension: 0.35, pointRadius: 0
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { precision: 0 } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // --- Account Status Breakdown (Doughnut) ---
-        new Chart(document.getElementById('statusChart').getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: statusBreakdown.map(d => d.label),
-                datasets: [{
-                    data: statusBreakdown.map(d => d.value),
-                    backgroundColor: statusBreakdown.map(d => d.color),
-                    borderColor: '#322C2C', borderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false, cutout: '68%',
-                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } } }
-            }
-        });
-
-        // --- Revenue by Tier (Bar) ---
-        <% if(revenueByTier && revenueByTier.length > 0) { %>
-        new Chart(document.getElementById('revenueChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: revenueByTier.map(t => t.tier),
-                datasets: [{
-                    label: 'Revenue (USD)',
-                    data: revenueByTier.map(t => t.revenue),
-                    backgroundColor: 'rgba(176, 191, 150, 0.75)',
-                    borderRadius: 6, maxBarThickness: 42
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v.toLocaleString() } }
-                },
-                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString() } } }
-            }
-        });
-        <% } %>
-
-        // --- Top Accounts by Region (Horizontal Bar) ---
-        <% if(topAccountsByRegion && topAccountsByRegion.length > 0) { %>
-        new Chart(document.getElementById('regionChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: topAccountsByRegion.map(r => r.region),
-                datasets: [{
-                    label: 'Accounts',
-                    data: topAccountsByRegion.map(r => r.count),
-                    backgroundColor: ['#B0BF96', '#38bdf8', '#f59e0b', '#a78bfa', '#94a3b8', '#ef4444', '#96a67c'],
-                    borderRadius: 6, maxBarThickness: 26
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { precision: 0 } },
-                    y: { grid: { display: false } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-        <% } %>
-
-        // --- Live Equity Curve ---
-        const equityChart = new Chart(document.getElementById('equityChart').getContext('2d'), {
-            type: 'line',
-            data: { 
-                labels: Array(50).fill(''), 
-                datasets: [{ 
-                    label: 'Master Equity', data: [], borderColor: '#B0BF96', backgroundColor: 'rgba(176, 191, 150, 0.1)', 
-                    borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 
-                }] 
-            },
-            options: { 
-                responsive: true, maintainAspectRatio: false,
-                scales: { 
-                    x: { display: false }, 
-                    y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } 
-                }, 
-                plugins: { legend: { display: false } }, animation: { duration: 0 } 
-            }
-        });
-
-        // Live Poll Data
         async function fetchAdminEAData() {
             try {
                 const res = await fetch('/api/public/ea-state');
                 const data = await res.json();
                 
-                document.getElementById('ea-symbol').innerText = data.symbol || '--';
-                document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : "0.00";
-                document.getElementById('ea-trend').innerText = data.trend || '--';
-                document.getElementById('ea-trades').innerText = data.openTrades || 0;
-                
+                const symbolEl = document.getElementById('ea-symbol');
+                const priceEl = document.getElementById('ea-price');
                 const trendEl = document.getElementById('ea-trend');
-                if(data.action && data.action.includes("Buy")) trendEl.style.color = "#B0BF96"; 
-                else if(data.action && data.action.includes("Sell")) trendEl.style.color = "#ef4444"; 
-                else trendEl.style.color = "#fff";
-
-                if(data.equityHistory && data.equityHistory.length > 0) {
-                    equityChart.data.datasets[0].data = data.equityHistory;
-                    equityChart.update();
+                const tradesEl = document.getElementById('ea-trades');
+                
+                if (symbolEl) symbolEl.innerText = data.symbol || '--';
+                if (priceEl) priceEl.innerText = data.price ? parseFloat(data.price).toFixed(5) : '0.00000';
+                if (trendEl) {
+                    trendEl.innerText = data.trend || '--';
+                    if (data.action && data.action.includes('Buy')) trendEl.style.color = '#10b981';
+                    else if (data.action && data.action.includes('Sell')) trendEl.style.color = '#ef4444';
+                    else trendEl.style.color = '#e2e8f0';
                 }
-            } catch (e) { console.error("Error fetching Master Data"); }
+                if (tradesEl) tradesEl.innerText = data.openTrades || 0;
+
+                if (window.equityChart && data.equityHistory && data.equityHistory.length > 0) {
+                    window.equityChart.data.datasets[0].data = data.equityHistory;
+                    window.equityChart.update('none');
+                }
+            } catch (e) {
+                console.error('Live feed error:', e);
+            }
         }
         setInterval(fetchAdminEAData, 2000);
-        fetchAdminEAData(); 
+        fetchAdminEAData();
+
+        console.log('%c🛡️ D.E.T Master Node Console v2.0.1 %c| %cSecure Session Active',
+            'color: #B0BF96; font-weight: bold; font-size: 14px;',
+            '',
+            'color: #94a3b8; font-size: 11px;');
     </script>
 </body>
 </html>
