@@ -993,7 +993,7 @@
             <div class="row g-4 mb-4">
                 <div class="col-xl-6">
                     <div class="glass-card">
-                        <h5 class="fw-bold mb-3 text-white" style="font-size: 18px;"><i class="bi bi-trophy-fill me-2" style="color: #f59e0b;"></i>Top Earners by Tier</h5>
+                        <h5 class="fw-bold mb-3 text-white" style="font-size: 18px;"><i class="bi bi-trophy-fill me-2" style="color: #f59e0b;"></i>Top 50 Earners Award by Tier</h5>
                         <p class="text-secondary small mb-3" style="font-size: 13px;">Highest verified revenue per licensed account</p>
                         
                         <div class="accordion" id="earnersAccordion">
@@ -1042,7 +1042,7 @@
                 <div class="col-xl-6" id="affiliates">
                     <div class="glass-card">
                         <div class="d-flex justify-content-between align-items-start mb-1">
-                            <h5 class="fw-bold m-0 text-white" style="font-size: 18px;"><i class="bi bi-diagram-3-fill me-2" style="color: var(--det-purple);"></i>Top Affiliates by Tier</h5>
+                            <h5 class="fw-bold m-0 text-white" style="font-size: 18px;"><i class="bi bi-diagram-3-fill me-2" style="color: var(--det-purple);"></i>Top 50 Affiliates Awards by Tier</h5>
                             <span class="badge badge-beta" style="font-size: 11px;">ENGINE v2</span>
                         </div>
                         <p class="text-secondary small mb-3" style="font-size: 13px;">Referral performance & total payouts</p>
@@ -1489,19 +1489,58 @@
                 });
             }
 
+        // Inside DOMContentLoaded, replace the existing revenue chart block:
             const revCtx = document.getElementById('revenueChart');
-            if (revCtx && revenueByTier.length > 0) {
-                const colors = ['rgba(176,191,150,0.9)', 'rgba(56,189,248,0.8)', 'rgba(245,158,11,0.8)', 'rgba(167,139,250,0.8)', 'rgba(16,185,129,0.8)', 'rgba(239,68,68,0.7)'];
+            if (revCtx) {
+                // Use the full tier list (from server) to display all tiers
+                const allTiers = tierList; // already available globally
+                const fullRevenueData = allTiers.map(tier => {
+                    const found = revenueByTier.find(r => r.tier === tier);
+                    return found ? found.revenue : 0;
+                });
+
+                // 13 distinct colours – one for each tier
+                const tierColors = [
+                    'rgba(176,191,150,0.9)', // Amber
+                    'rgba(56,189,248,0.8)',  // Amethyst
+                    'rgba(245,158,11,0.8)',  // Topaz
+                    'rgba(167,139,250,0.8)', // Tanzanite
+                    'rgba(16,185,129,0.8)',  // Sapphire
+                    'rgba(239,68,68,0.7)',   // Emerald
+                    'rgba(251,146,60,0.8)',  // Diamond
+                    'rgba(96,165,250,0.8)',  // Rhodium
+                    'rgba(192,132,252,0.8)', // Platinum
+                    'rgba(250,204,21,0.8)',  // Uranium
+                    'rgba(248,113,113,0.8)', // Atomic
+                    'rgba(148,163,184,0.8)', // Nuclear
+                    'rgba(34,197,94,0.8)'    // Solomonic
+                ];
+
                 new Chart(revCtx.getContext('2d'), {
                     type: 'bar',
                     data: {
-                        labels: revenueByTier.map(t => t.tier),
-                        datasets: [{ data: revenueByTier.map(t => t.revenue), backgroundColor: revenueByTier.map((_, i) => colors[i % colors.length]), borderRadius: 8, maxBarThickness: 48 }]
+                        labels: allTiers,
+                        datasets: [{
+                            data: fullRevenueData,
+                            backgroundColor: allTiers.map((_, i) => tierColors[i % tierColors.length]),
+                            borderRadius: 8,
+                            maxBarThickness: 48
+                        }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: { x: { grid: { display: false }, ticks: { font: { size: 11 } } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 12 } } } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.03)' },
+                                ticks: {
+                                    callback: v => '$' + v.toLocaleString(),
+                                    font: { size: 12 }
+                                }
+                            }
+                        },
                         plugins: { legend: { display: false } }
                     }
                 });

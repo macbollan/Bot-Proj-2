@@ -202,6 +202,30 @@
 
     .sticky-agreement-bar { position: sticky; bottom: 0; background: var(--det-card); border-top: 1px solid var(--det-border); padding: 16px 0 4px; margin-top: 20px; z-index: 5; }
 
+    /* New styles for the "What is D.E.T?" button */
+    .what-is-det-btn {
+        display: inline-block;
+        background: rgba(176,191,150,0.1);
+        border: 1px solid var(--det-border);
+        color: var(--det-green);
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s;
+        margin: 15px 0;
+        cursor: pointer;
+    }
+    .what-is-det-btn:hover {
+        background: rgba(176,191,150,0.2);
+        border-color: var(--det-green);
+        color: #fff;
+    }
+    .what-is-det-btn i {
+        margin-right: 6px;
+    }
+
     @media (max-width: 768px) {
         .mobile-notice-banner {
             padding: 18px 16px;
@@ -224,6 +248,10 @@
 <div class="container flex-grow-1">
     <div class="page-heading">
         <h2>Choose Your Subscription Level</h2>
+        <!-- "What is D.E.T?" button just below the heading -->
+        <button class="what-is-det-btn" data-bs-toggle="modal" data-bs-target="#whatIsDetModal">
+            <i class="bi bi-question-circle"></i> What is D.E.T? <span style="font-weight: 400; font-size: 12px; opacity: 0.7;">(click to know more)</span>
+        </button>
     </div>
 
 
@@ -241,7 +269,9 @@
             <span style="color: var(--det-green);">→</span>
             <span style="background: rgba(176,191,150,0.1); border-radius: 4px; padding: 3px 8px; font-weight: 600;">4. Attach to MT5</span>
             <span style="color: var(--det-green);">→</span>
-            <span style="background: rgba(176,191,150,0.15); border: 1px solid rgba(176,191,150,0.3); border-radius: 4px; padding: 3px 10px; font-weight: 700; ">5. Start Trading</span>
+            <span style="background: rgba(176,191,150,0.1); border-radius: 4px; padding: 3px 8px; font-weight: 600;">5. Start Trading manually</span>
+            <span style="color: var(--det-green);">→</span>
+            <span style="background: rgba(176,191,150,0.15); border: 1px solid rgba(176,191,150,0.3); border-radius: 4px; padding: 3px 10px; font-weight: 700; ">6. Automate</span>
         </div>
 
     </div>
@@ -448,6 +478,45 @@
         </div>
         <div class="warning-box">
             <p><strong>⚠️ Active Trades:</strong> If you upload D.E.T onto an active account with open trades, you run the risk of all trades being taken over by D.E.T. Some trades may be closed. Others may be trailed. While others put on preset SL or TP.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== "WHAT IS D.E.T?" MODAL ===== -->
+<div class="modal fade" id="whatIsDetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-cpu me-2" style="color: var(--det-green);"></i>What is D.E.T?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" style="color: #cbd5e1; line-height: 1.8; font-size: 14px;">
+                <h6 style="color: #fff; font-weight: 700; margin-bottom: 12px;">THE SIMPLEST POSSIBLE EXPLANATION</h6>
+                
+                <p><strong style="color: #fff;">If someone asks:</strong><br>
+                <em>"What is D.E.T?"</em></p>
+                
+                <p><strong style="color: var(--det-green);">D.E.T — Disruptive Exousia Thermostat —</strong> is a Data Analytics and Market Intelligence System that continuously analyses the markets you choose, transforms market data into actionable intelligence, and provides the tools to manage risk, make informed decisions and execute or automate authorised trading activity according to D.E.T's proprietary operating rules.</p>
+                
+                <p><strong style="color: #fff;">And if you ask:</strong><br>
+                <em>"What does that mean for me?"</em></p>
+                
+                <p>It means:</p>
+                
+                <ul style="list-style: none; padding: 0; margin: 10px 0;">
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> You choose the markets.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> You download and install CornerStore.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> CornerStore shows you what D.E.T is seeing.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> CornerStore alerts you when important market events occur.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> You can act through CornerStore when you choose to trade manually.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> D.E.T handles the complex processing behind your authorised instruction.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> Or, where automation applies, D.E.T can operate automatically on the markets you selected.</li>
+                    <li style="padding: 4px 0;"><i class="bi bi-check-circle-fill me-2" style="color: var(--det-green);"></i> And once your selected environment is deployed to the cloud, D.E.T can continue operating even when you are no longer sitting in front of your screen.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light w-100" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
