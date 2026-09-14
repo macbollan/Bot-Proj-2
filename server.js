@@ -369,11 +369,17 @@ app.post("/api/master/update", (req, res) => {
 
 
 // B. Public Endpoint — returns all symbols
+// B. Public Endpoint — returns all symbols
 app.get("/api/public/ea-state", (req, res) => {
     const symbol = req.query.symbol || eaBrainState.symbol;
     const state = eaBrainStates[symbol] || eaBrainState;
+    
+    // FIX: Define the 'trades' variable using the correct fallback logic
+    const trades = activeTradesBySymbol[symbol] || activeTradesList || [];
+
     res.json({
         ...state,
+        trades: trades,
         availableSymbols: Object.keys(eaBrainStates)
     });
 });

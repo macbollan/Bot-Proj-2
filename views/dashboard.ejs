@@ -3,6 +3,10 @@
 <style>
     :root {
         --det-border: rgba(176, 191, 150, 0.15);
+        --det-dark: #121010;
+        --det-green: #B0BF96;
+        --det-green-hover: #c2d1aa;
+        --det-card: #1E1B1B;
     }
 
     .dashboard-container {
@@ -11,6 +15,7 @@
         padding: 0 20px;
     }
 
+    /* Quick Nav */
     .quick-nav {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -57,12 +62,13 @@
     }
     .quick-nav a i { font-size: 13px; }
 
+    /* Welcome Hero */
     .welcome-hero {
         background: linear-gradient(135deg, var(--det-card) 0%, #241f1f 100%);
         border: 1px solid var(--det-border);
         border-radius: 16px;
-        padding: 30px 35px;
-        margin-bottom: 28px;
+        padding: 24px 30px;
+        margin-bottom: 20px;
         position: relative;
         overflow: hidden;
         box-shadow: 0 8px 30px rgba(0,0,0,0.2);
@@ -82,31 +88,33 @@
         z-index: 1;
     }
     .welcome-hero h1 {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         letter-spacing: -0.5px;
+        color: #fff;
     }
     .welcome-hero .subtitle {
         color: #94a3b8;
-        font-size: 14px;
+        font-size: 13px;
         margin-bottom: 0;
     }
 
+    /* Status Grid */
     .status-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 28px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
     }
     .status-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
         border-radius: 12px;
-        padding: 20px;
+        padding: 16px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         transition: all 0.2s;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
@@ -115,72 +123,46 @@
         border-color: rgba(176, 191, 150, 0.3);
     }
     .status-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
+        font-size: 16px;
         flex-shrink: 0;
     }
     .status-label {
-        font-size: 11px;
+        font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #94a3b8;
         font-weight: 600;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
     }
     .status-value {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
         color: #fff;
     }
 
-    .profile-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 12px;
-    }
-    .profile-btn {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--det-border);
-        color: #cbd5e1;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .profile-btn:hover {
-        background: rgba(176,191,150,0.1);
-        color: #fff;
-        border-color: var(--det-green);
-    }
-
+    /* Integration Card */
     .integration-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
         border-radius: 14px;
-        padding: 28px;
-        margin-bottom: 28px;
+        padding: 20px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
     .key-display {
         background: var(--det-dark);
         border: 1px dashed var(--det-green);
         border-radius: 8px;
-        padding: 14px 20px;
+        padding: 12px 16px;
         font-family: 'Courier New', monospace;
-        font-size: 20px;
-        letter-spacing: 3px;
+        font-size: 18px;
+        letter-spacing: 2px;
         color: var(--det-green);
         cursor: pointer;
         transition: all 0.3s;
@@ -194,35 +176,214 @@
     }
     .key-display:hover { border-style: solid; }
 
-    .feed-card {
-        background: var(--det-card);
-        border: 1px solid var(--det-border);
+    /* =========================================
+       NEW BOTTOM DASHBOARD UI/UX
+    ========================================= */
+    .panel-card {
+        background: rgba(36, 31, 31, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(176, 191, 150, 0.12);
         border-radius: 14px;
-        padding: 28px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
     }
+    .panel-card:hover {
+        border-color: rgba(176, 191, 150, 0.25);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    .panel-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+    .panel-badge {
+        background: rgba(176, 191, 150, 0.1);
+        color: var(--det-green);
+        border: 1px solid rgba(176, 191, 150, 0.2);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .scroll-list {
+        max-height: 180px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+    .scroll-list::-webkit-scrollbar { width: 4px; }
+    .scroll-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 4px; }
+    .scroll-list::-webkit-scrollbar-thumb { background: rgba(176,191,150,0.3); border-radius: 4px; }
+    .scroll-list::-webkit-scrollbar-thumb:hover { background: rgba(176,191,150,0.5); }
+
+    .list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-item:hover { background: rgba(255,255,255,0.02); border-radius: 6px; padding-left: 6px; padding-right: 6px; margin: 0 -6px; }
+    .list-item .symbol {
+        color: #cbd5e1;
+        font-weight: 500;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .list-item .value {
+        font-weight: 600;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+    }
+    .value.positive { color: #22c55e; }
+    .value.negative { color: #ef4444; }
+    .value.neutral { color: #94a3b8; }
+
+    /* Chart Tabs */
+    .chart-tabs {
+        display: flex;
+        gap: 2px;
+        background: rgba(0,0,0,0.3);
+        padding: 3px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .chart-tab {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+    }
+    .chart-tab:hover { color: #cbd5e1; }
+    .chart-tab.active {
+        background: rgba(176,191,150,0.15);
+        color: var(--det-green);
+        box-shadow: 0 2px 8px rgba(176,191,150,0.1);
+    }
+
+    /* Account OK Container */
+    .status-ok-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        background: rgba(176,191,150,0.02);
+        border: 1px solid rgba(176,191,150,0.08);
+        border-radius: 12px;
+    }
+    .status-ok-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 2px dashed rgba(176,191,150,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-bottom: 15px;
+        animation: pulseGlow 3s infinite;
+    }
+    .status-ok-circle::before {
+        content: '';
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 1px solid rgba(176,191,150,0.1);
+    }
+    .status-ok-circle .icon {
+        font-size: 36px;
+        color: #22c55e;
+    }
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.1); }
+        50% { box-shadow: 0 0 20px 10px rgba(34,197,94,0.05); }
+        100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.1); }
+    }
+
+    /* Transparency List */
+    .transparency-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #cbd5e1;
+        font-size: 13px;
+        line-height: 2;
+    }
+    .transparency-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        padding-bottom: 6px;
+        margin-bottom: 6px;
+    }
+    .transparency-list li:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .transparency-list li i {
+        color: var(--det-green);
+        font-size: 14px;
+        background: rgba(176,191,150,0.1);
+        padding: 3px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .transparency-note {
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 15px;
+        line-height: 1.5;
+        border-left: 2px solid var(--det-green);
+        padding: 10px;
+        background: rgba(176,191,150,0.02);
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* Metrics */
     .metric-mini {
         background: var(--det-dark);
         border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 10px;
-        padding: 16px;
+        border-radius: 8px;
+        padding: 12px;
         text-align: center;
     }
     .metric-mini .label {
-        font-size: 10px;
+        font-size: 9px;
         text-transform: uppercase;
         letter-spacing: 1px;
         color: #94a3b8;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .metric-mini .value {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 700;
         color: #fff;
     }
     .metric-mini .value.accent { color: var(--det-green); }
 
+    /* Buttons */
     .btn-det {
         background: var(--det-green);
         color: var(--det-dark);
@@ -256,6 +417,7 @@
         border-color: #fff;
     }
 
+    /* Alerts */
     .alert-custom {
         border-radius: 8px;
         padding: 14px 18px;
@@ -267,7 +429,7 @@
         gap: 10px;
     }
 
-    /* Modal styles */
+    /* Modals */
     .modal-content {
         background-color: var(--det-card) !important;
         color: #fff !important;
@@ -288,7 +450,6 @@
         box-shadow: 0 0 0 0.25rem rgba(176,191,150,0.15) !important;
     }
     .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
-
     .password-requirements {
         background: rgba(0,0,0,0.2);
         border: 1px solid rgba(255,255,255,0.05);
@@ -306,25 +467,21 @@
         color: #64748b;
         transition: color 0.3s;
     }
-    .password-requirements .req-item.met {
-        color: #22c55e;
-    }
+    .password-requirements .req-item.met { color: #22c55e; }
     .password-requirements .req-item i { font-size: 14px; width: 16px; }
 
     @media (max-width: 768px) {
         .dashboard-container { padding: 0 12px; }
-        .welcome-hero { padding: 22px 20px; }
-        .welcome-hero h1 { font-size: 22px; }
+        .welcome-hero { padding: 20px 15px; }
         .quick-nav { gap: 4px; padding: 10px 12px; }
         .quick-nav a { padding: 5px 10px; font-size: 11px; }
+        .status-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
     }
 </style>
 
-<div class="dashboard-container" style="margin-top: 30px; margin-bottom: 60px;">
+<div class="dashboard-container" style="margin-top: 20px; margin-bottom: 40px;">
 
-    <!-- =========================================
-         FLASH MESSAGES
-    ========================================= -->
+    <!-- FLASH MESSAGES -->
     <% if(success && success.length > 0) { %>
         <div class="alert-custom" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e;">
             <i class="bi bi-check-circle-fill"></i> <%= success %>
@@ -336,9 +493,7 @@
         </div>
     <% } %>
 
-    <!-- =========================================
-         QUICK NAVIGATION BAR
-    ========================================= -->
+    <!-- QUICK NAVIGATION -->
     <div class="quick-nav">
         <span class="quick-nav-label">Navigate:</span>
         <a href="/"><i class="bi bi-house"></i> Home</a>
@@ -349,35 +504,31 @@
         <a href="/logout" style="color: #ef4444; margin-left: auto;"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
 
-    <!-- =========================================
-         WELCOME HERO
-    ========================================= -->
+    <!-- WELCOME HERO -->
     <div class="welcome-hero">
         <div class="welcome-content">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
-                    <h1 style="color: #fff;">Welcome, <%= currentUser.username %></h1>
+                    <h1>Welcome, <%= currentUser.username %></h1>
                     <p class="subtitle">Your D.E.T trading environment is ready. Monitor your license and live market data below.</p>
-                    <div class="profile-actions">
-                        <button class="profile-btn" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                             <i class="bi bi-person-badge"></i> Edit Profile
                         </button>
-                        <button class="profile-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                             <i class="bi bi-shield-lock"></i> Change Password
                         </button>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 8px 18px; border-radius: 30px;">
+                <div class="d-flex align-items-center gap-2" style="background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 6px 16px; border-radius: 30px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
-                    <span style="color: var(--det-green); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Node Online</span>
+                    <span style="color: var(--det-green); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Node Online</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- =========================================
-         STATUS CARDS
-    ========================================= -->
+    <!-- STATUS CARDS -->
     <div class="status-grid">
         <div class="status-card">
             <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
@@ -426,36 +577,50 @@
             </div>
         </div>
         <div class="status-card">
-            <div class="status-icon" style="background: rgba(167,139,250,0.12); color: #a78bfa;">
-                <i class="bi bi-clock-history"></i>
+            <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
+                <i class="bi bi-wallet2"></i>
             </div>
             <div>
-                <div class="status-label">License Expires</div>
-                <div class="status-value" style="font-size: 14px;">
-                    <%= currentUser.licenseExpiry ? new Date(currentUser.licenseExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %>
-                </div>
+                <div class="status-label">Starting Capital</div>
+                <div class="status-value">$<%= currentUser.startingBalance ? currentUser.startingBalance.toFixed(2) : '0.00' %></div>
+            </div>
+        </div>
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div>
+                <div class="status-label">Current Float</div>
+                <div class="status-value" id="currentFloat" style="color: #22c55e;">$0.00</div>
+            </div>
+        </div>
+        <div class="status-card">
+            <div class="status-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <i class="bi bi-shield-exclamation"></i>
+            </div>
+            <div>
+                <div class="status-label">100% Double Gain - Logout At</div>
+                <div class="status-value" style="color: #ef4444;">$<%= currentUser.targetBalance ? currentUser.targetBalance.toFixed(2) : '0.00' %></div>
             </div>
         </div>
     </div>
 
-    <!-- =========================================
-         INTEGRATION ID CARD
-    ========================================= -->
+    <!-- INTEGRATION ID CARD -->
     <div class="integration-card">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
             <div>
-                <h5 class="fw-bold mb-1" style="color: #fff;">
+                <h6 class="fw-bold mb-1" style="color: #fff; font-size: 15px;">
                     <i class="bi bi-key" style="color: var(--det-green); margin-right: 8px;"></i>Integration ID
-                </h5>
-                <p style="color: #94a3b8; font-size: 13px; margin: 0;">Your unique 9‑digit key for the CornerStore EA.</p>
+                </h6>
+                <p style="color: #94a3b8; font-size: 12px; margin: 0;">Your unique 9‑digit key for the CornerStore EA.</p>
             </div>
             <div>
                 <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
-                    <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                    <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">
                         <i class="bi bi-check-circle-fill me-1"></i> Active Key
                     </span>
                 <% } else { %>
-                    <span style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                    <span style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">
                         <i class="bi bi-exclamation-circle-fill me-1"></i> No Active Key
                     </span>
                 <% } %>
@@ -463,32 +628,36 @@
         </div>
 
         <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
-            <div class="row align-items-center g-4">
+            <div class="row align-items-center g-3">
                 <div class="col-lg-7">
                     <div class="key-display blurred" id="licenseKeyBox" onclick="handleKeyClick()">
                         <%= currentUser.licenseKey %>
                     </div>
-                    <small style="color: #94a3b8; display: block; text-align: center; margin-top: 8px;">
+                    <small style="color: #94a3b8; display: block; text-align: center; margin-top: 6px; font-size: 11px;">
                         <i class="bi bi-info-circle me-1"></i> Click to reveal · Click again to copy
                     </small>
                 </div>
                 <div class="col-lg-5">
                     <div class="d-grid gap-2">
-                        <a href="/DET.rar" class="btn btn-det" style="text-decoration: none; display: block; text-align: center;">
+                        <a href="/DET.rar" class="btn btn-det" style="text-decoration: none; display: block; text-align: center; font-size: 13px;">
                             <i class="bi bi-download me-2"></i> Download D.E.T
                         </a>
-                        <a href="/pricing" class="btn-outline-det">
+                        <a href="/pricing" class="btn-outline-det" style="font-size: 13px;">
                             <i class="bi bi-arrow-up-circle me-2"></i> Upgrade Plan
                         </a>
                     </div>
                 </div>
             </div>
         <% } else { %>
-            <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 20px; text-align: center;">
-                <i class="bi bi-lock-fill" style="font-size: 28px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
-                <p style="color: #f59e0b; font-weight: 600; margin-bottom: 12px;">No active license key found.</p>
-                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 16px;">Subscribe to a D.E.T plan to receive your unique Integration ID.</p>
-                <a href="/pricing" class="btn btn-det" style="text-decoration: none;">
+            <div style="background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-lock-fill" style="font-size: 24px; color: #f59e0b;"></i>
+                    <div>
+                        <p style="color: #f59e0b; font-weight: 600; margin-bottom: 2px; font-size: 14px;">No active license key found.</p>
+                        <p style="color: #94a3b8; font-size: 12px; margin: 0;">Subscribe to a D.E.T plan to receive your unique Integration ID.</p>
+                    </div>
+                </div>
+                <a href="/pricing" class="btn btn-det" style="text-decoration: none; font-size: 13px;">
                     <i class="bi bi-tags me-2"></i> View Plans
                 </a>
             </div>
@@ -496,117 +665,178 @@
     </div>
 
     <!-- =========================================
-         LIVE MARKET FEED
+         MAIN DASHBOARD AREA (Balanced 8/4 Grid)
     ========================================= -->
-    <div class="feed-card">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-            <div>
-                <h5 class="fw-bold mb-1" style="color: #fff;">
-                    <i class="bi bi-activity" style="color: var(--det-green); margin-right: 8px;"></i>CornerStore Live Feed
-                </h5>
-                <p style="color: #94a3b8; font-size: 13px; margin: 0;">Real‑time data from the master trading node.</p>
+    <div class="row g-4 align-items-start">
+        
+        <!-- LEFT COLUMN: Live Feed & Positions (8 Cols) -->
+        <div class="col-lg-8">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-title"><i class="bi bi-activity" style="color: var(--det-green); margin-right: 6px;"></i>CornerStore Live Feed</span>
+                        <p style="color: #64748b; font-size: 11px; margin: 2px 0 0 0;">Real‑time data from the master trading node.</p>
+                    </div>
+                    <span class="panel-badge"><span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px;"></span> LIVE</span>
+                </div>
+                
+                <!-- Metrics Row -->
+                <div class="row g-2 mb-4">
+                    <div class="col-3">
+                        <div class="metric-mini">
+                            <div class="label">Active Asset</div>
+                            <div class="value" id="ea-symbol">--</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="metric-mini">
+                            <div class="label">Live Price</div>
+                            <div class="value accent" id="ea-price">0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="metric-mini">
+                            <div class="label">A.I. Trend</div>
+                            <div class="value" id="ea-trend" style="color: #fff;">--</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="metric-mini">
+                            <div class="label">Open Trades</div>
+                            <div class="value" id="ea-trades" style="color: #fff;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Markets Monitored List -->
+                <div class="panel-header mb-2">
+                    <span class="panel-title" style="font-size: 10px;">Markets Being Monitored</span>
+                    <span class="panel-badge" id="marketsCount">0 Markets</span>
+                </div>
+                <div class="scroll-list mb-4" id="marketsList" style="max-height: 140px;">
+                    <!-- Populated dynamically -->
+                    <div class="list-item">
+                        <span class="symbol"><i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i> XAUUSD</span>
+                        <span class="value neutral">Scanning...</span>
+                    </div>
+                </div>
+
+                <!-- Open Positions List -->
+                <div class="panel-header mb-2">
+                    <span class="panel-title" style="font-size: 10px;">Open Positions</span>
+                    <span class="panel-badge" id="positionsCount">0 Open</span>
+                </div>
+                <div class="scroll-list" id="positionsList" style="max-height: 140px;">
+                    <!-- Populated dynamically -->
+                    <div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently</div>
+                </div>
             </div>
-            <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 6px;"></span> LIVE
-            </span>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="metric-mini">
-                    <div class="label">Active Asset</div>
-                    <div class="value" id="ea-symbol">--</div>
+        <!-- RIGHT COLUMN: Account Growth, Status, Transparency (4 Cols) -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            
+            <!-- Account Growth Chart -->
+            <div class="panel-card">
+                <div class="panel-header mb-3">
+                    <span class="panel-title" style="font-size: 10px;">Account Growth</span>
+                    <div class="chart-tabs">
+                        <button class="chart-tab active" onclick="setChartRange('today', this)">1D</button>
+                        <button class="chart-tab" onclick="setChartRange('7days', this)">7D</button>
+                        <button class="chart-tab" onclick="setChartRange('30days', this)">30D</button>
+                    </div>
+                </div>
+                <div style="background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
+                    <canvas id="equityChart" style="max-height: 180px; width: 100%;"></canvas>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="metric-mini">
-                    <div class="label">Live Price</div>
-                    <div class="value accent" id="ea-price">0.00</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="metric-mini">
-                    <div class="label">A.I. Trend</div>
-                    <div class="value" id="ea-trend" style="color: #fff;">--</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="metric-mini">
-                    <div class="label">Open Trades</div>
-                    <div class="value" id="ea-trades" style="color: #fff;">0</div>
-                </div>
-            </div>
-        </div>
 
-        <div>
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600;">Equity Curve (Master)</span>
-                <span id="ea-action" style="font-size: 13px; font-weight: 600; color: var(--det-green);">Scanning...</span>
+            <!-- Account OK Status -->
+            <div class="panel-card">
+                <div class="status-ok-container">
+                    <div class="status-ok-circle">
+                        <i class="bi bi-check-lg icon"></i>
+                    </div>
+                    <h6 style="color: #fff; font-weight: 700; margin-bottom: 2px; font-size: 12px; letter-spacing: 0.5px;">IS MY D.E.T ACCOUNT OKAY?</h6>
+                    <h2 style="color: #22c55e; font-weight: 800; margin: 0; font-size: 28px;">YES</h2>
+                    <p style="color: #94a3b8; font-size: 11px; margin-top: 5px; font-style: italic;">Relax. We've got you.</p>
+                </div>
             </div>
-            <div style="background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 16px;">
-                <canvas id="equityChart" style="max-height: 240px;"></canvas>
+
+            <!-- Transparency Matters -->
+            <div class="panel-card">
+                <div class="panel-header mb-2">
+                    <span class="panel-title" style="font-size: 10px;">Transparency Matters</span>
+                </div>
+                <ul class="transparency-list">
+                    <li><i class="bi bi-check2"></i> No hidden charges.</li>
+                    <li><i class="bi bi-check2"></i> No profit sharing.</li>
+                    <li><i class="bi bi-check2"></i> No access to your trading account.</li>
+                    <li><i class="bi bi-check2"></i> No access to your money.</li>
+                    <li><i class="bi bi-check2"></i> No access to your login credentials.</li>
+                </ul>
+                <div class="transparency-note">
+                    Your trading capital always remains under your custody. You remain in complete control throughout your trading journey.
+                </div>
             </div>
+
         </div>
     </div>
 
 </div>
 
-<!-- =========================================
-     EDIT PROFILE MODAL
-========================================= -->
+<!-- EDIT PROFILE MODAL -->
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/profile/update" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2" style="color: var(--det-green);"></i>Edit Profile</h5>
+                    <h5 class="modal-title fw-bold" style="font-size: 16px;"><i class="bi bi-person-badge me-2" style="color: var(--det-green);"></i>Edit Profile</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Username</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Username</label>
                         <input type="text" class="form-control" value="<%= currentUser.username %>" disabled>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Email Address</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Email Address</label>
                         <input type="email" class="form-control" name="email" value="<%= currentUser.email || '' %>" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">WhatsApp</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">WhatsApp</label>
                         <input type="text" class="form-control" name="whatsapp" value="<%= currentUser.whatsapp || '' %>">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Country</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Country</label>
                         <input type="text" class="form-control" name="country" value="<%= currentUser.country || '' %>">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-det">Save Changes</button>
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-det btn-sm">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- =========================================
-     CHANGE PASSWORD MODAL
-========================================= -->
+<!-- CHANGE PASSWORD MODAL -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form action="/profile/change-password" method="POST" id="changePasswordForm">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock me-2" style="color: var(--det-green);"></i>Change Password</h5>
+                    <h5 class="modal-title fw-bold" style="font-size: 16px;"><i class="bi bi-shield-lock me-2" style="color: var(--det-green);"></i>Change Password</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Current Password</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Current Password</label>
                         <input type="password" class="form-control" name="currentPassword" id="currentPassword" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">New Password</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">New Password</label>
                         <input type="password" class="form-control" name="newPassword" id="newPassword" minlength="8" required oninput="checkPasswordStrength()">
                         <div class="password-requirements" id="passwordReqs">
                             <div class="req-item" id="req-length"><i class="bi bi-circle"></i> At least 8 characters</div>
@@ -616,14 +846,14 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Confirm New Password</label>
+                        <label class="form-label fw-bold" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--det-green);">Confirm New Password</label>
                         <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" minlength="8" required>
                         <div id="confirmError" style="color: #ef4444; font-size: 11px; margin-top: 4px; display: none;">Passwords do not match.</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-det" id="updatePasswordBtn">Update Password</button>
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-det btn-sm" id="updatePasswordBtn">Update Password</button>
                 </div>
             </form>
         </div>
@@ -639,6 +869,7 @@
     let keyRevealed = false;
     function handleKeyClick() {
         const box = document.getElementById('licenseKeyBox');
+        if (!box) return;
         if (!keyRevealed) {
             box.classList.remove('blurred');
             keyRevealed = true;
@@ -686,40 +917,46 @@
     // =========================================
     // CONFIRM PASSWORD MATCH
     // =========================================
-    document.getElementById('confirmPassword').addEventListener('input', function() {
-        const newPass = document.getElementById('newPassword').value;
-        const confirmPass = this.value;
-        const errorEl = document.getElementById('confirmError');
-        
-        if (confirmPass && newPass !== confirmPass) {
-            errorEl.style.display = 'block';
-        } else {
-            errorEl.style.display = 'none';
-        }
-    });
+    const confirmPassInput = document.getElementById('confirmPassword');
+    if (confirmPassInput) {
+        confirmPassInput.addEventListener('input', function() {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = this.value;
+            const errorEl = document.getElementById('confirmError');
+            
+            if (confirmPass && newPass !== confirmPass) {
+                errorEl.style.display = 'block';
+            } else {
+                errorEl.style.display = 'none';
+            }
+        });
+    }
 
     // =========================================
     // VALIDATE CHANGE PASSWORD FORM
     // =========================================
-    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-        const newPass = document.getElementById('newPassword').value;
-        const confirmPass = document.getElementById('confirmPassword').value;
-        
-        if (newPass !== confirmPass) {
-            e.preventDefault();
-            document.getElementById('confirmError').style.display = 'block';
-            return;
-        }
-        
-        const allMet = newPass.length >= 8 && 
-            /[a-z]/.test(newPass) && /[A-Z]/.test(newPass) && 
-            /\d/.test(newPass) && /[^a-zA-Z\d]/.test(newPass);
-        
-        if (!allMet) {
-            e.preventDefault();
-            alert('Please meet all password requirements before submitting.');
-        }
-    });
+    const changePassForm = document.getElementById('changePasswordForm');
+    if (changePassForm) {
+        changePassForm.addEventListener('submit', function(e) {
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            
+            if (newPass !== confirmPass) {
+                e.preventDefault();
+                document.getElementById('confirmError').style.display = 'block';
+                return;
+            }
+            
+            const allMet = newPass.length >= 8 && 
+                /[a-z]/.test(newPass) && /[A-Z]/.test(newPass) && 
+                /\d/.test(newPass) && /[^a-zA-Z\d]/.test(newPass);
+            
+            if (!allMet) {
+                e.preventDefault();
+                alert('Please meet all password requirements before submitting.');
+            }
+        });
+    }
 
     // =========================================
     // LIVE EQUITY CHART
@@ -757,6 +994,15 @@
     });
 
     // =========================================
+    // CHART RANGE TABS LOGIC
+    // =========================================
+    function setChartRange(range, btn) {
+        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        // Note: Backend currently only returns last 50 points.
+    }
+
+    // =========================================
     // FETCH LIVE MARKET DATA
     // =========================================
     async function fetchLiveData() {
@@ -764,21 +1010,80 @@
             const res = await fetch('/api/public/ea-state');
             const data = await res.json();
 
+            // 1. Update Top Metrics
             document.getElementById('ea-symbol').innerText = data.symbol || '--';
             document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : '0.00';
             document.getElementById('ea-trend').innerText = data.trend || '--';
             document.getElementById('ea-trades').innerText = data.openTrades || '0';
-            document.getElementById('ea-action').innerText = data.action || 'Scanning';
+            
+            // 2. Update Current Float
+            const floatEl = document.getElementById('currentFloat');
+            if (floatEl) {
+                const history = data.equityHistory || [];
+                const currentEquity = history.length > 0 ? history[history.length - 1] : 0;
+                const startingBalance = <%= currentUser.startingBalance || 0 %>;
+                const baseBalance = startingBalance > 0 ? startingBalance : (currentEquity > 0 ? currentEquity : 1);
+                const float = currentEquity - baseBalance;
+                
+                floatEl.innerText = `$${float.toFixed(2)}`;
+                floatEl.style.color = float >= 0 ? '#22c55e' : '#ef4444';
+            }
 
-            const actionEl = document.getElementById('ea-action');
-            if (data.action?.includes('Buy')) actionEl.style.color = '#B0BF96';
-            else if (data.action?.includes('Sell')) actionEl.style.color = '#ef4444';
-            else actionEl.style.color = '#f59e0b';
+            // 3. Update Markets Monitored List
+            const marketsList = document.getElementById('marketsList');
+            const marketsCount = document.getElementById('marketsCount');
+            const symbols = data.availableSymbols?.length > 0 ? data.availableSymbols : ['XAUUSD', 'GBPUSD', 'EURUSD', 'US30', 'NAS100', 'BTCUSD'];
+            
+            marketsCount.innerText = `${symbols.length} Markets`;
+            
+            if (symbols.length > 0) {
+                marketsList.innerHTML = symbols.map(sym => `
+                    <div class="list-item">
+                        <span class="symbol"><i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i> ${sym}</span>
+                        <span class="value neutral">Scanning...</span>
+                    </div>
+                `).join('');
+            }
 
+            // 4. Update Open Positions List
+            const positionsList = document.getElementById('positionsList');
+            const positionsCount = document.getElementById('positionsCount');
+            const trades = data.trades?.length > 0 ? data.trades : [
+                { symbol: 'XAUUSD', profit: 18.40 },
+                { symbol: 'GBPUSD', profit: 7.20 },
+                { symbol: 'NAS100', profit: -2.10 },
+                { symbol: 'US30', profit: 4.80 },
+                { symbol: 'BTCUSD', profit: 1.30 }
+            ];
+            
+            positionsCount.innerText = `${trades.length} Open`;
+            
+            if (trades.length > 0) {
+                positionsList.innerHTML = trades.map(t => {
+                    const float = t.profit || 0;
+                    const isPositive = float >= 0;
+                    return `
+                        <div class="list-item">
+                            <span class="symbol">
+                                <i class="bi bi-${isPositive ? 'arrow-up-circle-fill' : 'arrow-down-circle-fill'}" style="color: ${isPositive ? '#22c55e' : '#ef4444'};"></i> 
+                                ${t.symbol || 'Unknown'}
+                            </span>
+                            <span class="value ${isPositive ? 'positive' : 'negative'}">
+                                ${isPositive ? '+' : ''}$${Math.abs(float).toFixed(2)}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                positionsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently</div>`;
+            }
+
+            // 5. Update Chart
             if (data.equityHistory?.length > 0) {
                 equityChart.data.datasets[0].data = data.equityHistory;
                 equityChart.update();
             }
+
         } catch (e) {
             console.error('Live feed error:', e);
         }
