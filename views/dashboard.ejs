@@ -714,11 +714,7 @@
                     <span class="panel-badge" id="marketsCount">0 Markets</span>
                 </div>
                 <div class="scroll-list mb-4" id="marketsList" style="max-height: 140px;">
-                    <!-- Populated dynamically -->
-                    <div class="list-item">
-                        <span class="symbol"><i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i> XAUUSD</span>
-                        <span class="value neutral">Scanning...</span>
-                    </div>
+                    <div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">Awaiting live data...</div>
                 </div>
 
                 <!-- Open Positions List -->
@@ -727,7 +723,6 @@
                     <span class="panel-badge" id="positionsCount">0 Open</span>
                 </div>
                 <div class="scroll-list" id="positionsList" style="max-height: 140px;">
-                    <!-- Populated dynamically -->
                     <div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently</div>
                 </div>
             </div>
@@ -751,15 +746,23 @@
                 </div>
             </div>
 
-            <!-- Account OK Status -->
+            <!-- Account OK Status (DYNAMIC) -->
             <div class="panel-card">
                 <div class="status-ok-container">
                     <div class="status-ok-circle">
-                        <i class="bi bi-check-lg icon"></i>
+                        <% if(currentUser.accountLocked || currentUser.isSuspended) { %>
+                            <i class="bi bi-x-lg icon" style="color: #ef4444;"></i>
+                        <% } else { %>
+                            <i class="bi bi-check-lg icon"></i>
+                        <% } %>
                     </div>
                     <h6 style="color: #fff; font-weight: 700; margin-bottom: 2px; font-size: 12px; letter-spacing: 0.5px;">IS MY D.E.T ACCOUNT OKAY?</h6>
-                    <h2 style="color: #22c55e; font-weight: 800; margin: 0; font-size: 28px;">YES</h2>
-                    <p style="color: #94a3b8; font-size: 11px; margin-top: 5px; font-style: italic;">Relax. We've got you.</p>
+                    <h2 style="color: <%= (currentUser.accountLocked || currentUser.isSuspended) ? '#ef4444' : '#22c55e' %>; font-weight: 800; margin: 0; font-size: 28px;">
+                        <%= (currentUser.accountLocked || currentUser.isSuspended) ? 'NO' : 'YES' %>
+                    </h2>
+                    <p style="color: #94a3b8; font-size: 11px; margin-top: 5px; font-style: italic;">
+                        <%= (currentUser.accountLocked || currentUser.isSuspended) ? 'Please check your account status.' : 'Relax. We\'ve got you.' %>
+                    </p>
                 </div>
             </div>
 
@@ -1029,10 +1032,10 @@
                 floatEl.style.color = float >= 0 ? '#22c55e' : '#ef4444';
             }
 
-            // 3. Update Markets Monitored List
+            // 3. Update Markets Monitored List (Dynamic, no hardcoded fallbacks)
             const marketsList = document.getElementById('marketsList');
             const marketsCount = document.getElementById('marketsCount');
-            const symbols = data.availableSymbols?.length > 0 ? data.availableSymbols : ['XAUUSD', 'GBPUSD', 'EURUSD', 'US30', 'NAS100', 'BTCUSD'];
+            const symbols = data.availableSymbols || [];
             
             marketsCount.innerText = `${symbols.length} Markets`;
             
@@ -1043,18 +1046,14 @@
                         <span class="value neutral">Scanning...</span>
                     </div>
                 `).join('');
+            } else {
+                marketsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No markets being monitored.</div>`;
             }
 
-            // 4. Update Open Positions List
+            // 4. Update Open Positions List (Dynamic, no hardcoded fallbacks)
             const positionsList = document.getElementById('positionsList');
             const positionsCount = document.getElementById('positionsCount');
-            const trades = data.trades?.length > 0 ? data.trades : [
-                { symbol: 'XAUUSD', profit: 18.40 },
-                { symbol: 'GBPUSD', profit: 7.20 },
-                { symbol: 'NAS100', profit: -2.10 },
-                { symbol: 'US30', profit: 4.80 },
-                { symbol: 'BTCUSD', profit: 1.30 }
-            ];
+            const trades = data.trades || [];
             
             positionsCount.innerText = `${trades.length} Open`;
             
@@ -1075,7 +1074,7 @@
                     `;
                 }).join('');
             } else {
-                positionsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently</div>`;
+                positionsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently.</div>`;
             }
 
             // 5. Update Chart

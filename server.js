@@ -424,12 +424,20 @@ app.post("/api/client/sync", async (req, res) => {
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
 
+// In server.js, replace the existing res.json inside app.post("/api/client/sync", ...)
         res.json({
             action: "TRADE",
             masterState: masterState,
             trades: trades,
+            availableSymbols: Object.keys(eaBrainStates),
+            // --- DYNAMIC FIELDS FOR CLIENT EA UI ---
             userTier: user.currentTier || "None",
-            availableSymbols: Object.keys(eaBrainStates)
+            daysRemaining: user.licenseExpiry ? Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24)) : 0,
+            startingBalance: user.startingBalance || 0,
+            targetBalance: user.targetBalance || 0,
+            currentBalance: currentBalance,
+            currentEquity: currentEquity,
+            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE")
         });
 
     } catch (err) {
