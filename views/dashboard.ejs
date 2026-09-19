@@ -912,14 +912,12 @@
     // =========================================
     function checkPasswordStrength() {
         const password = document.getElementById('newPassword').value;
-        
         const reqs = {
             length: password.length >= 8,
             upperlower: /[a-z]/.test(password) && /[A-Z]/.test(password),
             number: /\d/.test(password),
             symbol: /[^a-zA-Z\d]/.test(password)
         };
-        
         Object.keys(reqs).forEach(key => {
             const el = document.getElementById('req-' + key);
             if (el) {
@@ -943,7 +941,6 @@
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = this.value;
             const errorEl = document.getElementById('confirmError');
-            
             if (confirmPass && newPass !== confirmPass) {
                 errorEl.style.display = 'block';
             } else {
@@ -960,17 +957,12 @@
         changePassForm.addEventListener('submit', function(e) {
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = document.getElementById('confirmPassword').value;
-            
             if (newPass !== confirmPass) {
                 e.preventDefault();
                 document.getElementById('confirmError').style.display = 'block';
                 return;
             }
-            
-            const allMet = newPass.length >= 8 && 
-                /[a-z]/.test(newPass) && /[A-Z]/.test(newPass) && 
-                /\d/.test(newPass) && /[^a-zA-Z\d]/.test(newPass);
-            
+            const allMet = newPass.length >= 8 && /[a-z]/.test(newPass) && /[A-Z]/.test(newPass) && /\d/.test(newPass) && /[^a-zA-Z\d]/.test(newPass);
             if (!allMet) {
                 e.preventDefault();
                 alert('Please meet all password requirements before submitting.');
@@ -1013,20 +1005,18 @@
         }
     });
 
-    // =========================================
-    // CHART RANGE TABS LOGIC
-    // =========================================
     function setChartRange(range, btn) {
         document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
     }
 
     // =========================================
-    // FETCH LIVE MARKET DATA
+    // FETCH LIVE MARKET DATA (DYNAMIC)
     // =========================================
     async function fetchLiveData() {
         try {
-            const res = await fetch('/api/public/ea-state');
+            // CHANGED: Fetch from the user-specific endpoint
+            const res = await fetch('/api/user/ea-state');
             const data = await res.json();
 
             // 1. Update Top Metrics
@@ -1040,7 +1030,7 @@
             if (floatEl) {
                 const history = data.equityHistory || [];
                 const currentEquity = history.length > 0 ? history[history.length - 1] : 0;
-                const startingBalance = <%= currentUser.startingBalance || 0 %>;
+                const startingBalance = data.startingBalance || 0;
                 const baseBalance = startingBalance > 0 ? startingBalance : (currentEquity > 0 ? currentEquity : 1);
                 const float = currentEquity - baseBalance;
                 
@@ -1048,10 +1038,10 @@
                 floatEl.style.color = float >= 0 ? '#22c55e' : '#ef4444';
             }
 
-            // 3. Update Markets Monitored List (Dynamic based on DB)
+            // 3. Update Markets Monitored List (DYNAMIC FROM API)
             const marketsList = document.getElementById('marketsList');
             const marketsCount = document.getElementById('marketsCount');
-            const symbols = <%= JSON.stringify(currentUser.monitoredSymbols || []) %>;
+            const symbols = data.monitoredSymbols || []; // <--- FETCHED DYNAMICALLY
             
             marketsCount.innerText = `${symbols.length} Markets`;
             
