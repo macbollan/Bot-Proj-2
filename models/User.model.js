@@ -55,6 +55,11 @@ affiliateCommission: { type: Number, default: 0 },
         paymentReference: String,
         paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' }
     }],
+    // Add this to your User Schema definition in models/User.model.js
+monitoredSymbols: {
+    type: [String],
+    default: []
+},
 
      // --- EMAIL VERIFICATION FIELDS (NEW) ---
        isVerified: { type: Boolean, default: false },

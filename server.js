@@ -384,10 +384,13 @@ app.get("/api/public/ea-state", (req, res) => {
     });
 });
 
-// C. S.M.A.R.T CLIENT SYNC ENDPOINT
-// C. S.M.A.R.T CLIENT SYNC ENDPOINT — Updated with tier info, symbol selection
+let activeClientSymbols = {}; // Key: licenseKey, Value: Set of symbols
+
+
+
+
 app.post("/api/client/sync", async (req, res) => {
-    const { licenseKey, currentBalance, currentEquity, preferredSymbol } = req.body;
+    const { licenseKey, currentBalance, currentEquity, preferredSymbol, clientSymbol } = req.body;
     
     try {
         const user = await User.findOne({ licenseKey: licenseKey });
@@ -398,6 +401,13 @@ app.post("/api/client/sync", async (req, res) => {
 
         if (user.isSuspended || user.accountLocked) {
             return res.json({ action: "ZERO_HEDGE" });
+        }
+
+        // --- PERSISTENT CLIENT SYMBOL TRACKING ---
+        if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
+            user.monitoredSymbols.push(clientSymbol);
+            await user.save();
+            console.log(`[SYMBOL] Added ${clientSymbol} to ${user.username}'s monitored list.`);
         }
 
         let updated = false;
@@ -419,25 +429,29 @@ app.post("/api/client/sync", async (req, res) => {
 
         if (updated) await user.save();
 
-        // Determine which symbol to send
         const symbol = preferredSymbol || eaBrainState.symbol || "GBPUSD";
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
 
-// In server.js, replace the existing res.json inside app.post("/api/client/sync", ...)
+        // Calculate Days Remaining (Cap at 3650 to prevent UI breakage)
+        let daysLeft = 0;
+        if (user.licenseExpiry) {
+            daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) daysLeft = 0;
+            if (daysLeft > 3650) daysLeft = 3650; // Cap at 10 years for display
+        }
+
         res.json({
             action: "TRADE",
             masterState: masterState,
             trades: trades,
-            availableSymbols: Object.keys(eaBrainStates),
-            // --- DYNAMIC FIELDS FOR CLIENT EA UI ---
             userTier: user.currentTier || "None",
-            daysRemaining: user.licenseExpiry ? Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24)) : 0,
+            availableSymbols: Object.keys(eaBrainStates),
+            monitoredSymbols: user.monitoredSymbols || [], // Send the user's specific symbols
+            daysRemaining: daysLeft,
+            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
-            targetBalance: user.targetBalance || 0,
-            currentBalance: currentBalance,
-            currentEquity: currentEquity,
-            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE")
+            targetBalance: user.targetBalance || 0
         });
 
     } catch (err) {
@@ -445,7 +459,6 @@ app.post("/api/client/sync", async (req, res) => {
         res.status(500).json({ action: "ERROR" });
     }
 });
-
 
 
 // --- PRICING TIERS DATA ---
