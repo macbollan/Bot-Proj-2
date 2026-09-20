@@ -94,14 +94,14 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            max-width: 1200px; 
+            max-width: 1300px; /* Slightly wider to accommodate more items */
             margin: 0 auto; 
             padding: 0 20px;
             position: relative;
         }
         .nav-logo-img { 
-            height: 100px; 
-            width: 300px; 
+            height: 80px; /* Reduced height */
+            width: 240px; /* Reduced width to prevent overflow */
             object-fit: cover; 
             object-position: center 44%; 
             border-radius: 4px; 
@@ -114,14 +114,14 @@
             list-style: none; 
             margin: 0; 
             padding: 0; 
-            gap: 25px; 
+            gap: 18px; /* Reduced from 25px */
             align-items: center; 
         }
         .nav-menu li { list-style: none; }
         .nav-menu li a { 
             color: #ffffff; 
             text-decoration: none; 
-            font-size: 13px; 
+            font-size: 12px; /* Slightly smaller to fit guest menu */
             font-weight: 500; 
             transition: color 0.3s; 
             text-transform: uppercase; 
@@ -135,7 +135,7 @@
         .nav-btn { 
             background: var(--det-green) !important; 
             color: var(--det-dark) !important; 
-            padding: 8px 18px !important; 
+            padding: 8px 16px !important; 
             border-radius: 6px; 
             font-weight: 700 !important; 
             transition: all 0.3s ease; 
@@ -215,8 +215,8 @@
             line-height: 1;
         }
         
-        /* Mobile Styles */
-        @media (max-width: 991px) {
+        /* Mobile Styles - CHANGED BREAKPOINT FROM 991px TO 1199px */
+        @media (max-width: 1199px) {
             .mobile-toggle { display: block; }
             
             .nav-menu { 
@@ -285,7 +285,6 @@
             <li><a href="/pricing" class="<%= typeof page !== 'undefined' && page === 'pricing' ? 'active' : '' %>">D.E.T Payment Tiers</a></li>
             <li><a href="/affiliate" class="<%= typeof page !== 'undefined' && page === 'affiliate' ? 'active' : '' %>">Become an Affiliate</a></li>
           
-            
             <% if(typeof currentUser !== 'undefined' && currentUser) { %>
                 <li class="user-dropdown" id="userDropdown">
                     <a href="javascript:void(0)" class="user-dropdown-toggle" id="dropdownToggle">
@@ -293,12 +292,11 @@
                         <%= currentUser.username %>
                         <span class="dropdown-arrow">▼</span>
                     </a>
-             
 
                     <!-- In the user dropdown menu, add this link -->
                     <div class="user-dropdown-menu">
                         <a href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                        <a href="/affiliate/dashboard"><i class="bi bi-diagram-3"></i> Affiliate Hub</a>  <!-- ADD THIS LINE -->
+                        <a href="/affiliate/dashboard"><i class="bi bi-diagram-3"></i> Affiliate Hub</a>
                         <a href="/pricing"><i class="bi bi-cart-plus"></i> Upgrade Plan</a>
                         <div class="dropdown-divider"></div>
                         <a href="/logout" style="color: #fca5a5 !important;"><i class="bi bi-box-arrow-right"></i> Logout</a>
@@ -312,7 +310,6 @@
     </div>
 </header>
 
-<!-- Flash Messages -->
 <!-- Flash Messages -->
 <div class="flash-messages-container">
     <% if(typeof success !== 'undefined' && success && success.length > 0) { %>

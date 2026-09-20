@@ -257,6 +257,56 @@
         gap: 12px;
         color: var(--det-green-hover);
     }
+    
+    /* MT5 Setup Checklist Styles */
+    .mt5-setup-box {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+    }
+    .mt5-setup-box ol {
+        padding-left: 20px;
+        margin-bottom: 0;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 2.2;
+    }
+    .mt5-setup-box li strong {
+        color: #fff;
+    }
+    .mt5-setup-box code {
+        background: rgba(176,191,150,0.1);
+        color: var(--det-green);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+    .warning-box {
+        background: rgba(240,192,64,0.08);
+        border: 1px solid rgba(240,192,64,0.2);
+        border-left: 3px solid #f0c040;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .warning-box i {
+        color: #f0c040;
+        font-size: 16px;
+        margin-top: 2px;
+    }
+    .warning-box p {
+        color: #f0c040;
+        font-size: 12px;
+        margin: 0;
+        line-height: 1.5;
+        font-weight: 500;
+    }
 
     /* Tiers Quick View */
     .tiers-mini-section {
@@ -584,9 +634,6 @@
     </div>
 </section>
 
-
-
-
 <!-- PROCESS TIMELINE -->
 <section class="process-section">
     <div class="container">
@@ -613,12 +660,6 @@
                         <span class="step-tag">Free</span>
                         <span class="step-tag">< 1 Min</span>
                     </div>
-                    <!-- <div class="step-image-placeholder">
-                        <i class="bi bi-image me-2"></i> Registration Page Screenshot
-                    </div> -->
-
-
-               
                     <div style="display: flex; gap: 12px; margin-top: 16px;">
                         <a href="/register" class="step-link">Create Account <i class="bi bi-arrow-right"></i></a>
                         <a href="/login" class="step-link">Login <i class="bi bi-arrow-right"></i></a>
@@ -645,24 +686,22 @@
                         <span class="step-tag">OneMoney</span>
                         <span class="step-tag">Bank Transfer</span>
                     </div>
-                       
-                    
                     <a href="/pricing" class="step-link">View Pricing Tiers <i class="bi bi-arrow-right"></i></a>
                 </div>
             </div>
 
-            <!-- STEP 3 -->
+            <!-- STEP 3: UPDATED WITH FULL MT5 SETUP CHECKLIST -->
             <div class="timeline-step">
                 <div class="step-number-container">
                     <div class="step-number">3</div>
                 </div>
-                <div class="step-content">
+                <div class="step-content" style="max-width: 600px;">
                     <div class="step-icon">
-                        <i class="bi bi-download"></i>
+                        <i class="bi bi-tools"></i>
                     </div>
-                    <h3>Download & Install the EA</h3>
+                    <h3>Setup & Install the EA</h3>
                     <p>
-                        After payment, your unique 9-digit activation code appears in your dashboard. Download the D.E.T, paste your code into MetaTrader 5, and you're ready.
+                        After payment, your unique 9-digit activation code appears in your dashboard. Download the D.E.T, paste your code into MetaTrader 5, and configure it correctly.
                     </p>
                     <div class="step-tags">
                         <span class="step-tag">MT5</span>
@@ -670,19 +709,45 @@
                         <span class="step-tag">Auto-Install</span>
                     </div>
 
-
-                    <div style="margin-top: 16px;">
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">
-                            <strong style="color: var(--det-green);">Quick D.E.T Install Guide:</strong>
+                    <!-- MT5 Setup Checklist -->
+                    <div class="mt5-setup-box">
+                        <p style="color: var(--det-green); font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i class="bi bi-list-check"></i> MT5 Critical Setup Checklist
                         </p>
-                        <ol style="font-size: 12px; color: #94a3b8; padding-left: 18px; line-height: 2;">
-                            <li>Open MetaTrader 5 → <strong>File</strong> → <strong>Open Data Folder</strong></li>
-                            <li>Navigate to <code style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:3px;">MQL5/Experts/</code></li>
-                            <li>Paste the downloaded <strong>.ex5</strong> file</li>
-                            <li>Restart MT5 → Drag D.E.T onto your chart</li>
-                            <li>Enter your <strong>9-Digit Activation Code</strong></li>
-                            <li>Click <strong>OK</strong> — the algorithm begins scanning immediately</li>
+                        
+                        <ol>
+                            <li>
+                                <strong>Download & Install:</strong> Open MetaTrader 5 → <strong>File</strong> → <strong>Open Data Folder</strong> → Navigate to <code>MQL5/Experts/</code> → Paste the downloaded <code>.ex5</code> file → Restart MT5.
+                            </li>
+                            <li>
+                                <strong>Allow D.E.T URL:</strong> In MT5, go to <strong>Tools</strong> → <strong>Options</strong> → <strong>Expert Advisors</strong>. Check <strong>"Allow WebRequest for listed URL"</strong> and add this exact URL:
+                                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(176,191,150,0.3); border-radius: 4px; padding: 6px 10px; margin-top: 6px; font-family: 'Courier New', monospace; color: var(--det-green); font-size: 11px; word-break: break-all;">
+                                    https://bot-proj-2-1.onrender.com
+                                </div>
+                            </li>
+                            <li>
+                                <strong>Enable Algo Trading:</strong> Ensure the <strong>"Algo Trading"</strong> button in the top MT5 toolbar is turned <strong>ON</strong> (it should be green). Without this, the EA will not execute trades.
+                            </li>
+                            <li>
+                                <strong>Paste License Key:</strong> Drag the EA onto your chart. In the settings popup, paste your unique <strong>9-Digit D.E.T License Key</strong> from your dashboard into the <code>LicenseKey</code> field.
+                            </li>
+                            <li>
+                                <strong>Attach to Multiple Charts:</strong> For optimal performance and diversification, attach the EA to <strong>10 or more charts</strong>. The EA will automatically report these charts to your dashboard as "Markets Being Monitored."
+                            </li>
                         </ol>
+                    </div>
+
+                    <!-- Warning Box -->
+                    <div class="warning-box">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <p><strong>Important:</strong> If you skip any of these steps, the EA will not function. You will see a pop-up warning in MT5 if the URL is not allowed or if your License Key is missing.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <a href="/dashboard" class="step-link">Go to Dashboard <i class="bi bi-arrow-right"></i></a>
+                        <a href="/DET.rar" class="step-link">Download D.E.T <i class="bi bi-download"></i></a>
                     </div>
                 </div>
             </div>
@@ -705,9 +770,6 @@
                         <span class="step-tag">Real-Time Analytics</span>
                         <span class="step-tag">Zero Hedge Lock</span>
                     </div>
-
- 
-
                     <a href="/dashboard" class="step-link">View Dashboard <i class="bi bi-arrow-right"></i></a>
                 </div>
             </div>
@@ -715,9 +777,19 @@
     </div>
 </section>
 
-
 <!-- CTA SECTION -->
-
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <h2>Ready to Start Trading?</h2>
+            <p>Join the D.E.T network today and let our S.M.A.R.T. engine work for you.</p>
+            <div class="cta-buttons">
+                <a href="/register" class="btn-cta-primary">Create Free Account</a>
+                <a href="/pricing" class="btn-cta-secondary">View Pricing Plans</a>
+            </div>
+        </div>
+    </div>
+</section>
 
 <script>
 // FAQ accordion is handled by inline onclick above

@@ -384,9 +384,114 @@ app.get("/api/public/ea-state", (req, res) => {
     });
 });
 
+// ==========================================
+// USER-SPECIFIC DASHBOARD DATA ENDPOINT
+// ==========================================
+app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        // --- INTELLIGENT SYMBOL SELECTION ---
+        let displaySymbol = req.query.symbol;
+        if (!displaySymbol) {
+            if (user.monitoredSymbols && user.monitoredSymbols.length > 0) {
+                // Prefer a symbol that actually has live data
+                const activeSym = user.monitoredSymbols.find(s => eaBrainStates[s] && eaBrainStates[s].price > 0);
+                displaySymbol = activeSym || user.monitoredSymbols[0];
+            } else {
+                displaySymbol = eaBrainState.symbol || "GBPUSD";
+            }
+        }
+
+        const masterState = eaBrainStates[displaySymbol] || eaBrainState;
+        const trades = activeTradesBySymbol[displaySymbol] || activeTradesList || [];
+
+        // Calculate days remaining (Capped at 3650 to prevent UI breakage)
+        let daysLeft = 0;
+        if (user.licenseExpiry) {
+            daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) daysLeft = 0;
+            if (daysLeft > 3650) daysLeft = 3650;
+        }
+
+        res.json({
+            ...masterState,
+            activeSymbol: displaySymbol, // Send back the resolved symbol
+            trades: trades,
+            availableSymbols: Object.keys(eaBrainStates),
+            monitoredSymbols: user.monitoredSymbols || [],
+            userTier: user.currentTier || "None",
+            daysRemaining: daysLeft,
+            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
+            startingBalance: user.startingBalance || 0,
+            targetBalance: user.targetBalance || 0
+        });
+    } catch (err) {
+        console.error("User EA State Error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// ==========================================
+// REMOVE SYMBOL ENDPOINT
+// ==========================================
+app.post("/api/user/remove-symbol", isLoggedIn, async (req, res) => {
+    try {
+        const { symbol } = req.body;
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        user.monitoredSymbols = user.monitoredSymbols.filter(s => s !== symbol);
+        await user.save();
+        
+        console.log(`[SYMBOL] Removed ${symbol} from ${user.username}'s monitored list.`);
+        res.json({ success: true, monitoredSymbols: user.monitoredSymbols });
+    } catch (err) {
+        console.error("Remove symbol error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
 let activeClientSymbols = {}; // Key: licenseKey, Value: Set of symbols
 
+// ==========================================
+// USER-SPECIFIC DASHBOARD DATA ENDPOINT
+// ==========================================
+app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ error: "User not found" });
 
+        const symbol = req.query.symbol || eaBrainState.symbol || "GBPUSD";
+        const masterState = eaBrainStates[symbol] || eaBrainState;
+        const trades = activeTradesBySymbol[symbol] || activeTradesList || [];
+
+        // Calculate days remaining (Capped at 3650 to prevent UI breakage)
+        let daysLeft = 0;
+        if (user.licenseExpiry) {
+            daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+            if (daysLeft < 0) daysLeft = 0;
+            if (daysLeft > 3650) daysLeft = 3650;
+        }
+
+        res.json({
+            ...masterState,
+            trades: trades,
+            availableSymbols: Object.keys(eaBrainStates),
+            monitoredSymbols: user.monitoredSymbols || [], // <--- THE KEY FIX
+            userTier: user.currentTier || "None",
+            daysRemaining: daysLeft,
+            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
+            startingBalance: user.startingBalance || 0,
+            targetBalance: user.targetBalance || 0
+        });
+    } catch (err) {
+        console.error("User EA State Error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
 
 
 app.post("/api/client/sync", async (req, res) => {

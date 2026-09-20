@@ -1013,14 +1013,16 @@
     // =========================================
     // FETCH LIVE MARKET DATA (DYNAMIC)
     // =========================================
+    // =========================================
+    // FETCH LIVE MARKET DATA (DYNAMIC)
+    // =========================================
     async function fetchLiveData() {
         try {
-            // CHANGED: Fetch from the user-specific endpoint
             const res = await fetch('/api/user/ea-state');
             const data = await res.json();
 
-            // 1. Update Top Metrics
-            document.getElementById('ea-symbol').innerText = data.symbol || '--';
+            // 1. Update Top Metrics (Use data.activeSymbol)
+            document.getElementById('ea-symbol').innerText = data.activeSymbol || '--';
             document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : '0.00';
             document.getElementById('ea-trend').innerText = data.trend || '--';
             document.getElementById('ea-trades').innerText = data.openTrades || '0';
@@ -1038,18 +1040,23 @@
                 floatEl.style.color = float >= 0 ? '#22c55e' : '#ef4444';
             }
 
-            // 3. Update Markets Monitored List (DYNAMIC FROM API)
+            // 3. Update Markets Monitored List (WITH REMOVE BUTTON)
             const marketsList = document.getElementById('marketsList');
             const marketsCount = document.getElementById('marketsCount');
-            const symbols = data.monitoredSymbols || []; // <--- FETCHED DYNAMICALLY
+            const symbols = data.monitoredSymbols || [];
             
             marketsCount.innerText = `${symbols.length} Markets`;
             
             if (symbols.length > 0) {
                 marketsList.innerHTML = symbols.map(sym => `
-                    <div class="list-item">
-                        <span class="symbol"><i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i> ${sym}</span>
-                        <span class="value neutral">Monitoring...</span>
+                    <div class="list-item d-flex justify-content-between align-items-center">
+                        <span class="symbol">
+                            <i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i> 
+                            ${sym}
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size: 10px; line-height: 1;" onclick="removeSymbol('${sym}')" title="Remove ${sym}">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
                 `).join('');
             } else {
@@ -1091,6 +1098,30 @@
 
         } catch (e) {
             console.error('Live feed error:', e);
+        }
+    }
+
+    // =========================================
+    // REMOVE SYMBOL FUNCTION
+    // =========================================
+    async function removeSymbol(symbol) {
+        if (!confirm(`Are you sure you want to remove ${symbol} from your monitored list?`)) return;
+        
+        try {
+            const res = await fetch('/api/user/remove-symbol', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbol: symbol })
+            });
+            const data = await res.json();
+            if (data.success) {
+                fetchLiveData(); // Refresh the list immediately
+            } else {
+                alert('Failed to remove symbol.');
+            }
+        } catch (err) {
+            console.error('Error removing symbol:', err);
+            alert('Network error. Please try again.');
         }
     }
 
