@@ -286,6 +286,12 @@ app.post("/api/paynow/update", async (req, res) => {
                 user.isSuspended = false; 
                 user.accountLocked = false;
                 user.mt5AccountNumber = null; 
+                // Inside the block that assigns user.licenseKey, ADD these reset lines:
+                user.startingBalance = 0;
+                user.targetBalance = 0;
+                user.monitoredSymbols = [];
+                user.connectedBrokers = [];
+                user.lockReason = null;
                 
                 await user.save();
                 
@@ -425,7 +431,8 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
             daysRemaining: daysLeft,
             accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
-            targetBalance: user.targetBalance || 0
+            targetBalance: user.targetBalance || 0,
+            connectedBrokers: user.connectedBrokers || []   // NEW
         });
     } catch (err) {
         console.error("User EA State Error:", err);
@@ -495,70 +502,117 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
 
 
 app.post("/api/client/sync", async (req, res) => {
-    const { licenseKey, currentBalance, currentEquity, preferredSymbol, clientSymbol } = req.body;
+    const { 
+        licenseKey, currentBalance, currentEquity, preferredSymbol, clientSymbol,
+        accountNumber, brokerName, brokerServer
+    } = req.body;
     
     try {
         const user = await User.findOne({ licenseKey: licenseKey });
         
-        if (!user || new Date() > user.licenseExpiry) {
-            return res.json({ action: "KILL" });
+        // === HARD CHECK 1: License must exist ===
+        if (!user) {
+            return res.json({ action: "KILL", reason: "INVALID_LICENSE" });
         }
-
+        
+        // === HARD CHECK 2: License must not be expired ===
+        if (new Date() > new Date(user.licenseExpiry)) {
+            return res.json({ action: "KILL", reason: "EXPIRED" });
+        }
+        
+        // === HARD CHECK 3: Account must be active ===
         if (user.isSuspended || user.accountLocked) {
-            return res.json({ action: "ZERO_HEDGE" });
+            return res.json({ action: "ZERO_HEDGE", reason: "LOCKED" });
         }
-
-        // --- PERSISTENT CLIENT SYMBOL TRACKING ---
+        
+        // === TRACK BROKER CONNECTION ===
+        if (accountNumber && brokerName) {
+            if (!user.connectedBrokers) user.connectedBrokers = [];
+            const existingIdx = user.connectedBrokers.findIndex(
+                b => String(b.accountNumber) === String(accountNumber) && b.brokerName === brokerName
+            );
+            if (existingIdx >= 0) {
+                user.connectedBrokers[existingIdx].lastSeen = new Date();
+                user.connectedBrokers[existingIdx].server = brokerServer || '';
+                user.connectedBrokers[existingIdx].licenseUsed = licenseKey;
+            } else {
+                user.connectedBrokers.push({
+                    accountNumber: String(accountNumber),
+                    brokerName: brokerName,
+                    server: brokerServer || '',
+                    licenseUsed: licenseKey,
+                    lastSeen: new Date()
+                });
+                console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber}`);
+            }
+        }
+        
+        // === TRACK SYMBOL ===
         if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
             user.monitoredSymbols.push(clientSymbol);
-            await user.save();
-            console.log(`[SYMBOL] Added ${clientSymbol} to ${user.username}'s monitored list.`);
         }
-
-        let updated = false;
-
-        if (user.startingBalance === 0 || user.startingBalance == null) {
+        
+        // === SET STARTING BALANCE (once per license) ===
+        if (!user.startingBalance || user.startingBalance === 0) {
             user.startingBalance = currentBalance;
-            user.targetBalance = currentBalance * 2;
-            updated = true;
+            // Target = starting + prepayment (which = starting when they're equal)
+            const gainAmount = user.prepaymentAmount || currentBalance;
+            user.targetBalance = currentBalance + gainAmount;
+            console.log(`[START] ${user.username} baseline set: start=$${currentBalance} target=$${user.targetBalance}`);
         }
-
+        
+        await user.save();
+        
+        // === 100% GAIN CHECK ===
         if (currentEquity >= user.targetBalance && user.targetBalance > 0) {
             user.accountLocked = true;
             user.isSuspended = true;
-            user.lockReason = 'target_reached';
+            user.lockReason = 'gain_target_reached';
             await user.save();
-            console.log(`[ZERO-HEDGE] ${user.username} doubled! Locking.`);
-            return res.json({ action: "ZERO_HEDGE" });
+            console.log(`[ZERO-HEDGE] ${user.username} hit 100% GAIN target ($${user.targetBalance}). Locking.`);
+            return res.json({ action: "ZERO_HEDGE", reason: "GAIN_TARGET" });
         }
-
-        if (updated) await user.save();
-
+        
+        // === 100% LOSS CHECK (NEW) ===
+        const lossAmount = user.prepaymentAmount || user.startingBalance;
+        const lossFloor = user.startingBalance - lossAmount;
+        if (currentEquity <= lossFloor) {
+            user.accountLocked = true;
+            user.isSuspended = true;
+            user.lockReason = 'loss_limit_reached';
+            await user.save();
+            console.log(`[ZERO-HEDGE] ${user.username} hit 100% LOSS floor ($${lossFloor}). Locking.`);
+            return res.json({ action: "ZERO_HEDGE", reason: "LOSS_LIMIT" });
+        }
+        
+        // === SEND TRADE DATA ===
         const symbol = preferredSymbol || eaBrainState.symbol || "GBPUSD";
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
-
-        // Calculate Days Remaining (Cap at 3650 to prevent UI breakage)
+        
         let daysLeft = 0;
         if (user.licenseExpiry) {
             daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
             if (daysLeft < 0) daysLeft = 0;
-            if (daysLeft > 3650) daysLeft = 3650; // Cap at 10 years for display
+            if (daysLeft > 3650) daysLeft = 3650;
         }
-
+        
         res.json({
             action: "TRADE",
             masterState: masterState,
             trades: trades,
             userTier: user.currentTier || "None",
             availableSymbols: Object.keys(eaBrainStates),
-            monitoredSymbols: user.monitoredSymbols || [], // Send the user's specific symbols
+            monitoredSymbols: user.monitoredSymbols || [],
             daysRemaining: daysLeft,
-            accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
+            accountStatus: "ACTIVE",
             startingBalance: user.startingBalance || 0,
-            targetBalance: user.targetBalance || 0
+            targetBalance: user.targetBalance || 0,
+            prepaymentAmount: user.prepaymentAmount || 0,
+            lossFloor: lossFloor,
+            connectedBrokers: user.connectedBrokers || []
         });
-
+        
     } catch (err) {
         console.error("Sync Error:", err);
         res.status(500).json({ action: "ERROR" });
@@ -1578,10 +1632,18 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
         user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
         user.currentTier = tier; 
         user.isSuspended = false; 
-        user.accountLocked = false; // Unlock when new license is issued
+        user.accountLocked = false;
+        
+        // === RESET ALL LICENSE-SPECIFIC DATA ===
+        user.startingBalance = 0;
+        user.targetBalance = 0;
+        user.monitoredSymbols = [];
+        user.connectedBrokers = [];
+        user.lockReason = null;
+        
         await user.save();
         
-        req.flash("success", `Generated ${days}-day ${tier} License for ${user.username}`);
+        req.flash("success", `Generated ${days}-day ${tier} License for ${user.username} (data reset)`);
         res.redirect("/admin");
     } catch (err) {
         req.flash("error", "Could not generate license.");

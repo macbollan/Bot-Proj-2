@@ -55,6 +55,14 @@ affiliateCommission: { type: Number, default: 0 },
         paymentReference: String,
         paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' }
     }],
+
+    connectedBrokers: [{
+    accountNumber: String,
+    brokerName: String,     // e.g. "Deriv-Demo", "Exness-Real"
+    server: String,
+    licenseUsed: String,
+    lastSeen: Date
+}],
     // Add this to your User Schema definition in models/User.model.js
 monitoredSymbols: {
     type: [String],
