@@ -610,7 +610,17 @@ app.post("/api/client/sync", async (req, res) => {
             targetBalance: user.targetBalance || 0,
             prepaymentAmount: user.prepaymentAmount || 0,
             lossFloor: lossFloor,
-            connectedBrokers: user.connectedBrokers || []
+            connectedBrokers: user.connectedBrokers || [],
+                totalProfit: (profits + losses).toFixed(2),      // Net P/L
+    counterProfits: profits.toFixed(2),               // Positive P/L only
+    unprofitableTotal: losses.toFixed(2),             // Negative P/L only
+    entryTip: "Scalpa BULLish Entry",                 // From master EA analysis
+    exitTip: "DayTrader close trades",                // From master EA analysis
+    levelBtnText: "LEVEL 3 LONGTRADER",               // From user tier
+    subLicenseMask: "******441",                      // Masked license
+    hoursRemaining: Math.floor((hoursFrac) * 24),     // 0-23
+    minutesRemaining: Math.floor((minsFrac) * 60),    // 0-59
+    connectedBrokersCount: user.connectedBrokers.length
         });
         
     } catch (err) {
