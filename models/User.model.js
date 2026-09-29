@@ -56,12 +56,19 @@ affiliateCommission: { type: Number, default: 0 },
         paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' }
     }],
 
-    connectedBrokers: [{
+    cycleNumber:          { type: Number, default: 1 },
+cycleStartingBalance: { type: Number, default: 0 },
+lockedAtAggregateEquity: { type: Number, default: null },
+lockedAtStartingBalance: { type: Number, default: null },
+
+connectedBrokers: [{
     accountNumber: String,
-    brokerName: String,     // e.g. "Deriv-Demo", "Exness-Real"
+    brokerName: String,
     server: String,
     licenseUsed: String,
-    lastSeen: Date
+    lastSeen: Date,
+    lastBalance: { type: Number, default: null },
+    lastEquity:  { type: Number, default: null }
 }],
     // Add this to your User Schema definition in models/User.model.js
 monitoredSymbols: {

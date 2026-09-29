@@ -470,29 +470,60 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ error: "User not found" });
-
-        const symbol = req.query.symbol || eaBrainState.symbol || "GBPUSD";
-        const masterState = eaBrainStates[symbol] || eaBrainState;
-        const trades = activeTradesBySymbol[symbol] || activeTradesList || [];
-
-        // Calculate days remaining (Capped at 3650 to prevent UI breakage)
-        let daysLeft = 0;
-        if (user.licenseExpiry) {
-            daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
-            if (daysLeft < 0) daysLeft = 0;
-            if (daysLeft > 3650) daysLeft = 3650;
+        
+        // Pick symbol: prefer one with live data
+        let displaySymbol = req.query.symbol;
+        if (!displaySymbol) {
+            if (user.monitoredSymbols && user.monitoredSymbols.length > 0) {
+                const activeSym = user.monitoredSymbols.find(s => eaBrainStates[s] && eaBrainStates[s].price > 0);
+                displaySymbol = activeSym || user.monitoredSymbols[0];
+            } else {
+                displaySymbol = eaBrainState.symbol || "GBPUSD";
+            }
         }
-
+        
+        const masterState = eaBrainStates[displaySymbol] || eaBrainState;
+        const trades = activeTradesBySymbol[displaySymbol] || activeTradesList || [];
+        
+        // Time remaining
+        let daysLeft = 0, hoursLeft = 0, minsLeft = 0;
+        if (user.licenseExpiry) {
+            const ms = new Date(user.licenseExpiry) - new Date();
+            if (ms > 0) {
+                daysLeft  = Math.floor(ms / (1000 * 60 * 60 * 24));
+                hoursLeft = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                minsLeft  = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+                if (daysLeft > 3650) daysLeft = 3650;
+            }
+        }
+        
+        // Aggregate equity from all connected accounts
+        let aggregateEquity = 0;
+        (user.connectedBrokers || []).forEach(b => {
+            if (b.lastEquity != null && b.lastEquity > 0) aggregateEquity += b.lastEquity;
+        });
+        
+        const netPnL = user.startingBalance > 0 ? (aggregateEquity - user.startingBalance) : 0;
+        
         res.json({
             ...masterState,
+            activeSymbol: displaySymbol,
             trades: trades,
             availableSymbols: Object.keys(eaBrainStates),
-            monitoredSymbols: user.monitoredSymbols || [], // <--- THE KEY FIX
+            monitoredSymbols: user.monitoredSymbols || [],
             userTier: user.currentTier || "None",
             daysRemaining: daysLeft,
+            hoursRemaining: hoursLeft,
+            minutesRemaining: minsLeft,
             accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
-            targetBalance: user.targetBalance || 0
+            targetBalance: user.targetBalance || 0,
+            aggregateEquity: aggregateEquity,
+            totalProfit: netPnL.toFixed(2),
+            counterProfits: netPnL > 0 ? netPnL.toFixed(2) : "0.00",
+            unprofitableTotal: netPnL < 0 ? netPnL.toFixed(2) : "0.00",
+            connectedBrokers: user.connectedBrokers || [],
+            connectedBrokersCount: (user.connectedBrokers || []).length
         });
     } catch (err) {
         console.error("User EA State Error:", err);
@@ -520,82 +551,157 @@ app.post("/api/client/sync", async (req, res) => {
             return res.json({ action: "KILL", reason: "EXPIRED" });
         }
         
-        // === HARD CHECK 3: Account must be active ===
-        if (user.isSuspended || user.accountLocked) {
-            return res.json({ action: "ZERO_HEDGE", reason: "LOCKED" });
-        }
-        
-        // === TRACK BROKER CONNECTION ===
+        // === STEP 1: TRACK THIS BROKER (always — even if locked) ===
         if (accountNumber && brokerName) {
             if (!user.connectedBrokers) user.connectedBrokers = [];
-            const existingIdx = user.connectedBrokers.findIndex(
+            const idx = user.connectedBrokers.findIndex(
                 b => String(b.accountNumber) === String(accountNumber) && b.brokerName === brokerName
             );
-            if (existingIdx >= 0) {
-                user.connectedBrokers[existingIdx].lastSeen = new Date();
-                user.connectedBrokers[existingIdx].server = brokerServer || '';
-                user.connectedBrokers[existingIdx].licenseUsed = licenseKey;
+            const record = {
+                accountNumber: String(accountNumber),
+                brokerName: brokerName,
+                server: brokerServer || '',
+                licenseUsed: licenseKey,
+                lastSeen: new Date(),
+                lastBalance: currentBalance,
+                lastEquity: currentEquity
+            };
+            if (idx >= 0) {
+                user.connectedBrokers[idx] = { ...user.connectedBrokers[idx].toObject?.() || user.connectedBrokers[idx], ...record };
             } else {
-                user.connectedBrokers.push({
-                    accountNumber: String(accountNumber),
-                    brokerName: brokerName,
-                    server: brokerServer || '',
-                    licenseUsed: licenseKey,
-                    lastSeen: new Date()
-                });
-                console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber}`);
+                user.connectedBrokers.push(record);
+                console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber} — equity $${currentEquity}`);
             }
         }
         
-        // === TRACK SYMBOL ===
+        // === STEP 2: TRACK SYMBOL ===
         if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
             user.monitoredSymbols.push(clientSymbol);
         }
         
-        // === SET STARTING BALANCE (once per license) ===
+        // === STEP 3: SET LICENSE-LEVEL STARTING BALANCE (ONCE ONLY) ===
+        // The very first time ANY account connects, its balance becomes the reference.
+        // This is NEVER overwritten — not by later accounts, not by top-ups, not by unlocks.
         if (!user.startingBalance || user.startingBalance === 0) {
             user.startingBalance = currentBalance;
-            // Target = starting + prepayment (which = starting when they're equal)
-            const gainAmount = user.prepaymentAmount || currentBalance;
-            user.targetBalance = currentBalance + gainAmount;
-            console.log(`[START] ${user.username} baseline set: start=$${currentBalance} target=$${user.targetBalance}`);
+            user.targetBalance   = currentBalance * 2;
+            user.cycleStartingBalance = currentBalance;
+            user.cycleNumber = 1;
+            console.log(`[LICENSE REF] ${user.username} set: start=$${currentBalance}, target=$${user.targetBalance}`);
+        }
+        
+        // === STEP 4: AGGREGATE EQUITY ACROSS ALL ACCOUNTS ===
+        let aggregateEquity = 0;
+        let activeAccounts = 0;
+        (user.connectedBrokers || []).forEach(b => {
+            if (b.lastEquity != null && b.lastEquity > 0) {
+                aggregateEquity += b.lastEquity;
+                activeAccounts++;
+            }
+        });
+        // Fallback: if no broker records yet (brand new), use this account's equity
+        if (activeAccounts === 0) aggregateEquity = currentEquity;
+        
+        // === STEP 5: TOP-UP DETECTION (auto-unlock within active subscription) ===
+        // If license is locked due to LOSS_LIMIT, still within subscription window,
+        // AND this account has fresh capital → auto-unlock, keep same subscription.
+        if (user.accountLocked && user.lockReason === 'loss_limit_reached') {
+            const stillTimeLeft = new Date() < new Date(user.licenseExpiry);
+            const hasFreshCapital = currentBalance > 0;
+            
+            if (stillTimeLeft && hasFreshCapital) {
+                // Start a fresh cycle — reference is capped at the original startingBalance
+                user.cycleNumber = (user.cycleNumber || 1) + 1;
+                user.cycleStartingBalance = Math.min(currentBalance, user.startingBalance);
+                
+                user.accountLocked = false;
+                user.isSuspended = false;
+                user.lockReason = null;
+                user.lockedAtAggregateEquity = null;
+                user.lockedAtStartingBalance = null;
+                
+                // Reset per-broker equity trackers → fresh aggregate
+                (user.connectedBrokers || []).forEach(b => {
+                    b.lastEquity = null;
+                    b.lastBalance = null;
+                });
+                // Re-seed this account's fresh values
+                if (accountNumber && brokerName) {
+                    const idx2 = user.connectedBrokers.findIndex(
+                        b => String(b.accountNumber) === String(accountNumber) && b.brokerName === brokerName
+                    );
+                    if (idx2 >= 0) {
+                        user.connectedBrokers[idx2].lastBalance = currentBalance;
+                        user.connectedBrokers[idx2].lastEquity  = currentEquity;
+                    }
+                }
+                aggregateEquity = currentEquity;
+                
+                await user.save();
+                console.log(`[TOP-UP] ${user.username} re-deposited $${currentBalance} — cycle #${user.cycleNumber} unlocked`);
+            }
+        }
+        
+        // === STEP 6: IF STILL LOCKED → return ZERO_HEDGE (do NOT un-lock) ===
+        if (user.accountLocked || user.isSuspended) {
+            await user.save();
+            return res.json({ 
+                action: "ZERO_HEDGE", 
+                reason: user.lockReason || "LOCKED",
+                aggregateEquity: aggregateEquity,
+                startingBalance: user.startingBalance,
+                targetBalance: user.targetBalance
+            });
+        }
+        
+        // === STEP 7: 100% GAIN CHECK — AGGREGATE ONLY ===
+        if (user.targetBalance > 0 && aggregateEquity >= user.targetBalance) {
+            user.accountLocked = true;
+            user.isSuspended  = true;
+            user.lockReason   = 'gain_target_reached';
+            user.lockedAt     = new Date();
+            user.lockedAtAggregateEquity = aggregateEquity;
+            user.lockedAtStartingBalance = user.startingBalance;
+            await user.save();
+            console.log(`[ZERO-HEDGE GAIN] ${user.username} aggregate $${aggregateEquity} >= target $${user.targetBalance}`);
+            return res.json({ action: "ZERO_HEDGE", reason: "GAIN_TARGET" });
+        }
+        
+        // === STEP 8: 100% LOSS CHECK — AGGREGATE ONLY ===
+        // We must lose 100% of STARTING CAPITAL across ALL accounts combined.
+        // A single small account hitting $0 is NOT a loss event unless aggregate ≤ 0.
+        if (user.startingBalance > 0 && aggregateEquity <= 0) {
+            user.accountLocked = true;
+            user.isSuspended  = true;
+            user.lockReason   = 'loss_limit_reached';
+            user.lockedAt     = new Date();
+            user.lockedAtAggregateEquity = aggregateEquity;
+            user.lockedAtStartingBalance = user.startingBalance;
+            await user.save();
+            console.log(`[ZERO-HEDGE LOSS] ${user.username} aggregate $${aggregateEquity} <= 0`);
+            return res.json({ action: "ZERO_HEDGE", reason: "LOSS_LIMIT" });
         }
         
         await user.save();
         
-        // === 100% GAIN CHECK ===
-        if (currentEquity >= user.targetBalance && user.targetBalance > 0) {
-            user.accountLocked = true;
-            user.isSuspended = true;
-            user.lockReason = 'gain_target_reached';
-            await user.save();
-            console.log(`[ZERO-HEDGE] ${user.username} hit 100% GAIN target ($${user.targetBalance}). Locking.`);
-            return res.json({ action: "ZERO_HEDGE", reason: "GAIN_TARGET" });
-        }
-        
-        // === 100% LOSS CHECK (NEW) ===
-        const lossAmount = user.prepaymentAmount || user.startingBalance;
-        const lossFloor = user.startingBalance - lossAmount;
-        if (currentEquity <= lossFloor) {
-            user.accountLocked = true;
-            user.isSuspended = true;
-            user.lockReason = 'loss_limit_reached';
-            await user.save();
-            console.log(`[ZERO-HEDGE] ${user.username} hit 100% LOSS floor ($${lossFloor}). Locking.`);
-            return res.json({ action: "ZERO_HEDGE", reason: "LOSS_LIMIT" });
-        }
-        
-        // === SEND TRADE DATA ===
+        // === STEP 9: SEND TRADE DATA ===
         const symbol = preferredSymbol || eaBrainState.symbol || "GBPUSD";
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
         
-        let daysLeft = 0;
-        if (user.licenseExpiry) {
-            daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
-            if (daysLeft < 0) daysLeft = 0;
-            if (daysLeft > 3650) daysLeft = 3650;
-        }
+        // Time remaining breakdown
+        const msRemaining = new Date(user.licenseExpiry) - new Date();
+        const daysLeft  = Math.max(0, Math.floor(msRemaining / (1000 * 60 * 60 * 24)));
+        const hoursLeft = Math.max(0, Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+        const minsLeft  = Math.max(0, Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60)));
+        
+        // Aggregate profit/loss
+        const netPnL  = aggregateEquity - user.startingBalance;
+        const profit  = netPnL > 0 ? netPnL : 0;
+        const loss    = netPnL < 0 ? netPnL : 0;
+        
+        // License mask
+        const licMask = "******" + String(user.licenseKey || "").slice(-3);
         
         res.json({
             action: "TRADE",
@@ -604,23 +710,34 @@ app.post("/api/client/sync", async (req, res) => {
             userTier: user.currentTier || "None",
             availableSymbols: Object.keys(eaBrainStates),
             monitoredSymbols: user.monitoredSymbols || [],
+            
+            // Time
             daysRemaining: daysLeft,
+            hoursRemaining: hoursLeft,
+            minutesRemaining: minsLeft,
+            
+            // Balances
             accountStatus: "ACTIVE",
             startingBalance: user.startingBalance || 0,
             targetBalance: user.targetBalance || 0,
-            prepaymentAmount: user.prepaymentAmount || 0,
-            lossFloor: lossFloor,
+            aggregateEquity: aggregateEquity,
+            cycleStartingBalance: user.cycleStartingBalance || user.startingBalance,
+            cycleNumber: user.cycleNumber || 1,
+            
+            // P/L metrics
+            totalProfit: netPnL.toFixed(2),
+            counterProfits: profit.toFixed(2),
+            unprofitableTotal: loss.toFixed(2),
+            
+            // Display fields
+            levelBtnText: "LEVEL " + (user.tierLevel || 3) + " LONGTRADER",
+            subLicenseMask: licMask,
+            entryTip: (masterState && masterState.entryTip) || "Scalpa BULLish Entry",
+            exitTip:  (masterState && masterState.exitTip)  || "DayTrader close trades",
+            
+            // Brokers
             connectedBrokers: user.connectedBrokers || [],
-                totalProfit: (profits + losses).toFixed(2),      // Net P/L
-    counterProfits: profits.toFixed(2),               // Positive P/L only
-    unprofitableTotal: losses.toFixed(2),             // Negative P/L only
-    entryTip: "Scalpa BULLish Entry",                 // From master EA analysis
-    exitTip: "DayTrader close trades",                // From master EA analysis
-    levelBtnText: "LEVEL 3 LONGTRADER",               // From user tier
-    subLicenseMask: "******441",                      // Masked license
-    hoursRemaining: Math.floor((hoursFrac) * 24),     // 0-23
-    minutesRemaining: Math.floor((minsFrac) * 60),    // 0-59
-    connectedBrokersCount: user.connectedBrokers.length
+            connectedBrokersCount: (user.connectedBrokers || []).length
         });
         
     } catch (err) {
@@ -1605,19 +1722,36 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
             req.flash("error", "Participant not found.");
             return res.redirect("/admin");
         }
-        if (!user.accountLocked) {
+        if (!user.accountLocked && !user.isSuspended) {
             req.flash("error", "This account is not currently locked.");
             return res.redirect("/admin");
         }
         
-        // Unlock account and grant 7-day free access
+        // Unlock + grant 1-week free extension
         user.accountLocked = false;
-        user.isSuspended = false;
-        user.licenseExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 1 week
-        user.targetBalance = 0; // Reset target so they don't immediately get locked again
+        user.isSuspended   = false;
+        user.lockReason    = null;
+        user.lockedAtAggregateEquity = null;
+        user.lockedAtStartingBalance = null;
+        
+        // Extend expiry by 1 week from NOW (or from current expiry, whichever is later)
+        const baseDate = user.licenseExpiry && user.licenseExpiry > new Date() 
+            ? new Date(user.licenseExpiry) 
+            : new Date();
+        user.licenseExpiry = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+        
+        // IMPORTANT: Do NOT reset startingBalance — it's the license-level reference.
+        // Reset per-account equity trackers so the aggregate starts fresh for this cycle.
+        if (user.connectedBrokers) {
+            user.connectedBrokers.forEach(b => {
+                b.lastEquity  = null;
+                b.lastBalance = null;
+            });
+        }
+        
         await user.save();
         
-        console.log(`[FREE WEEK] Granted 1-week free access to ${user.username} (was Zero-Hedge locked)`);
+        console.log(`[FREE WEEK] Unlocked ${user.username} (cycle resets on next EA sync)`);
         req.flash("success", `Granted 1-week free access to ${user.username}. Their account is now active.`);
         res.redirect("/admin");
     } catch (err) {
