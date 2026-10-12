@@ -1156,9 +1156,6 @@
                                                         </span>
                                                     <% } else if (p.method === 'bank_transfer') { %>
                                                         <span class="status-badge bg-det-blue"><i class="bi bi-bank"></i> Bank</span>
-
-                                                    <% if (p.method === 'bank_transfer') { %>
-                                                        <span class="status-badge bg-det-blue"><i class="bi bi-bank"></i> Bank</span>
                                                     <% } else if (p.method === 'ecocash') { %>
                                                         <span class="status-badge bg-det-green"><i class="bi bi-phone"></i> EcoCash</span>
                                                     <% } else if (p.method === 'onemoney') { %>
@@ -1175,7 +1172,7 @@
                                                         <div style="font-family:'Courier New',monospace;"><%= p.payoutBank && p.payoutBank.accountNumber ? p.payoutBank.accountNumber : '—' %></div>
                                                         <div style="color:#64748b; font-size:11px;"><%= p.payoutBank && p.payoutBank.accountName ? p.payoutBank.accountName : '' %></div>
 
-                                                                                                            <% } else if (p.method === 'paypal') { %>
+                                                    <% } else if (p.method === 'paypal') { %>
                                                         <span class="code-pill"><%= p.payoutPaypalEmail || '—' %></span>
                                                         <% if (p.payoutPaypalEmail) { %>
                                                             <button type="button" class="action-btn btn-details ms-2" title="Copy email"
