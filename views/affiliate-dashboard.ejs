@@ -59,24 +59,24 @@
     }
     .copy-btn:hover { background: var(--det-green-hover); }
     .copy-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #475569; color: #cbd5e1; }
-    
-    .table thead th { 
-        background: #111 !important; 
-        color: #cbd5e1 !important; 
-        font-size: 11px; 
-        text-transform: uppercase; 
-        letter-spacing: 1px; 
-        padding: 14px 15px; 
-        border-bottom: 2px solid var(--det-border); 
+
+    .table thead th {
+        background: #111 !important;
+        color: #cbd5e1 !important;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 14px 15px;
+        border-bottom: 2px solid var(--det-border);
         font-weight: 600;
         white-space: nowrap;
     }
-    .table tbody td { 
-        padding: 14px 15px; 
-        border-bottom: 1px solid rgba(255,255,255,0.05); 
-        vertical-align: middle; 
+    .table tbody td {
+        padding: 14px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        vertical-align: middle;
         background: transparent;
-        color: #fff !important; 
+        color: #fff !important;
         font-size: 13px;
     }
     .table tbody tr:hover td {
@@ -84,7 +84,7 @@
     }
 
     /* =========================================
-       PAYOUT METHOD TILES (NEW)
+       PAYOUT METHOD TILES
     ========================================= */
     .payout-method-tile {
         background: rgba(0,0,0,0.25);
@@ -131,7 +131,36 @@
         border-color: var(--det-green);
         box-shadow: 0 0 0 3px rgba(176,191,150,0.1);
     }
-    
+
+    /* Status pills for payout history */
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    .pill-pending     { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .pill-processing  { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .pill-paid        { background: rgba(34,197,94,0.15);  color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .pill-failed      { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+    .method-chip {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid var(--det-border);
+        color: #cbd5e1;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
     @media (max-width: 768px) {
         .stat-value { font-size: 22px; }
         .referral-link-box { flex-direction: column; text-align: center; }
@@ -188,7 +217,7 @@
         <h5 class="fw-bold mb-3" style="color: #fff;"><i class="bi bi-link-45deg me-2" style="color: var(--det-green);"></i>Your Referral Link</h5>
         <div class="referral-link-box">
             <code id="refLink">https://bot-proj-2-1.onrender.com<%= affiliate.affiliateLink %></code>
-            <button class="copy-btn" onclick="copyRefLink()">
+            <button class="copy-btn" onclick="copyRefLink(this)">
                 <i class="bi bi-clipboard me-1"></i> Copy Link
             </button>
         </div>
@@ -200,7 +229,7 @@
     <!-- Recent Referrals -->
     <div class="dashboard-card">
         <h5 class="fw-bold mb-3" style="color: #fff;"><i class="bi bi-people-fill me-2" style="color: var(--det-green);"></i>Recent Referrals</h5>
-        
+
         <% if(recentReferrals && recentReferrals.length > 0) { %>
             <div class="table-responsive">
                 <table class="table align-middle mb-0" style="background: var(--det-dark); border-radius: 8px; overflow: hidden;">
@@ -222,7 +251,7 @@
                                     <small style="color: #94a3b8 !important; font-size: 11px;"><%= ref.email %></small>
                                 </td>
                                 <td>
-                                    <span style="background: rgba(0,0,0,0.3); border: 1px solid var(--det-border); color: #cbd5e1 !important; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;"><%= ref.tier %></span>
+                                    <span class="method-chip"><%= ref.tier %></span>
                                 </td>
                                 <td style="color: #fff !important; font-size: 13px;">
                                     $<%= (ref.amountPaid || 0).toFixed(2) %>
@@ -232,17 +261,11 @@
                                 </td>
                                 <td>
                                     <% if(ref.status === 'confirmed') { %>
-                                        <span style="background: rgba(34,197,94,0.15); color: #22c55e !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(34,197,94,0.3); white-space: nowrap;">
-                                            <i class="bi bi-check-circle me-1"></i> Confirmed
-                                        </span>
+                                        <span class="status-pill pill-paid"><i class="bi bi-check-circle"></i> Confirmed</span>
                                     <% } else if(ref.status === 'paid') { %>
-                                        <span style="background: rgba(56,189,248,0.15); color: #38bdf8 !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(56,189,248,0.3); white-space: nowrap;">
-                                            <i class="bi bi-cash me-1"></i> Paid
-                                        </span>
+                                        <span class="status-pill pill-processing"><i class="bi bi-cash"></i> Paid</span>
                                     <% } else { %>
-                                        <span style="background: rgba(245,158,11,0.15); color: #f59e0b !important; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(245,158,11,0.3); white-space: nowrap;">
-                                            <i class="bi bi-hourglass-split me-1"></i> Pending
-                                        </span>
+                                        <span class="status-pill pill-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
                                     <% } %>
                                 </td>
                                 <td style="font-size: 12px; color: #94a3b8 !important;">
@@ -263,7 +286,7 @@
     </div>
 
     <!-- =========================================
-         REQUEST PAYOUT (NEW — opens modal)
+         REQUEST PAYOUT
     ========================================= -->
     <div class="dashboard-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -289,10 +312,141 @@
         <% } %>
     </div>
 
+    <!-- =========================================
+         PAYOUT HISTORY (NEW)
+    ========================================= -->
+    <div class="dashboard-card">
+        <h5 class="fw-bold mb-3" style="color: #fff;">
+            <i class="bi bi-clock-history me-2" style="color: var(--det-green);"></i>Payout History
+        </h5>
+
+        <% 
+            const history = (affiliate.paymentHistory || []).slice().sort(
+                (a, b) => new Date(b.requestedAt) - new Date(a.requestedAt)
+            );
+        %>
+
+        <% if(history.length > 0) { %>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="background: var(--det-dark); border-radius: 8px; overflow: hidden;">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Method</th>
+                            <th>Destination</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Processed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% history.forEach(p => { %>
+                            <tr>
+                                <td>
+                                    <span style="font-family: 'Courier New', monospace; font-size: 11px; color: var(--det-green);">
+                                        <%= p.reference || '—' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if (p.method === 'ecocash') { %>
+                                        <span class="method-chip"><i class="bi bi-phone"></i> EcoCash</span>
+                                    <% } else if (p.method === 'onemoney') { %>
+                                        <span class="method-chip"><i class="bi bi-phone"></i> OneMoney</span>
+                                    <% } else if (p.method === 'innbucks') { %>
+                                        <span class="method-chip"><i class="bi bi-wallet"></i> InnBucks</span>
+                                    <% } else if (p.method === 'bank_transfer') { %>
+                                        <span class="method-chip"><i class="bi bi-bank"></i> Bank</span>
+                                    <% } else if (p.method === 'paypal') { %>
+                                        <span class="method-chip"><i class="bi bi-paypal"></i> PayPal</span>
+                                    <% } else { %>
+                                        <span class="method-chip"><%= p.method || '—' %></span>
+                                    <% } %>
+                                </td>
+                                <td style="font-size: 12px; color: #cbd5e1;">
+                                    <% if (p.method === 'bank_transfer' && p.payoutBank && p.payoutBank.accountNumber) { %>
+                                        <div><strong style="color:#fff;"><%= p.payoutBank.bankName %></strong></div>
+                                        <div style="font-family: 'Courier New', monospace; color: #94a3b8; font-size: 11px;">
+                                            <%= p.payoutBank.accountNumber %>
+                                        </div>
+                                    <% } else if (p.method === 'paypal' && p.payoutPaypalEmail) { %>
+                                        <span style="font-family: 'Courier New', monospace; color: #94a3b8; font-size: 11px;">
+                                            <%= p.payoutPaypalEmail %>
+                                        </span>
+                                    <% } else if (p.payoutPhone) { %>
+                                        <span style="font-family: 'Courier New', monospace; color: #94a3b8; font-size: 11px;">
+                                            <%= p.payoutPhone %>
+                                        </span>
+                                    <% } else { %>
+                                        <span style="color: #64748b;">—</span>
+                                    <% } %>
+                                </td>
+                                <td style="color: #fff; font-weight: 600;">
+                                    $<%= (p.amount || 0).toFixed(2) %>
+                                </td>
+                                <td>
+                                    <% if (p.status === 'paid') { %>
+                                        <span class="status-pill pill-paid"><i class="bi bi-check-circle"></i> Paid</span>
+                                    <% } else if (p.status === 'processing') { %>
+                                        <span class="status-pill pill-processing"><i class="bi bi-arrow-repeat"></i> Processing</span>
+                                    <% } else if (p.status === 'failed') { %>
+                                        <span class="status-pill pill-failed"><i class="bi bi-x-circle"></i> Failed</span>
+                                    <% } else { %>
+                                        <span class="status-pill pill-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
+                                    <% } %>
+                                </td>
+                                <td style="font-size: 12px; color: #94a3b8;">
+                                    <%= p.requestedAt ? new Date(p.requestedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' %>
+                                </td>
+                                <td style="font-size: 12px; color: #94a3b8;">
+                                    <%= p.paidAt ? new Date(p.paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Small totals summary -->
+            <div class="row g-2 mt-3">
+                <div class="col-md-4">
+                    <div class="stat-box" style="padding: 14px;">
+                        <div style="font-size: 18px; font-weight: 800; color: #f59e0b;">
+                            $<%= history.filter(h => h.status === 'pending').reduce((s, h) => s + (h.amount || 0), 0).toFixed(2) %>
+                        </div>
+                        <div class="stat-label" style="font-size: 10px;">Pending</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-box" style="padding: 14px;">
+                        <div style="font-size: 18px; font-weight: 800; color: #38bdf8;">
+                            $<%= history.filter(h => h.status === 'processing').reduce((s, h) => s + (h.amount || 0), 0).toFixed(2) %>
+                        </div>
+                        <div class="stat-label" style="font-size: 10px;">Processing</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-box" style="padding: 14px;">
+                        <div style="font-size: 18px; font-weight: 800; color: #22c55e;">
+                            $<%= history.filter(h => h.status === 'paid').reduce((s, h) => s + (h.amount || 0), 0).toFixed(2) %>
+                        </div>
+                        <div class="stat-label" style="font-size: 10px;">Total Paid</div>
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+                <i class="bi bi-clock-history" style="font-size: 42px; display: block; margin-bottom: 12px; opacity: 0.5;"></i>
+                <p class="fw-bold" style="color: #cbd5e1 !important; font-size: 15px; margin-bottom: 5px;">No payout requests yet</p>
+                <p style="font-size: 13px; color: #94a3b8 !important;">Your withdrawal history will appear here once you submit a request.</p>
+            </div>
+        <% } %>
+    </div>
+
 </div>
 
 <!-- =========================================
-     PAYOUT MODAL (NEW)
+     PAYOUT MODAL
 ========================================= -->
 <div class="modal fade" id="payoutModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -326,6 +480,11 @@
               </div>
             </div>
             <div class="col-6">
+              <div class="payout-method-tile" data-method="paypal" onclick="selectPayoutMethod('paypal')">
+                <i class="bi bi-paypal"></i> PayPal
+              </div>
+            </div>
+            <div class="col-12">
               <div class="payout-method-tile" data-method="bank_transfer" onclick="selectPayoutMethod('bank_transfer')">
                 <i class="bi bi-bank"></i> Bank / Paynow ZIPIT
               </div>
@@ -342,26 +501,38 @@
                    value="<%= affiliate.payoutPhone || '' %>">
           </div>
 
+          <!-- PayPal fields -->
+          <div id="paypalFields" style="display:none;">
+            <label class="payout-field-label">PayPal Email Address</label>
+            <input type="email" name="payoutPaypalEmail" id="payoutPaypalEmail" class="payout-input"
+                   placeholder="you@example.com"
+                   value="<%= affiliate.payoutPaypalEmail || '' %>">
+            <div style="font-size:11px; color:#94a3b8; margin-top:-6px; margin-bottom:12px;">
+              <i class="bi bi-info-circle me-1"></i>
+              Make sure this is a verified PayPal account. Funds are sent as Goods &amp; Services.
+            </div>
+          </div>
+
           <!-- Bank fields -->
           <div id="bankFields" style="display:none;">
             <label class="payout-field-label">Bank Name</label>
             <input type="text" name="bankName" class="payout-input" placeholder="e.g. CBZ Bank"
-                   value="<%= affiliate.payoutBank?.bankName || '' %>">
+                   value="<%= affiliate.payoutBank && affiliate.payoutBank.bankName ? affiliate.payoutBank.bankName : '' %>">
 
             <label class="payout-field-label">Account Holder Name</label>
             <input type="text" name="accountName" class="payout-input"
-                   value="<%= affiliate.payoutBank?.accountName || '' %>">
+                   value="<%= affiliate.payoutBank && affiliate.payoutBank.accountName ? affiliate.payoutBank.accountName : '' %>">
 
             <div class="row g-2">
               <div class="col-8">
                 <label class="payout-field-label">Account Number</label>
                 <input type="text" name="accountNumber" class="payout-input"
-                       value="<%= affiliate.payoutBank?.accountNumber || '' %>">
+                       value="<%= affiliate.payoutBank && affiliate.payoutBank.accountNumber ? affiliate.payoutBank.accountNumber : '' %>">
               </div>
               <div class="col-4">
                 <label class="payout-field-label">Branch Code</label>
                 <input type="text" name="branchCode" class="payout-input"
-                       value="<%= affiliate.payoutBank?.branchCode || '' %>">
+                       value="<%= affiliate.payoutBank && affiliate.payoutBank.branchCode ? affiliate.payoutBank.branchCode : '' %>">
               </div>
             </div>
           </div>
@@ -383,10 +554,9 @@
 </div>
 
 <script>
-function copyRefLink() {
+function copyRefLink(btn) {
     const link = document.getElementById('refLink').innerText;
     navigator.clipboard.writeText(link).then(() => {
-        const btn = document.querySelector('.copy-btn');
         const original = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
         btn.style.background = '#22c55e';
@@ -400,25 +570,44 @@ function copyRefLink() {
 }
 
 function selectPayoutMethod(method) {
+    // Toggle active tile
     document.querySelectorAll('.payout-method-tile').forEach(t => t.classList.remove('active'));
-    document.querySelector(`[data-method="${method}"]`).classList.add('active');
+    const tile = document.querySelector(`[data-method="${method}"]`);
+    if (tile) tile.classList.add('active');
+
     document.getElementById('payoutMethod').value = method;
 
-    const mobileFields = document.getElementById('mobileFields');
-    const bankFields = document.getElementById('bankFields');
-    const phoneInput = document.getElementById('payoutPhone');
+    const mobileFields  = document.getElementById('mobileFields');
+    const bankFields    = document.getElementById('bankFields');
+    const paypalFields  = document.getElementById('paypalFields');
+    const phoneInput    = document.getElementById('payoutPhone');
+
+    // Hide all field groups first
+    mobileFields.style.display = 'none';
+    bankFields.style.display   = 'none';
+    paypalFields.style.display = 'none';
 
     if (method === 'bank_transfer') {
-        mobileFields.style.display = 'none';
         bankFields.style.display = 'block';
+    } else if (method === 'paypal') {
+        paypalFields.style.display = 'block';
     } else {
         mobileFields.style.display = 'block';
-        bankFields.style.display = 'none';
         if (method === 'ecocash')  phoneInput.placeholder = '077XXXXXXX';
         if (method === 'onemoney') phoneInput.placeholder = '071XXXXXXX';
         if (method === 'innbucks') phoneInput.placeholder = 'InnBucks number';
     }
 }
+
+// Auto-detect if user's preferred method was previously saved,
+// so the modal opens on the right tile
+document.addEventListener('DOMContentLoaded', () => {
+    const preferred = '<%= affiliate.preferredPayoutMethod || "ecocash" %>';
+    if (preferred && preferred !== 'ecocash') {
+        // Only re-select if not the default to avoid pointless reflow
+        selectPayoutMethod(preferred);
+    }
+});
 </script>
 
 <%- include('partials/footer') %>

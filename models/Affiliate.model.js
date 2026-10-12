@@ -25,11 +25,13 @@ const AffiliateSchema = new mongoose.Schema({
     // ==========================================
     // PAYOUT PREFERENCES (NEW)
     // ==========================================
-    preferredPayoutMethod: {
-        type: String,
-        enum: ['ecocash', 'onemoney', 'innbucks', 'bank_transfer'],
-        default: 'ecocash'
-    },
+        preferredPayoutMethod: {
+            type: String,
+            enum: ['ecocash', 'onemoney', 'innbucks', 'bank_transfer', 'paypal'],
+            default: 'ecocash'
+        },
+        payoutPhone: { type: String, default: '' },
+        payoutPaypalEmail: { type: String, default: '' },
     payoutPhone: { type: String, default: '' },
     payoutBank: {
         bankName:      { type: String, default: '' },
@@ -71,6 +73,7 @@ const AffiliateSchema = new mongoose.Schema({
         paidAt: Date,
         // Snapshot of destination at request time (so phone changes don't corrupt history)
         payoutPhone: { type: String, default: '' },
+        payoutPaypalEmail: { type: String, default: '' },
         payoutBank: {
             bankName:      { type: String, default: '' },
             accountName:   { type: String, default: '' },

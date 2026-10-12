@@ -1594,6 +1594,7 @@ app.get("/admin", isAdmin, async (req, res) => {
                         method:            p.method || 'ecocash',
                         payoutPhone:       p.payoutPhone || aff.payoutPhone || '',
                         payoutBank:        p.payoutBank || aff.payoutBank || {},
+                        payoutPaypalEmail: p.payoutPaypalEmail || aff.payoutPaypalEmail || '',
                         reference:         p.reference || '',
                         requestedAt:       p.requestedAt || new Date()
                     });
@@ -1913,6 +1914,7 @@ app.get("/affiliate/dashboard", isLoggedIn, async (req, res) => {
 
 // --- AFFILIATE REQUEST PAYOUT ---
 // --- AFFILIATE REQUEST PAYOUT ---
+// --- AFFILIATE REQUEST PAYOUT ---
 app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
     try {
         const affiliate = await Affiliate.findOne({ userId: req.user._id });
@@ -1922,15 +1924,14 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
             return res.redirect("/affiliate/dashboard");
         }
 
-        const minPayout = 50; // Minimum $50 payout
+        const minPayout = 50;
         if (affiliate.pendingEarnings < minPayout) {
             req.flash("error", `Minimum payout is $${minPayout}. You have $${affiliate.pendingEarnings.toFixed(2)} pending.`);
             return res.redirect("/affiliate/dashboard");
         }
 
-        // Validate payout method
         const method = (req.body.method || 'ecocash').toLowerCase();
-        const validMethods = ['ecocash', 'onemoney', 'innbucks', 'bank_transfer'];
+        const validMethods = ['ecocash', 'onemoney', 'innbucks', 'bank_transfer', 'paypal'];
         if (!validMethods.includes(method)) {
             req.flash("error", "Invalid payout method.");
             return res.redirect("/affiliate/dashboard");
@@ -1938,6 +1939,7 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
 
         let payoutPhone = '';
         let payoutBank = {};
+        let payoutPaypalEmail = '';
 
         if (method === 'bank_transfer') {
             const { bankName, accountName, accountNumber, branchCode } = req.body;
@@ -1945,36 +1947,37 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
                 req.flash("error", "Please fill in all bank details.");
                 return res.redirect("/affiliate/dashboard");
             }
-            payoutBank = {
-                bankName,
-                accountName,
-                accountNumber,
-                branchCode: branchCode || ''
-            };
-            // Persist as the affiliate's default bank details
+            payoutBank = { bankName, accountName, accountNumber, branchCode: branchCode || '' };
             affiliate.payoutBank = payoutBank;
+
+        } else if (method === 'paypal') {
+            payoutPaypalEmail = (req.body.payoutPaypalEmail || '').trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payoutPaypalEmail)) {
+                req.flash("error", "Please enter a valid PayPal email address.");
+                return res.redirect("/affiliate/dashboard");
+            }
+            affiliate.payoutPaypalEmail = payoutPaypalEmail;
+
         } else {
             payoutPhone = (req.body.payoutPhone || '').trim();
             if (!/^0\d{9}$/.test(payoutPhone)) {
                 req.flash("error", "Please enter a valid Zimbabwe mobile number (e.g. 0771234567).");
                 return res.redirect("/affiliate/dashboard");
             }
-            // Persist as the affiliate's default mobile number
             affiliate.payoutPhone = payoutPhone;
         }
 
-        // Remember the affiliate's preferred method for next time
         affiliate.preferredPayoutMethod = method;
 
-        // Create payout request — snapshots destination at request time
         const payoutRequest = {
-            amount:      affiliate.pendingEarnings,
+            amount:            affiliate.pendingEarnings,
             method,
             payoutPhone,
             payoutBank,
-            reference:   'PAY-' + Date.now(),
-            status:      'pending',
-            requestedAt: new Date()
+            payoutPaypalEmail,
+            reference:         'PAY-' + Date.now(),
+            status:            'pending',
+            requestedAt:       new Date()
         };
 
         affiliate.paymentHistory.push(payoutRequest);

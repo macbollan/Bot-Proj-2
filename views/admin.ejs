@@ -1150,6 +1150,13 @@
                                                     <span class="fw-bold" style="color: var(--det-green); font-size: 16px;">$<%= p.amount.toFixed(2) %></span>
                                                 </td>
                                                 <td>
+                                                    <% if (p.method === 'paypal') { %>
+                                                        <span class="status-badge" style="background: rgba(0,112,224,0.12); color:#0070e0; border:1px solid rgba(0,112,224,0.25);">
+                                                            <i class="bi bi-paypal"></i> PayPal
+                                                        </span>
+                                                    <% } else if (p.method === 'bank_transfer') { %>
+                                                        <span class="status-badge bg-det-blue"><i class="bi bi-bank"></i> Bank</span>
+
                                                     <% if (p.method === 'bank_transfer') { %>
                                                         <span class="status-badge bg-det-blue"><i class="bi bi-bank"></i> Bank</span>
                                                     <% } else if (p.method === 'ecocash') { %>
@@ -1167,6 +1174,16 @@
                                                         <div><strong style="color:#fff;"><%= p.payoutBank && p.payoutBank.bankName ? p.payoutBank.bankName : '—' %></strong></div>
                                                         <div style="font-family:'Courier New',monospace;"><%= p.payoutBank && p.payoutBank.accountNumber ? p.payoutBank.accountNumber : '—' %></div>
                                                         <div style="color:#64748b; font-size:11px;"><%= p.payoutBank && p.payoutBank.accountName ? p.payoutBank.accountName : '' %></div>
+
+                                                                                                            <% } else if (p.method === 'paypal') { %>
+                                                        <span class="code-pill"><%= p.payoutPaypalEmail || '—' %></span>
+                                                        <% if (p.payoutPaypalEmail) { %>
+                                                            <button type="button" class="action-btn btn-details ms-2" title="Copy email"
+                                                                    onclick="navigator.clipboard.writeText('<%= p.payoutPaypalEmail %>'); this.innerHTML='<i class=\'bi bi-check-lg\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>', 1500);">
+                                                                <i class="bi bi-clipboard"></i>
+                                                            </button>
+                                                        <% } %>
+
                                                     <% } else { %>
                                                         <span class="code-pill"><%= p.payoutPhone || '—' %></span>
                                                         <% if (p.payoutPhone) { %>
