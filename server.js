@@ -1684,33 +1684,103 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
 
 app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
     try {
-        const days = parseInt(req.body.durationDays) || 30; 
-        const tier = req.body.tierLevel || "Unknown"; 
+        const days = parseInt(req.body.durationDays) || 30;
+        const tier = req.body.tierLevel || "Unknown";
+        const amountPaid = parseFloat(req.body.amountPaid) || 0;
+        const creditAffiliate = req.body.creditAffiliate !== 'off'; // default ON
+
         const user = await User.findById(req.params.id);
-        
         if (!user) {
             req.flash("error", "User not found.");
             return res.redirect("/admin");
         }
-        
-        user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase(); 
-        user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000); 
-        user.currentTier = tier; 
-        user.isSuspended = false; 
+
+        // === GENERATE THE LICENSE ===
+        user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase();
+        user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+        user.currentTier = tier;
+        user.isSuspended = false;
         user.accountLocked = false;
-        
-        // === RESET ALL LICENSE-SPECIFIC DATA ===
+
+        // Record the amount this license represents (used for revenue stats)
+        if (amountPaid > 0) {
+            user.prepaymentAmount = (Number(user.prepaymentAmount) || 0) + amountPaid;
+        }
+
+        // === RESET LICENSE-SPECIFIC DATA ===
         user.startingBalance = 0;
         user.targetBalance = 0;
         user.monitoredSymbols = [];
         user.connectedBrokers = [];
         user.lockReason = null;
-        
+
         await user.save();
-        
-        req.flash("success", `Generated ${days}-day ${tier} License for ${user.username} (data reset)`);
+
+        // =========================================
+        // PROCESS AFFILIATE COMMISSION (20%)
+        // =========================================
+        let commissionInfo = '';
+        if (creditAffiliate && user.referredBy && amountPaid > 0) {
+            try {
+                // Verify the affiliate exists and is active BEFORE crediting
+                const affiliate = await Affiliate.findOne({ referralCode: user.referredBy });
+
+                if (affiliate && affiliate.isActive) {
+                    // Check if this specific referral has already been confirmed
+                    // (prevents double-crediting the same user on regenerate)
+                    const alreadyConfirmed = affiliate.referrals.find(
+                        r => r.userId && r.userId.toString() === user._id.toString() && r.status === 'confirmed'
+                    );
+
+                    if (alreadyConfirmed) {
+                        // Renewal — create a NEW confirmed entry so it stacks
+                        const commissionRate = affiliate.commissionRate / 100;
+                        const commission = amountPaid * commissionRate;
+
+                        affiliate.referrals.push({
+                            userId: user._id,
+                            username: user.username,
+                            email: user.email,
+                            tier: tier,
+                            amountPaid: amountPaid,
+                            commissionEarned: commission,
+                            status: 'confirmed',
+                            referredAt: new Date()
+                        });
+                        affiliate.totalReferrals += 1;
+                        affiliate.totalEarnings += commission;
+                        affiliate.pendingEarnings += commission;
+
+                        const affUser = await User.findById(affiliate.userId);
+                        if (affUser) {
+                            affUser.affiliateCommission = (affUser.affiliateCommission || 0) + commission;
+                            await affUser.save();
+                        }
+                        await affiliate.save();
+
+                        commissionInfo = ` · $${commission.toFixed(2)} renewal commission credited to ${affiliate.username}`;
+                        console.log(`[ADMIN LICENSE + AFFILIATE] Renewal commission $${commission.toFixed(2)} → ${affiliate.username}`);
+                    } else {
+                        // First-time confirmation — reuse existing pending entry if any
+                        await processAffiliateCommissionOnPayment(user, amountPaid, tier);
+                        const commissionRate = affiliate.commissionRate / 100;
+                        const commission = amountPaid * commissionRate;
+                        commissionInfo = ` · $${commission.toFixed(2)} commission credited to ${affiliate.username}`;
+                        console.log(`[ADMIN LICENSE + AFFILIATE] Commission $${commission.toFixed(2)} → ${affiliate.username}`);
+                    }
+                }
+            } catch (commErr) {
+                // Never let a commission failure undo the license grant
+                console.error("[ADMIN LICENSE] Affiliate commission error:", commErr);
+                commissionInfo = ' · (affiliate commission failed — check logs)';
+            }
+        }
+
+        req.flash("success", `Generated ${days}-day ${tier} license for ${user.username}${commissionInfo}`);
         res.redirect("/admin");
+
     } catch (err) {
+        console.error("Generate license error:", err);
         req.flash("error", "Could not generate license.");
         res.redirect("/admin");
     }

@@ -1350,37 +1350,70 @@
                                             </div>
 
                                             <!-- Manage License Modal -->
-                                            <div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title fw-bold text-white" style="font-size: 18px;">Manage D.E.T Access</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <form action="/admin/generate-license/<%= client._id %>" method="POST">
-                                                            <div class="modal-body">
-                                                                <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">Generating a new key for <strong class="text-white"><%= client.username %></strong>.</p>
-                                                                <div class="mb-3">
-                                                                    <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">Trading Level</label>
-                                                                    <select class="form-select" name="tierLevel" required>
-                                                                        <% ['Amber', 'Amethyst', 'Topaz', 'Tanzanite', 'Sapphire', 'Emerald'].forEach(tier => { %>
-                                                                            <option value="<%= tier %>" <%= client.currentTier == tier ? 'selected' : '' %>><%= tier %></option>
-                                                                        <% }) %>
-                                                                    </select>
-                                                                </div>
-                                                                <div class="mb-3">
-                                                                    <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">Duration (Days)</label>
-                                                                    <input type="number" name="durationDays" class="form-control" value="30" required>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Cancel</button>
-                                                                <button type="submit" class="btn-det"><i class="bi bi-lightning-charge-fill me-1"></i> Issue Key</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+<!-- Manage License Modal -->
+<div class="modal fade" id="manageModal<%= client._id %>" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-white" style="font-size: 18px;">Manage D.E.T Access</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/generate-license/<%= client._id %>" method="POST">
+                <div class="modal-body">
+                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
+                        Generating a new key for <strong class="text-white"><%= client.username %></strong>.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">
+                            Trading Level
+                        </label>
+                        <select class="form-select" name="tierLevel" required>
+                            <% ['Amber', 'Amethyst', 'Topaz', 'Tanzanite', 'Sapphire', 'Emerald'].forEach(tier => { %>
+                                <option value="<%= tier %>" <%= client.currentTier == tier ? 'selected' : '' %>><%= tier %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">
+                            Duration (Days)
+                        </label>
+                        <input type="number" name="durationDays" class="form-control" value="30" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small" style="color: var(--det-green) !important; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">
+                            Amount Paid (USD)
+                        </label>
+                        <input type="number" name="amountPaid" class="form-control"
+                               placeholder="e.g. 111" step="0.01" min="0" value="0">
+                        <small style="color:#94a3b8; font-size:11px; display:block; margin-top:6px;">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Enter <strong>0</strong> for a free/manual grant. Enter the actual amount to credit the referring affiliate 20%.
+                        </small>
+                    </div>
+
+                    <% if (client.referredBy) { %>
+                        <div class="form-check mb-2 p-3" style="background: rgba(176,191,150,0.06); border:1px solid rgba(176,191,150,0.2); border-radius:10px;">
+                            <input class="form-check-input" type="checkbox" name="creditAffiliate" id="creditAff<%= client._id %>" checked>
+                            <label class="form-check-label" for="creditAff<%= client._id %>" style="font-size:12px; color:#cbd5e1;">
+                                <i class="bi bi-diagram-3-fill me-1" style="color: var(--det-green);"></i>
+                                Credit referring affiliate (<strong style="color: var(--det-green);"><%= client.referredBy %></strong>) with 20% commission
+                            </label>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" style="border-radius: 10px;">Cancel</button>
+                    <button type="submit" class="btn-det">
+                        <i class="bi bi-lightning-charge-fill me-1"></i> Issue Key
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
                                             <!-- Delete Modal -->
                                             <div class="modal fade" id="deleteModal<%= client._id %>" tabindex="-1" aria-hidden="true">
