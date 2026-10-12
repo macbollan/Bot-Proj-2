@@ -82,6 +82,55 @@
     .table tbody tr:hover td {
         background: rgba(176,191,150,0.03) !important;
     }
+
+    /* =========================================
+       PAYOUT METHOD TILES (NEW)
+    ========================================= */
+    .payout-method-tile {
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 12px 8px;
+        text-align: center;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        color: #cbd5e1;
+        transition: all 0.2s;
+    }
+    .payout-method-tile i { display:block; font-size:18px; margin-bottom:4px; color:#94a3b8; }
+    .payout-method-tile:hover { border-color: rgba(176,191,150,0.4); color: #fff; }
+    .payout-method-tile.active {
+        background: rgba(176,191,150,0.12);
+        border-color: var(--det-green);
+        color: var(--det-green);
+    }
+    .payout-method-tile.active i { color: var(--det-green); }
+
+    .payout-field-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--det-green);
+        font-weight: 700;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .payout-input {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        width: 100%;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    .payout-input:focus {
+        outline: none;
+        border-color: var(--det-green);
+        box-shadow: 0 0 0 3px rgba(176,191,150,0.1);
+    }
     
     @media (max-width: 768px) {
         .stat-value { font-size: 22px; }
@@ -213,24 +262,124 @@
         <% } %>
     </div>
 
-    <!-- Request Payout -->
+    <!-- =========================================
+         REQUEST PAYOUT (NEW — opens modal)
+    ========================================= -->
     <div class="dashboard-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h5 class="fw-bold mb-1" style="color: #fff;"><i class="bi bi-cash-stack me-2" style="color: var(--det-green);"></i>Request Payout</h5>
-                <p style="color: #94a3b8; font-size: 13px;">Minimum payout: <strong style="color: #fff;">$50.00</strong></p>
+                <h5 class="fw-bold mb-1" style="color: #fff;">
+                    <i class="bi bi-cash-stack me-2" style="color: var(--det-green);"></i>Request Payout
+                </h5>
+                <p style="color: #94a3b8; font-size: 13px;">
+                    Minimum payout: <strong style="color: #fff;">$50.00</strong> ·
+                    Available: <strong style="color: var(--det-green);">$<%= affiliate.pendingEarnings.toFixed(2) %></strong>
+                </p>
             </div>
-            <form action="/affiliate/request-payout" method="POST">
-                <input type="hidden" name="method" value="bank_transfer">
-                <button type="submit" class="copy-btn" <%= affiliate.pendingEarnings < 50 ? 'disabled' : '' %>>
-                    <i class="bi bi-wallet2 me-1"></i> Withdraw $<%= affiliate.pendingEarnings.toFixed(2) %>
-                </button>
-            </form>
+            <button type="button" class="copy-btn"
+                    data-bs-toggle="modal" data-bs-target="#payoutModal"
+                    <%= affiliate.pendingEarnings < 50 ? 'disabled' : '' %>>
+                <i class="bi bi-wallet2 me-1"></i> Withdraw $<%= affiliate.pendingEarnings.toFixed(2) %>
+            </button>
         </div>
         <% if(affiliate.pendingEarnings < 50) { %>
-            <small style="color: #64748b; display: block; margin-top: 8px;">You need $<%= (50 - affiliate.pendingEarnings).toFixed(2) %> more to request a payout.</small>
+            <small style="color: #64748b; display: block; margin-top: 8px;">
+                You need $<%= (50 - affiliate.pendingEarnings).toFixed(2) %> more to request a payout.
+            </small>
         <% } %>
     </div>
+
+</div>
+
+<!-- =========================================
+     PAYOUT MODAL (NEW)
+========================================= -->
+<div class="modal fade" id="payoutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background: var(--det-card); border: 1px solid var(--det-border); color:#fff; border-radius:14px;">
+      <form action="/affiliate/request-payout" method="POST" id="payoutForm">
+        <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.05);">
+          <h5 class="modal-title fw-bold text-white">
+            <i class="bi bi-cash-stack me-2" style="color: var(--det-green);"></i>
+            Withdraw $<%= affiliate.pendingEarnings.toFixed(2) %>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+
+          <span class="payout-field-label">Choose Payout Method</span>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="payout-method-tile active" data-method="ecocash" onclick="selectPayoutMethod('ecocash')">
+                <i class="bi bi-phone-fill"></i> EcoCash
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="payout-method-tile" data-method="onemoney" onclick="selectPayoutMethod('onemoney')">
+                <i class="bi bi-phone-fill"></i> OneMoney
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="payout-method-tile" data-method="innbucks" onclick="selectPayoutMethod('innbucks')">
+                <i class="bi bi-wallet-fill"></i> InnBucks
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="payout-method-tile" data-method="bank_transfer" onclick="selectPayoutMethod('bank_transfer')">
+                <i class="bi bi-bank"></i> Bank / Paynow ZIPIT
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" name="method" id="payoutMethod" value="ecocash">
+
+          <!-- Mobile money fields -->
+          <div id="mobileFields">
+            <label class="payout-field-label">Mobile Number (registered with EcoCash/OneMoney/InnBucks)</label>
+            <input type="tel" name="payoutPhone" id="payoutPhone" class="payout-input"
+                   placeholder="077XXXXXXX" maxlength="13"
+                   value="<%= affiliate.payoutPhone || '' %>">
+          </div>
+
+          <!-- Bank fields -->
+          <div id="bankFields" style="display:none;">
+            <label class="payout-field-label">Bank Name</label>
+            <input type="text" name="bankName" class="payout-input" placeholder="e.g. CBZ Bank"
+                   value="<%= affiliate.payoutBank?.bankName || '' %>">
+
+            <label class="payout-field-label">Account Holder Name</label>
+            <input type="text" name="accountName" class="payout-input"
+                   value="<%= affiliate.payoutBank?.accountName || '' %>">
+
+            <div class="row g-2">
+              <div class="col-8">
+                <label class="payout-field-label">Account Number</label>
+                <input type="text" name="accountNumber" class="payout-input"
+                       value="<%= affiliate.payoutBank?.accountNumber || '' %>">
+              </div>
+              <div class="col-4">
+                <label class="payout-field-label">Branch Code</label>
+                <input type="text" name="branchCode" class="payout-input"
+                       value="<%= affiliate.payoutBank?.branchCode || '' %>">
+              </div>
+            </div>
+          </div>
+
+          <div style="background: rgba(176,191,150,0.06); border:1px solid rgba(176,191,150,0.15); border-radius:8px; padding:10px 12px; font-size:11px; color:#cbd5e1;">
+            <i class="bi bi-info-circle me-1" style="color: var(--det-green);"></i>
+            Payouts are processed within <strong>3 business days</strong> after admin approval.
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.05);">
+          <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal" style="border-radius:8px;">Cancel</button>
+          <button type="submit" class="copy-btn">
+            <i class="bi bi-check-circle me-1"></i> Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -246,9 +395,29 @@ function copyRefLink() {
             btn.style.background = '';
         }, 2000);
     }).catch(() => {
-        // Fallback for older browsers
         alert('Link: ' + link);
     });
+}
+
+function selectPayoutMethod(method) {
+    document.querySelectorAll('.payout-method-tile').forEach(t => t.classList.remove('active'));
+    document.querySelector(`[data-method="${method}"]`).classList.add('active');
+    document.getElementById('payoutMethod').value = method;
+
+    const mobileFields = document.getElementById('mobileFields');
+    const bankFields = document.getElementById('bankFields');
+    const phoneInput = document.getElementById('payoutPhone');
+
+    if (method === 'bank_transfer') {
+        mobileFields.style.display = 'none';
+        bankFields.style.display = 'block';
+    } else {
+        mobileFields.style.display = 'block';
+        bankFields.style.display = 'none';
+        if (method === 'ecocash')  phoneInput.placeholder = '077XXXXXXX';
+        if (method === 'onemoney') phoneInput.placeholder = '071XXXXXXX';
+        if (method === 'innbucks') phoneInput.placeholder = 'InnBucks number';
+    }
 }
 </script>
 

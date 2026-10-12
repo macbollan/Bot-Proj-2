@@ -22,6 +22,22 @@ const AffiliateSchema = new mongoose.Schema({
     // Commission rate (percentage, e.g., 20 = 20%)
     commissionRate: { type: Number, default: 20 },
     
+    // ==========================================
+    // PAYOUT PREFERENCES (NEW)
+    // ==========================================
+    preferredPayoutMethod: {
+        type: String,
+        enum: ['ecocash', 'onemoney', 'innbucks', 'bank_transfer'],
+        default: 'ecocash'
+    },
+    payoutPhone: { type: String, default: '' },
+    payoutBank: {
+        bankName:      { type: String, default: '' },
+        accountName:   { type: String, default: '' },
+        accountNumber: { type: String, default: '' },
+        branchCode:    { type: String, default: '' }
+    },
+    
     // Referral tracking
     referrals: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -43,14 +59,26 @@ const AffiliateSchema = new mongoose.Schema({
         clickedAt: { type: Date, default: Date.now }
     }],
     
-    // Payment history
+    // ==========================================
+    // PAYMENT HISTORY (EXPANDED — snapshots method at request time)
+    // ==========================================
     paymentHistory: [{
         amount: Number,
         method: String,
         reference: String,
         status: { type: String, enum: ['pending', 'processing', 'paid', 'failed'], default: 'pending' },
         requestedAt: { type: Date, default: Date.now },
-        paidAt: Date
+        paidAt: Date,
+        // Snapshot of destination at request time (so phone changes don't corrupt history)
+        payoutPhone: { type: String, default: '' },
+        payoutBank: {
+            bankName:      { type: String, default: '' },
+            accountName:   { type: String, default: '' },
+            accountNumber: { type: String, default: '' },
+            branchCode:    { type: String, default: '' }
+        },
+        processedBy: { type: String, default: '' },
+        adminNote:   { type: String, default: '' }
     }],
     
     // Status
@@ -58,7 +86,7 @@ const AffiliateSchema = new mongoose.Schema({
     joinedAt: { type: Date, default: Date.now }
 });
 
-// FIXED: Generate referral code when creating a new affiliate
+// Generate referral code when creating a new affiliate
 AffiliateSchema.statics.createWithCode = async function(data) {
     const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
     const affiliateLink = `/register?ref=${referralCode}`;

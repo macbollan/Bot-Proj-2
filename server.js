@@ -710,6 +710,7 @@ app.post("/checkout/initialize", (req, res) => {
 });
 
 
+
 // 2. The Dynamic Checkout Portal with full tier details
 app.get("/checkout", isLoggedIn, (req, res) => {
     const tier = req.query.tier;
@@ -1439,7 +1440,7 @@ app.get("/admin", isAdmin, async (req, res) => {
 
         const revenue = Number(client.prepaymentAmount) || 0;
         totalRevenue += revenue;
-        
+
         // Track affiliate payouts (commission from affiliateEngine)
         const commission = Number(client.affiliateCommission) || 0;
         totalAffiliatePayouts += commission;
@@ -1497,7 +1498,6 @@ app.get("/admin", isAdmin, async (req, res) => {
             startingBalance: Number(c.startingBalance) || 0,
             targetBalance: Number(c.targetBalance) || 0
         }));
-    
 
     // Positive Logouts - accounts that hit 100% gain profitably
     const positiveLogouts = allUsers
@@ -1509,7 +1509,7 @@ app.get("/admin", isAdmin, async (req, res) => {
             startingBalance: Number(c.startingBalance) || 0,
             targetBalance: Number(c.targetBalance) || 0,
             profit: (Number(c.targetBalance) || 0) - (Number(c.startingBalance) || 0)
-        }));    
+        }));
 
     // Top Affiliates (if affiliateEngine exists and has data)
     let topAffiliates = [];
@@ -1528,57 +1528,83 @@ app.get("/admin", isAdmin, async (req, res) => {
     }
 
     // =========================================
-// TOP EARNERS BY TIER (Top 50 per tier)
-// =========================================
-const tierList = ["Amber", "Amethyst", "Topaz", "Tanzanite", "Sapphire", "Emerald", "Diamond", "Rhodium", "Platinum", "Uranium", "Atomic", "Nuclear", "Solomonic"];
+    // TOP EARNERS BY TIER (Top 50 per tier)
+    // =========================================
+    const tierList = ["Amber", "Amethyst", "Topaz", "Tanzanite", "Sapphire", "Emerald", "Diamond", "Rhodium", "Platinum", "Uranium", "Atomic", "Nuclear", "Solomonic"];
 
-// =========================================
-// TOP EARNERS BY TIER (Top 50 per tier)
-// =========================================
-
-const topEarnersByTier = {};
-tierList.forEach(tierName => {
-    topEarnersByTier[tierName] = allUsers
-        .filter(c => c.licenseKey && c.currentTier === tierName)
-        .sort((a, b) => (Number(b.prepaymentAmount) || 0) - (Number(a.prepaymentAmount) || 0))
-        .slice(0, 50)
-        .map(c => ({
-            username: c.username,
-            email: c.email,
-            country: (c.country && c.country.trim()) || "Unknown",
-            revenue: Number(c.prepaymentAmount) || 0
-        }));
-});
-
-// =========================================
-// TOP AFFILIATES BY TIER (Top 50 per tier)
-// =========================================
-const topAffiliatesByTier = {};
-try {
-    const AffiliateModel = require("./models/Affiliate.model");
-    const allAffiliates = await AffiliateModel.find({ isActive: true });
-
+    const topEarnersByTier = {};
     tierList.forEach(tierName => {
-        const tierAffiliates = allAffiliates.map(aff => {
-            // Filter referrals for this specific tier
-            const tierReferrals = aff.referrals.filter(r => r.tier === tierName && r.status === 'confirmed');
-            const tierCommission = tierReferrals.reduce((sum, r) => sum + (r.commissionEarned || 0), 0);
-            return {
-                username: aff.username,
-                referrals: tierReferrals.length,
-                commission: tierCommission
-            };
-        }).filter(a => a.referrals > 0)
-          .sort((a, b) => b.commission - a.commission)
-          .slice(0, 50);
+        topEarnersByTier[tierName] = allUsers
+            .filter(c => c.licenseKey && c.currentTier === tierName)
+            .sort((a, b) => (Number(b.prepaymentAmount) || 0) - (Number(a.prepaymentAmount) || 0))
+            .slice(0, 50)
+            .map(c => ({
+                username: c.username,
+                email: c.email,
+                country: (c.country && c.country.trim()) || "Unknown",
+                revenue: Number(c.prepaymentAmount) || 0
+            }));
+    });
 
-        topAffiliatesByTier[tierName] = tierAffiliates;
-    });
-} catch (e) {
-    tierList.forEach(tierName => {
-        topAffiliatesByTier[tierName] = [];
-    });
-}
+    // =========================================
+    // TOP AFFILIATES BY TIER (Top 50 per tier)
+    // =========================================
+    const topAffiliatesByTier = {};
+    try {
+        const AffiliateModel = require("./models/Affiliate.model");
+        const allAffiliates = await AffiliateModel.find({ isActive: true });
+
+        tierList.forEach(tierName => {
+            const tierAffiliates = allAffiliates.map(aff => {
+                // Filter referrals for this specific tier
+                const tierReferrals = aff.referrals.filter(r => r.tier === tierName && r.status === 'confirmed');
+                const tierCommission = tierReferrals.reduce((sum, r) => sum + (r.commissionEarned || 0), 0);
+                return {
+                    username: aff.username,
+                    referrals: tierReferrals.length,
+                    commission: tierCommission
+                };
+            }).filter(a => a.referrals > 0)
+              .sort((a, b) => b.commission - a.commission)
+              .slice(0, 50);
+
+            topAffiliatesByTier[tierName] = tierAffiliates;
+        });
+    } catch (e) {
+        tierList.forEach(tierName => {
+            topAffiliatesByTier[tierName] = [];
+        });
+    }
+
+    // =========================================
+    // FLATTEN PENDING AFFILIATE PAYOUTS
+    // =========================================
+    let pendingPayouts = [];
+    try {
+        const AffiliateModel = require("./models/Affiliate.model");
+        const affiliatesWithPending = await AffiliateModel.find({ 'paymentHistory.status': 'pending' });
+        affiliatesWithPending.forEach(aff => {
+            aff.paymentHistory.forEach(p => {
+                if (p.status === 'pending') {
+                    pendingPayouts.push({
+                        affiliateId:       aff._id,
+                        affiliateUsername: aff.username,
+                        affiliateEmail:    aff.email,
+                        amount:            p.amount || 0,
+                        method:            p.method || 'ecocash',
+                        payoutPhone:       p.payoutPhone || aff.payoutPhone || '',
+                        payoutBank:        p.payoutBank || aff.payoutBank || {},
+                        reference:         p.reference || '',
+                        requestedAt:       p.requestedAt || new Date()
+                    });
+                }
+            });
+        });
+        // Newest first
+        pendingPayouts.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+    } catch (e) {
+        console.error("Pending payouts aggregation error:", e);
+    }
 
     res.render("admin", {
         users: allUsers,
@@ -1598,11 +1624,12 @@ try {
         revenueByTier,
         topEarners,
         negativeLogouts,
-          positiveLogouts,
-          topEarnersByTier,
+        positiveLogouts,
+        topEarnersByTier,
         topAffiliatesByTier,
         tierList,
-        topAffiliates
+        topAffiliates,
+        pendingPayouts
     });
 });
 
@@ -1815,10 +1842,11 @@ app.get("/affiliate/dashboard", isLoggedIn, async (req, res) => {
 });
 
 // --- AFFILIATE REQUEST PAYOUT ---
+// --- AFFILIATE REQUEST PAYOUT ---
 app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
     try {
         const affiliate = await Affiliate.findOne({ userId: req.user._id });
-        
+
         if (!affiliate) {
             req.flash("error", "Affiliate account not found.");
             return res.redirect("/affiliate/dashboard");
@@ -1830,12 +1858,52 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
             return res.redirect("/affiliate/dashboard");
         }
 
-        // Create payout request
+        // Validate payout method
+        const method = (req.body.method || 'ecocash').toLowerCase();
+        const validMethods = ['ecocash', 'onemoney', 'innbucks', 'bank_transfer'];
+        if (!validMethods.includes(method)) {
+            req.flash("error", "Invalid payout method.");
+            return res.redirect("/affiliate/dashboard");
+        }
+
+        let payoutPhone = '';
+        let payoutBank = {};
+
+        if (method === 'bank_transfer') {
+            const { bankName, accountName, accountNumber, branchCode } = req.body;
+            if (!bankName || !accountName || !accountNumber) {
+                req.flash("error", "Please fill in all bank details.");
+                return res.redirect("/affiliate/dashboard");
+            }
+            payoutBank = {
+                bankName,
+                accountName,
+                accountNumber,
+                branchCode: branchCode || ''
+            };
+            // Persist as the affiliate's default bank details
+            affiliate.payoutBank = payoutBank;
+        } else {
+            payoutPhone = (req.body.payoutPhone || '').trim();
+            if (!/^0\d{9}$/.test(payoutPhone)) {
+                req.flash("error", "Please enter a valid Zimbabwe mobile number (e.g. 0771234567).");
+                return res.redirect("/affiliate/dashboard");
+            }
+            // Persist as the affiliate's default mobile number
+            affiliate.payoutPhone = payoutPhone;
+        }
+
+        // Remember the affiliate's preferred method for next time
+        affiliate.preferredPayoutMethod = method;
+
+        // Create payout request — snapshots destination at request time
         const payoutRequest = {
-            amount: affiliate.pendingEarnings,
-            method: req.body.method || 'bank_transfer',
-            reference: 'PAY-' + Date.now(),
-            status: 'pending',
+            amount:      affiliate.pendingEarnings,
+            method,
+            payoutPhone,
+            payoutBank,
+            reference:   'PAY-' + Date.now(),
+            status:      'pending',
             requestedAt: new Date()
         };
 
@@ -1843,8 +1911,9 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
         affiliate.pendingEarnings = 0;
         await affiliate.save();
 
-        req.flash("success", `Payout request of $${payoutRequest.amount.toFixed(2)} submitted successfully!`);
+        req.flash("success", `Payout request of $${payoutRequest.amount.toFixed(2)} submitted via ${method.replace('_', ' ')}. Processing within 3 business days.`);
         res.redirect("/affiliate/dashboard");
+
     } catch (err) {
         console.error("Payout request error:", err);
         req.flash("error", "Could not process payout request.");
@@ -1958,30 +2027,49 @@ app.get("/admin/affiliates", isAdmin, async (req, res) => {
     }
 });
 
-// --- ADMIN: APPROVE AFFILIATE PAYOUT ---
 app.post("/admin/affiliates/payout/:id", isAdmin, async (req, res) => {
     try {
         const affiliate = await Affiliate.findById(req.params.id);
         if (!affiliate) {
             req.flash("error", "Affiliate not found.");
-            return res.redirect("/admin/affiliates");
+            return res.redirect("/admin");
         }
 
-        // Find the most recent pending payout request
-        const pendingRequest = affiliate.paymentHistory.find(p => p.status === 'pending');
-        if (pendingRequest) {
-            pendingRequest.status = 'paid';
-            pendingRequest.paidAt = new Date();
-            affiliate.paidEarnings += pendingRequest.amount;
+        // If a reference was passed, target that specific payout.
+        // Otherwise, process the OLDEST pending one (FIFO).
+        const targetRef = req.body.reference || req.query.reference;
+        let pendingRequest;
+
+        if (targetRef) {
+            pendingRequest = affiliate.paymentHistory.find(
+                p => p.status === 'pending' && p.reference === targetRef
+            );
+        } else {
+            // Oldest pending first
+            pendingRequest = affiliate.paymentHistory
+                .filter(p => p.status === 'pending')
+                .sort((a, b) => new Date(a.requestedAt) - new Date(b.requestedAt))[0];
         }
+
+        if (!pendingRequest) {
+            req.flash("error", "No pending payout found for this affiliate.");
+            return res.redirect("/admin");
+        }
+
+        pendingRequest.status = 'paid';
+        pendingRequest.paidAt = new Date();
+        pendingRequest.processedBy = req.user.username;
+        affiliate.paidEarnings += pendingRequest.amount;
 
         await affiliate.save();
-        req.flash("success", `Payout of $${pendingRequest?.amount?.toFixed(2) || '0'} approved for ${affiliate.username}.`);
-        res.redirect("/admin/affiliates");
+
+        console.log(`[PAYOUT] $${pendingRequest.amount.toFixed(2)} to ${affiliate.username} via ${pendingRequest.method} marked PAID by ${req.user.username}`);
+        req.flash("success", `Payout of $${pendingRequest.amount.toFixed(2)} to ${affiliate.username} marked as paid.`);
+        res.redirect("/admin");
     } catch (err) {
         console.error("Affiliate payout error:", err);
         req.flash("error", "Could not process payout.");
-        res.redirect("/admin/affiliates");
+        res.redirect("/admin");
     }
 });
 

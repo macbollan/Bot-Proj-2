@@ -665,9 +665,10 @@
             <a href="#top-earners" class="nav-link"><i class="bi bi-trophy-fill"></i> Top Earners</a>
             <a href="#ledger" class="nav-link"><i class="bi bi-people-fill"></i> Participant Ledger</a>
 
-            <div class="nav-section">Network Engines v2.0</div>
-            <a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3-fill"></i> Affiliate Network <span class="badge badge-beta">BETA</span></a>
-            <a href="#" class="nav-link"><i class="bi bi-globe2"></i> Geo-Block Config <span class="badge badge-locked">LOCKED</span></a>
+<div class="nav-section">Network Engines v2.0</div>
+<a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3-fill"></i> Affiliate Network <span class="badge badge-beta">BETA</span></a>
+<a href="#payouts" class="nav-link"><i class="bi bi-cash-coin"></i> Payout Requests <span class="badge badge-beta">NEW</span></a>
+<a href="#" class="nav-link"><i class="bi bi-globe2"></i> Geo-Block Config <span class="badge badge-locked">LOCKED</span></a>
 
             <div class="nav-section">Quick Navigate</div>
             <a href="/" class="nav-link" target="_blank"><i class="bi bi-house"></i> Public Homepage</a>
@@ -1096,6 +1097,120 @@
                     </div>
                 </div>
             </div>
+
+                        <!-- =========================================
+                 AFFILIATE PAYOUT REQUESTS (NEW)
+            ========================================= -->
+            <div id="payouts"></div>
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="glass-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                            <div>
+                                <h5 class="fw-bold m-0 text-white" style="font-size: 18px;">
+                                    <i class="bi bi-cash-coin me-2" style="color: var(--det-green);"></i>
+                                    Affiliate Payout Requests
+                                </h5>
+                                <small style="color: #64748b; font-size: 13px;">Pending withdrawal requests — send via Paynow merchant portal</small>
+                            </div>
+                            <% if (typeof pendingPayouts !== 'undefined' && pendingPayouts && pendingPayouts.length > 0) { %>
+                                <span class="status-badge bg-det-warn">
+                                    <span class="status-dot" style="background: #f59e0b;"></span>
+                                    <%= pendingPayouts.length %> Pending
+                                </span>
+                            <% } else { %>
+                                <span class="status-badge bg-det-green">
+                                    <span class="status-dot" style="background: #10b981;"></span>
+                                    All Clear
+                                </span>
+                            <% } %>
+                        </div>
+
+                        <% if (typeof pendingPayouts !== 'undefined' && pendingPayouts && pendingPayouts.length > 0) { %>
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Affiliate</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Destination</th>
+                                            <th>Requested</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% pendingPayouts.forEach(p => { %>
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-bold text-white" style="font-size: 15px;"><%= p.affiliateUsername %></div>
+                                                    <small style="color: #64748b; font-size: 13px;"><%= p.affiliateEmail %></small>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold" style="color: var(--det-green); font-size: 16px;">$<%= p.amount.toFixed(2) %></span>
+                                                </td>
+                                                <td>
+                                                    <% if (p.method === 'bank_transfer') { %>
+                                                        <span class="status-badge bg-det-blue"><i class="bi bi-bank"></i> Bank</span>
+                                                    <% } else if (p.method === 'ecocash') { %>
+                                                        <span class="status-badge bg-det-green"><i class="bi bi-phone"></i> EcoCash</span>
+                                                    <% } else if (p.method === 'onemoney') { %>
+                                                        <span class="status-badge bg-det-green"><i class="bi bi-phone"></i> OneMoney</span>
+                                                    <% } else if (p.method === 'innbucks') { %>
+                                                        <span class="status-badge bg-det-warn"><i class="bi bi-wallet"></i> InnBucks</span>
+                                                    <% } else { %>
+                                                        <span class="status-badge bg-det-slate"><%= p.method %></span>
+                                                    <% } %>
+                                                </td>
+                                                <td style="font-size: 13px; color: #cbd5e1;">
+                                                    <% if (p.method === 'bank_transfer') { %>
+                                                        <div><strong style="color:#fff;"><%= p.payoutBank && p.payoutBank.bankName ? p.payoutBank.bankName : '—' %></strong></div>
+                                                        <div style="font-family:'Courier New',monospace;"><%= p.payoutBank && p.payoutBank.accountNumber ? p.payoutBank.accountNumber : '—' %></div>
+                                                        <div style="color:#64748b; font-size:11px;"><%= p.payoutBank && p.payoutBank.accountName ? p.payoutBank.accountName : '' %></div>
+                                                    <% } else { %>
+                                                        <span class="code-pill"><%= p.payoutPhone || '—' %></span>
+                                                        <% if (p.payoutPhone) { %>
+                                                            <button type="button" class="action-btn btn-details ms-2" title="Copy number"
+                                                                    onclick="navigator.clipboard.writeText('<%= p.payoutPhone %>'); this.innerHTML='<i class=\'bi bi-check-lg\'></i>'; setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>', 1500);">
+                                                                <i class="bi bi-clipboard"></i>
+                                                            </button>
+                                                        <% } %>
+                                                    <% } %>
+                                                </td>
+                                                <td style="font-size: 13px; color: #94a3b8;">
+                                                    <%= new Date(p.requestedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="action-group">
+                                                        <form action="/admin/affiliates/payout/<%= p.affiliateId %>" method="POST" class="d-inline">
+                                                            <input type="hidden" name="reference" value="<%= p.reference %>">
+                                                            <button type="submit" class="btn btn-sm btn-success" style="font-size: 12px; border-radius: 8px;"
+                                                                    onclick="return confirm('Confirm payout of $<%= p.amount.toFixed(2) %> to <%= p.affiliateUsername %>? Make sure you have already sent it via Paynow merchant portal.')">
+                                                                <i class="bi bi-check-circle me-1"></i> Mark Paid
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="background: rgba(56,189,248,0.05); border:1px solid rgba(56,189,248,0.15); border-radius:8px; padding:12px 14px; margin-top:16px; font-size:12px; color:#cbd5e1;">
+                                <i class="bi bi-info-circle me-1" style="color: var(--det-blue);"></i>
+                                <strong style="color:#fff;">Workflow:</strong> Copy the destination number/account → open Paynow merchant portal → Send Money manually → come back and click "Mark Paid".
+                            </div>
+                        <% } else { %>
+                            <div class="empty-state" style="padding: 32px;">
+                                <i class="bi bi-cash-coin"></i>
+                                <strong>No Pending Payouts</strong>
+                                <span>Affiliate withdrawal requests will appear here.</span>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- PARTICIPANT LEDGER WITH PAGINATION -->
             <div class="row" id="ledger">
