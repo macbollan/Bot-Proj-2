@@ -220,7 +220,15 @@ app.use((req, res, next) => {
 // ==========================================
 // WEBHOOK — handles D.E.T activations AND training payments
 // ==========================================
+// ==========================================
+// WEBHOOK — handles D.E.T activations AND training payments
+// ==========================================
 app.post("/api/paynow/update", async (req, res) => {
+    // ADD THIS LOGGING TO SEE EXACTLY WHAT PAYNOW IS SENDING
+    console.log("========== PAYNOW WEBHOOK RECEIVED ==========");
+    console.log("Body:", JSON.stringify(req.body, null, 2));
+    console.log("==============================================");
+
     const { reference, status, amount } = req.body;
 
     console.log(`[WEBHOOK] ref=${reference} status=${status} amount=${amount}`);
