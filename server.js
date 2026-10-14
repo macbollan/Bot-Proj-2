@@ -19,19 +19,11 @@ const app = express();
 // ==========================================
 // EMAIL TRANSPORT — HTTPS API, NOT SMTP
 // ==========================================
-// Render (and most PaaS hosts) block or throttle outbound SMTP ports
-// (25/465/587), and Gmail's SMTP often silently drops/delays connections
-// from datacenter IPs anyway. Sending over HTTPS (port 443) via Brevo's
-// API sidesteps both problems. Set BREVO_API_KEY, EMAIL_FROM_ADDRESS, and
-// EMAIL_FROM_NAME in your environment (locally in .env, and in Render's
-// dashboard under Environment for the deployed service).
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const EMAIL_FROM_ADDRESS = process.env.EMAIL_FROM_ADDRESS || "nyctech002@gmail.com";
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || "D.E.T System";
 
 const emailTransporter = {
-    // Kept the same shape as nodemailer's sendMail({ to, subject, html })
-    // so every existing call site below needs zero changes.
     async sendMail({ to, subject, html }) {
         if (!BREVO_API_KEY) {
             throw new Error("BREVO_API_KEY is not set in environment variables");
@@ -62,16 +54,10 @@ const emailTransporter = {
 // ==========================================
 // PAYMENT CONFIRMATION EMAILS
 // ==========================================
-// Lightweight sanity check — not full RFC 5322, just enough to catch
-// missing/garbled addresses before we waste a send attempt on them.
 function isValidEmail(email) {
     return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
-// Sends the D.E.T activation code after a tier payment is confirmed.
-// Never throws — a bad/missing address or an SMTP failure is logged and
-// swallowed here so it can never break the webhook response or roll back
-// the license that was already saved.
 async function sendActivationEmail(user, tierName) {
     if (!isValidEmail(user.email)) {
         console.error(`[EMAIL] Skipped activation email for "${user.username}" — invalid or missing address: "${user.email}"`);
@@ -105,8 +91,6 @@ async function sendActivationEmail(user, tierName) {
     }
 }
 
-// Sends a training enrollment confirmation after a training payment is confirmed.
-// Same guarantee as above: failures are caught and logged, never thrown.
 async function sendTrainingConfirmationEmail(enrollment) {
     if (!isValidEmail(enrollment.email)) {
         console.error(`[EMAIL] Skipped training confirmation for "${enrollment.studentName}" — invalid or missing address: "${enrollment.email}"`);
@@ -142,20 +126,30 @@ async function sendTrainingConfirmationEmail(enrollment) {
 }
 
 // ==========================================
+// PAYMENT TRACKING — IN-MEMORY PENDING STATE
+// ==========================================
+// Key: invoiceRef. Value: { status, userId, tier, amount, error, createdAt, updatedAt }
+// status values: 'pending' | 'paid' | 'failed' | 'cancelled' | 'init_failed'
+const pendingPayments = {};
+
+// Purge stale entries older than 30 minutes so memory doesn't grow forever.
+setInterval(() => {
+    const now = Date.now();
+    for (const ref of Object.keys(pendingPayments)) {
+        if (now - pendingPayments[ref].createdAt > 30 * 60 * 1000) {
+            delete pendingPayments[ref];
+        }
+    }
+}, 5 * 60 * 1000);
+
+// ==========================================
 // GLOBAL MEMORY FOR D.E.T. DATA
 // ==========================================
+let eaBrainStates = {};
+let activeTradesBySymbol = {};
+let eaBrainState = getDefaultBrainState();
+let activeTradesList = [];
 
-// A. Master EA Endpoint
-// A. Master EA Endpoint (SECURED)
-// =========================================
-// PER-SYMBOL STATE STORAGE
-// =========================================
-let eaBrainStates = {}; // Keyed by symbol: { "GBPUSD": {...}, "XAUUSD": {...} }
-let activeTradesBySymbol = {}; // Keyed by symbol
-let eaBrainState = getDefaultBrainState(); // <-- ADD THIS LINE
-let activeTradesList = [];         
-
-// Default state for symbols that haven't received data yet
 function getDefaultBrainState() {
     return {
         symbol: "Awaiting Connection...",
@@ -174,7 +168,6 @@ function getDefaultBrainState() {
         }
     };
 }
-
 
 // --- DATABASE CONNECTION ---
 mongoose.connect("mongodb://nyctech002:macb@ac-urmttwh-shard-00-00.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-01.o6scueg.mongodb.net:27017,ac-urmttwh-shard-00-02.o6scueg.mongodb.net:27017/bot-project?ssl=true&replicaSet=atlas-1gew6o-shard-0&authSource=admin&appName=INVESTMENTNETWORK")
@@ -199,20 +192,10 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
-
-// Enhanced security middleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
-        // Admin account is exempt from email verification
-        if (req.user.username === "admin") {
-            return next();
-        }
-        // Check if user is verified
-        if (req.user.isVerified) {
-            return next();
-        }
-        // Allow access to verification-related routes
+        if (req.user.username === "admin") return next();
+        if (req.user.isVerified) return next();
         if (req.path === '/verify-email' || req.path === '/verify-email/resend' || req.path === '/logout') {
             return next();
         }
@@ -229,7 +212,6 @@ function isAdmin(req, res, next) {
     res.redirect("/dashboard");
 }
 
-// Current path for navigation
 app.use((req, res, next) => {
     res.locals.currentUser = req.user;
     res.locals.success = req.flash("success");
@@ -238,14 +220,21 @@ app.use((req, res, next) => {
     next();
 });
 
-
-// 5. The Silent Webhook - handles both D.E.T activations AND training payments
+// ==========================================
+// WEBHOOK — handles D.E.T activations AND training payments
+// ==========================================
 app.post("/api/paynow/update", async (req, res) => {
     const { reference, status, amount } = req.body;
-    
+
+    console.log(`[WEBHOOK] ref=${reference} status=${status} amount=${amount}`);
+
+    // Normalise status: Paynow sends "Paid", "Awaiting Delivery", "Cancelled", "Failed", "Disputed"
+    const isPaid = status === "Paid" || status === "Awaiting Delivery";
+    const isFailed = status === "Cancelled" || status === "Failed" || status === "Disputed";
+
     // --- HANDLE TRAINING PAYMENTS ---
     if (reference && reference.startsWith("TRAIN-")) {
-        if (status === "Paid" || status === "Awaiting Delivery") {
+        if (isPaid) {
             try {
                 const enrollment = await Training.findOne({ paynowReference: reference });
                 if (enrollment && enrollment.status === 'pending_payment') {
@@ -254,20 +243,40 @@ app.post("/api/paynow/update", async (req, res) => {
                     enrollment.paidAt = new Date();
                     await enrollment.save();
                     console.log(`[TRAINING] Payment confirmed: ${enrollment.studentName} - ${enrollment.courseName} ($${amount})`);
-
-                    // Send the enrollment confirmation by email. Wrapped internally so a bad
-                    // address or SMTP hiccup can never undo the save above or block the ack below.
                     await sendTrainingConfirmationEmail(enrollment);
                 }
             } catch (err) {
                 console.error("Training webhook error:", err);
             }
+        } else if (isFailed) {
+            try {
+                const enrollment = await Training.findOne({ paynowReference: reference });
+                if (enrollment && enrollment.status === 'pending_payment') {
+                    enrollment.status = 'failed';
+                    await enrollment.save();
+                    console.log(`[TRAINING] Payment ${status}: ${reference}`);
+                }
+            } catch (err) {
+                console.error("Training webhook fail-handling error:", err);
+            }
         }
         return res.status(200).send("OK");
     }
-    
+
     // --- HANDLE D.E.T ACTIVATION PAYMENTS ---
-    if (status === "Paid" || status === "Awaiting Delivery") {
+    // Update pendingPayments map first so the polling endpoint reflects reality
+    if (reference && pendingPayments[reference]) {
+        if (isPaid) {
+            pendingPayments[reference].status = 'paid';
+            pendingPayments[reference].updatedAt = Date.now();
+        } else if (isFailed) {
+            pendingPayments[reference].status = (status === "Cancelled") ? 'cancelled' : 'failed';
+            pendingPayments[reference].error = status;
+            pendingPayments[reference].updatedAt = Date.now();
+        }
+    }
+
+    if (isPaid) {
         const parts = reference.split("-");
         const userId = parts[0];
         const tierName = parts[1];
@@ -275,116 +284,92 @@ app.post("/api/paynow/update", async (req, res) => {
 
         try {
             const user = await User.findById(userId);
-            if (user) { // Prevent double-generation
+            if (user) {
                 const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
-                
+
                 user.licenseKey = generateDET_ID();
                 user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
                 user.currentTier = tierName;
-                user.prepaymentAmount = parseFloat(amount) || config.min; // Secures exact paid amount
+                user.prepaymentAmount = parseFloat(amount) || config.min;
                 user.termsAgreed = true;
-                user.isSuspended = false; 
+                user.isSuspended = false;
                 user.accountLocked = false;
-                user.mt5AccountNumber = null; 
+                user.mt5AccountNumber = null;
+                user.lockReason = null;
 
-                user.accountLocked = false;   // ensure unlock
-user.isSuspended   = false;   // ensure unsuspend
-user.lockReason    = null;
-                // Inside the block that assigns user.licenseKey, ADD these reset lines:
                 user.startingBalance = 0;
                 user.targetBalance = 0;
                 user.monitoredSymbols = [];
                 user.connectedBrokers = [];
-                user.lockReason = null;
-                
+
                 await user.save();
-                
-                // PROCESS AFFILIATE COMMISSION FOR THIS PAYMENT
+
                 if (user.referredBy) {
                     await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
                 }
-                
-                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
 
-                // Send the activation code by email. Wrapped internally so a bad
-                // address or SMTP hiccup can never undo the save above or block the ack below.
+                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
                 await sendActivationEmail(user, tierName);
             }
         } catch (err) {
             console.error("Webhook database update failed:", err);
         }
+    } else if (isFailed) {
+        console.log(`[WEBHOOK] Payment ${status} for ref ${reference} — no license generated.`);
     }
+
     res.status(200).send("OK");
 });
+
 // ==========================================
 // 1. S.M.A.R.T. ENGINE API ROUTES (MT5 <-> Node.js)
 // ==========================================
-
 app.get("/faqs", (req, res) => {
     res.render("faqs");
 });
 
-// A. Master EA Endpoint
-// A. Master EA Endpoint (SECURED)
-// =========================================
-// PER-SYMBOL STATE STORAGE
-// =========================================
-
-// A. Master EA Endpoint (SECURED) — Updated for per-symbol storage
 app.post("/api/master/update", (req, res) => {
     const { masterPassword, analysis, trades, uiState } = req.body;
-    
     const MASTER_SECRET = process.env.MASTER_EA_SECRET || "DET_MASTER_2026_CHANGE_ME";
     if (masterPassword !== MASTER_SECRET) {
         console.log("[SECURITY] Unauthorized master update attempt");
         return res.status(401).json({ status: "unauthorized" });
     }
-    
+
     if (analysis && analysis.symbol) {
         const symbol = analysis.symbol;
-        
-        // Initialize if first time for this symbol
         if (!eaBrainStates[symbol]) {
             eaBrainStates[symbol] = { ...getDefaultBrainState() };
         }
-        
         const state = eaBrainStates[symbol];
         state.symbol = analysis.symbol;
         state.trend = analysis.trend;
         state.action = analysis.action;
         state.price = analysis.price;
         state.openTrades = analysis.openTrades;
-        
+
         if (analysis.equity) {
             state.equityHistory.push(parseFloat(analysis.equity));
             if (state.equityHistory.length > 50) state.equityHistory.shift();
         }
-        
         if (uiState) {
             if (uiState.trends) state.trends = uiState.trends;
             if (uiState.analytics) state.analytics = uiState.analytics;
         }
-        
         if (trades) activeTradesBySymbol[symbol] = trades;
-        
-        // Also update legacy eaBrainState for dashboard compatibility
+
         eaBrainState = { ...state };
         if (trades) activeTradesList = trades;
-        
+
         console.log(`[MASTER UPDATE] ${symbol} | Price: ${analysis.price} | Trades: ${analysis.openTrades}`);
     }
-    
+
     res.json({ status: "success" });
 });
 
-
-// B. Public Endpoint — returns all symbols
-// B. Public Endpoint — returns all symbols
 app.get("/api/public/ea-state", (req, res) => {
     const symbol = req.query.symbol || eaBrainState.symbol;
     const state = eaBrainStates[symbol] || eaBrainState;
-    
-    // FIX: Define the 'trades' variable using the correct fallback logic
     const trades = activeTradesBySymbol[symbol] || activeTradesList || [];
 
     res.json({
@@ -394,19 +379,14 @@ app.get("/api/public/ea-state", (req, res) => {
     });
 });
 
-// ==========================================
-// USER-SPECIFIC DASHBOARD DATA ENDPOINT
-// ==========================================
 app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ error: "User not found" });
 
-        // --- INTELLIGENT SYMBOL SELECTION ---
         let displaySymbol = req.query.symbol;
         if (!displaySymbol) {
             if (user.monitoredSymbols && user.monitoredSymbols.length > 0) {
-                // Prefer a symbol that actually has live data
                 const activeSym = user.monitoredSymbols.find(s => eaBrainStates[s] && eaBrainStates[s].price > 0);
                 displaySymbol = activeSym || user.monitoredSymbols[0];
             } else {
@@ -417,7 +397,6 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
         const masterState = eaBrainStates[displaySymbol] || eaBrainState;
         const trades = activeTradesBySymbol[displaySymbol] || activeTradesList || [];
 
-        // Calculate days remaining (Capped at 3650 to prevent UI breakage)
         let daysLeft = 0;
         if (user.licenseExpiry) {
             daysLeft = Math.ceil((new Date(user.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
@@ -427,7 +406,7 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
 
         res.json({
             ...masterState,
-            activeSymbol: displaySymbol, // Send back the resolved symbol
+            activeSymbol: displaySymbol,
             trades: trades,
             availableSymbols: Object.keys(eaBrainStates),
             monitoredSymbols: user.monitoredSymbols || [],
@@ -436,7 +415,7 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
             accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
             targetBalance: user.targetBalance || 0,
-            connectedBrokers: user.connectedBrokers || []   // NEW
+            connectedBrokers: user.connectedBrokers || []
         });
     } catch (err) {
         console.error("User EA State Error:", err);
@@ -444,9 +423,6 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
     }
 });
 
-// ==========================================
-// REMOVE SYMBOL ENDPOINT
-// ==========================================
 app.post("/api/user/remove-symbol", isLoggedIn, async (req, res) => {
     try {
         const { symbol } = req.body;
@@ -455,7 +431,6 @@ app.post("/api/user/remove-symbol", isLoggedIn, async (req, res) => {
 
         user.monitoredSymbols = user.monitoredSymbols.filter(s => s !== symbol);
         await user.save();
-        
         console.log(`[SYMBOL] Removed ${symbol} from ${user.username}'s monitored list.`);
         res.json({ success: true, monitoredSymbols: user.monitoredSymbols });
     } catch (err) {
@@ -464,45 +439,27 @@ app.post("/api/user/remove-symbol", isLoggedIn, async (req, res) => {
     }
 });
 
+let activeClientSymbols = {};
 
-let activeClientSymbols = {}; // Key: licenseKey, Value: Set of symbols
-
-// ==========================================
-// USER-SPECIFIC DASHBOARD DATA ENDPOINT
-// ==========================================
-
-
-// ==========================================
-// CLIENT SYNC — Fixed Aggregate Equity Logic
-// ==========================================
 app.post("/api/client/sync", async (req, res) => {
-    const { 
+    const {
         licenseKey, currentBalance, currentEquity, preferredSymbol, clientSymbol,
         accountNumber, brokerName, brokerServer
     } = req.body;
-    
+
     try {
         const user = await User.findOne({ licenseKey: licenseKey });
-        
-        // === HARD CHECK 1: License must exist ===
+
         if (!user) {
             return res.json({ action: "KILL", reason: "INVALID_LICENSE" });
         }
-        
-        // === HARD CHECK 2: License must not be expired ===
         if (new Date() > new Date(user.licenseExpiry)) {
             return res.json({ action: "KILL", reason: "EXPIRED" });
         }
-        
-        // === HARD CHECK 3: Account must be active ===
         if (user.isSuspended || user.accountLocked) {
-            return res.json({ 
-                action: "ZERO_HEDGE", 
-                reason: user.lockReason || "LOCKED"
-            });
+            return res.json({ action: "ZERO_HEDGE", reason: user.lockReason || "LOCKED" });
         }
-        
-        // === TRACK BROKER CONNECTION ===
+
         if (accountNumber && brokerName) {
             if (!user.connectedBrokers) user.connectedBrokers = [];
             const existingIdx = user.connectedBrokers.findIndex(
@@ -527,23 +484,20 @@ app.post("/api/client/sync", async (req, res) => {
                 console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber}`);
             }
         }
-        
-        // === TRACK SYMBOL ===
+
         if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
             user.monitoredSymbols.push(clientSymbol);
         }
-        
-        // === SET STARTING BALANCE (once per license) ===
+
         if (!user.startingBalance || user.startingBalance === 0) {
             user.startingBalance = currentBalance;
             const gainAmount = user.prepaymentAmount || currentBalance;
             user.targetBalance = currentBalance + gainAmount;
             console.log(`[START] ${user.username} baseline: start=$${currentBalance} target=$${user.targetBalance}`);
         }
-        
+
         await user.save();
-        
-        // === 100% GAIN CHECK (aggregate across all accounts) ===
+
         let aggregateEquity = 0;
         let activeCount = 0;
         (user.connectedBrokers || []).forEach(b => {
@@ -553,7 +507,7 @@ app.post("/api/client/sync", async (req, res) => {
             }
         });
         if (activeCount === 0) aggregateEquity = currentEquity;
-        
+
         if (user.targetBalance > 0 && aggregateEquity >= user.targetBalance) {
             user.accountLocked = true;
             user.isSuspended = true;
@@ -562,8 +516,7 @@ app.post("/api/client/sync", async (req, res) => {
             console.log(`[ZERO-HEDGE GAIN] ${user.username} aggregate $${aggregateEquity} >= $${user.targetBalance}`);
             return res.json({ action: "ZERO_HEDGE", reason: "GAIN_TARGET" });
         }
-        
-        // === 100% LOSS CHECK (aggregate = 0) ===
+
         if (user.startingBalance > 0 && aggregateEquity <= 0) {
             user.accountLocked = true;
             user.isSuspended = true;
@@ -572,11 +525,7 @@ app.post("/api/client/sync", async (req, res) => {
             console.log(`[ZERO-HEDGE LOSS] ${user.username} aggregate <= 0`);
             return res.json({ action: "ZERO_HEDGE", reason: "LOSS_LIMIT" });
         }
-        
-        // ==========================================
-        //  FIX: compute all aggregate & time values
-        //  BEFORE building the response
-        // ==========================================
+
         let aggProfit = 0, aggLoss = 0;
         (user.connectedBrokers || []).forEach(b => {
             if (b.lastBalance != null && b.lastEquity != null) {
@@ -584,21 +533,20 @@ app.post("/api/client/sync", async (req, res) => {
                 if (p > 0) aggProfit += p; else aggLoss += p;
             }
         });
-        
+
         const msRemaining = Math.max(0, new Date(user.licenseExpiry) - new Date());
         const daysLeft  = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
         const hoursFrac = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minsFrac  = Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60));
-        
+
         const licMask = user.licenseKey
             ? "******" + String(user.licenseKey).slice(-3)
             : "NOT SET";
-        
-        // === SEND TRADE DATA ===
+
         const symbol = preferredSymbol || eaBrainState.symbol || "GBPUSD";
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
-        
+
         res.json({
             action: "TRADE",
             masterState: masterState,
@@ -606,40 +554,29 @@ app.post("/api/client/sync", async (req, res) => {
             userTier: user.currentTier || "None",
             availableSymbols: Object.keys(eaBrainStates),
             monitoredSymbols: user.monitoredSymbols || [],
-            
-            // Time (all three now defined)
             daysRemaining:    daysLeft,
             hoursRemaining:   hoursFrac,
             minutesRemaining: minsFrac,
-            
-            // Balances
             accountStatus:  "ACTIVE",
             startingBalance: user.startingBalance || 0,
             targetBalance:   user.targetBalance   || 0,
             aggregateEquity: aggregateEquity,
-            
-            // P/L (all now defined)
             totalProfit:       (aggProfit + aggLoss).toFixed(2),
             counterProfits:     aggProfit.toFixed(2),
             unprofitableTotal:  aggLoss.toFixed(2),
-            
-            // Display
             entryTip:       "Scalpa BULLish Entry",
             exitTip:        "DayTrader close trades",
             levelBtnText:   "LEVEL 3 LONGTRADER",
             subLicenseMask: licMask,
-            
-            // Brokers
             connectedBrokers: user.connectedBrokers || [],
             connectedBrokersCount: (user.connectedBrokers || []).length
         });
-        
+
     } catch (err) {
         console.error("Sync Error:", err);
         res.status(500).json({ action: "ERROR" });
     }
 });
-
 
 // --- PRICING TIERS DATA ---
 const pricingTiers = [
@@ -658,12 +595,10 @@ const pricingTiers = [
     { name: "Solomonic", designation: "Grade", float: "$1T+", percentage: "0.5%", period: "Per 7 Years", minSub: "$5B", maxSub: "No Limit" }
 ];
 
-// --- PRICING PAGE ROUTE ---
 app.get("/pricing", (req, res) => {
     res.render("pricing", { tiers: pricingTiers });
 });
 
-// --- NAVIGATION ROUTES ---
 app.get("/training", (req, res) => {
     res.render("training");
 });
@@ -671,26 +606,24 @@ app.get("/training", (req, res) => {
 // ==========================================
 // PAYNOW INTEGRATION & DYNAMIC CHECKOUT
 // ==========================================
-
 const paynow = new Paynow(
-    process.env.PAYNOW_INTEGRATION_ID || "PAYNOW_INTEGRATION", 
+    process.env.PAYNOW_INTEGRATION_ID || "PAYNOW_INTEGRATION",
     process.env.PAYNOW_INTEGRATION_KEY || "880e0b37-2948-4deb-82f3-f6a1351de62d"
 );
 
 const LIVE_DOMAIN = "https://bot-proj-2-1.onrender.com";
-paynow.resultUrl = `${LIVE_DOMAIN}/api/paynow/update`; 
-paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`; 
+paynow.resultUrl = `${LIVE_DOMAIN}/api/paynow/update`;
+paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 
-// DYNAMIC TIER CONFIG WITH MIN/MAX RANGES
 const tierConfig = {
     "Amber": { min: 1, max: 30, durationDays: 30 },
     "Amethyst": { min: 6, max: 24, durationDays: 30 },
     "Topaz": { min: 22, max: 111, durationDays: 60 },
     "Tanzanite": { min: 100, max: 1000, durationDays: 90 },
-    "Sapphire": { min: 900, max: 9000, durationDays: 120 }, 
+    "Sapphire": { min: 900, max: 9000, durationDays: 120 },
     "Emerald": { min: 8000, max: 80000, durationDays: 150 },
     "Diamond": { min: 70000, max: 700000, durationDays: 210 },
-    "Rhodium": { min: 500000, max: 5000000, durationDays: 365 }, 
+    "Rhodium": { min: 500000, max: 5000000, durationDays: 365 },
     "Platinum": { min: 4000000, max: 40000000, durationDays: 730 },
     "Uranium": { min: 30000000, max: 300000000, durationDays: 1095 },
     "Atomic": { min: 200000000, max: 2000000000, durationDays: 1460 },
@@ -698,45 +631,35 @@ const tierConfig = {
     "Solomonic": { min: 5000000000, max: 999999999999, durationDays: 2555 }
 };
 
-// 1. Intercept users coming from Pricing Page Modal
 app.post("/checkout/initialize", (req, res) => {
     const selectedTier = req.body.selectedTier;
-    // If already logged in, skip registration, go straight to checkout
     if (req.isAuthenticated()) {
         return res.redirect(`/checkout?tier=${encodeURIComponent(selectedTier)}`);
     }
-    // Send to Registration Form (it will forward them to checkout after)
     res.render("register", { error: null, selectedTier: selectedTier });
 });
 
-
-
-// 2. The Dynamic Checkout Portal with full tier details
 app.get("/checkout", isLoggedIn, (req, res) => {
     const tier = req.query.tier;
     if(!tierConfig[tier]) {
         req.flash("error", "Invalid tier selected.");
         return res.redirect("/pricing");
     }
-    
-    // Get tier details from pricingTiers array
+
     const tierDetails = pricingTiers.find(t => t.name === tier);
-    
-    // Calculate the percentage rate as a decimal for coverage estimation
+
     let percentageRate = 0;
     if (tierDetails) {
-        // Extract numeric percentage from string like "11%" or "Fixed $1 Rate"
         const pctMatch = tierDetails.percentage.match(/(\d+\.?\d*)%/);
         if (pctMatch) {
             percentageRate = parseFloat(pctMatch[1]);
         } else if (tierDetails.percentage.includes("Fixed")) {
-            // For Amethyst, use a default rate
-            percentageRate = 2; // $1/$50 = 2% equivalent
+            percentageRate = 2;
         }
     }
-    
-    res.render("checkout", { 
-        tier: tier, 
+
+    res.render("checkout", {
+        tier: tier,
         config: tierConfig[tier],
         tierDesignation: tierDetails ? tierDetails.designation : "Level",
         tierFloat: tierDetails ? tierDetails.float : "N/A",
@@ -748,36 +671,64 @@ app.get("/checkout", isLoggedIn, (req, res) => {
     });
 });
 
-
-
-// 3. API: Trigger EcoCash/OneMoney USSD Push with custom amount
+// ==========================================
+// MOBILE PUSH — with full tracking
+// ==========================================
 app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
     const { tier, phone, method, customAmount } = req.body;
     const config = tierConfig[tier];
     const amount = parseFloat(customAmount);
 
-    // Validate amount is within tier range
     if(!config || isNaN(amount) || amount < config.min || amount > config.max) {
         return res.json({ success: false, error: "Invalid payment amount for this tier." });
     }
 
     const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
+
+    // Register this payment as pending BEFORE we hit Paynow
+    pendingPayments[invoiceRef] = {
+        status: 'pending',
+        userId: req.user._id.toString(),
+        tier,
+        amount,
+        error: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+
     let payment = paynow.createPayment(invoiceRef, req.user.email);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
         const response = await paynow.sendMobile(payment, phone, method);
+
         if(response.success) {
-            res.json({ success: true, instructions: response.instructions });
+            console.log(`[PAYMENT] Initiated ${invoiceRef} for $${amount} via ${method}`);
+            res.json({
+                success: true,
+                instructions: response.instructions,
+                invoiceRef: invoiceRef
+            });
         } else {
-            res.json({ success: false, error: response.error });
+            // Immediate initiation failure (e.g., insufficient balance, bad number)
+            pendingPayments[invoiceRef].status = 'init_failed';
+            pendingPayments[invoiceRef].error = response.error || 'Payment initiation failed';
+            pendingPayments[invoiceRef].updatedAt = Date.now();
+            console.log(`[PAYMENT] Init failure ${invoiceRef}: ${response.error}`);
+            res.json({ success: false, error: response.error || "Payment was rejected by the gateway." });
         }
     } catch(err) {
-        res.json({ success: false, error: "Bank gateway unreachable." });
+        pendingPayments[invoiceRef].status = 'init_failed';
+        pendingPayments[invoiceRef].error = err.message || 'Gateway unreachable';
+        pendingPayments[invoiceRef].updatedAt = Date.now();
+        console.error(`[PAYMENT] Exception ${invoiceRef}:`, err);
+        res.json({ success: false, error: "Bank gateway unreachable. Please try again." });
     }
 });
 
-// 4. Standard gateway with custom amount
+// ==========================================
+// STANDARD GATEWAY — with tracking
+// ==========================================
 app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
     const tier = req.query.tier;
     const config = tierConfig[tier];
@@ -789,6 +740,17 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
     }
 
     const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
+
+    pendingPayments[invoiceRef] = {
+        status: 'pending',
+        userId: req.user._id.toString(),
+        tier,
+        amount,
+        error: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+
     let payment = paynow.createPayment(invoiceRef, req.user.email);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
@@ -797,10 +759,14 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
         if(response.success) {
             res.redirect(response.redirectUrl);
         } else {
+            pendingPayments[invoiceRef].status = 'init_failed';
+            pendingPayments[invoiceRef].error = response.error || 'Gateway rejection';
             req.flash("error", "Payment initiation failed. Please try again.");
             res.redirect("/pricing");
         }
     } catch(e) {
+        pendingPayments[invoiceRef].status = 'init_failed';
+        pendingPayments[invoiceRef].error = e.message || 'Gateway error';
         req.flash("error", "Payment gateway error. Please try again.");
         res.redirect("/pricing");
     }
@@ -811,41 +777,90 @@ app.get("/checkout/return", isLoggedIn, (req, res) => {
     res.redirect("/dashboard");
 });
 
-// NOTE: a second app.post("/api/paynow/update", ...) used to live here.
-// Express matches routes in registration order and the earlier handler
-// (above, near the top of the file) always sent a response first, so this
-// one could never actually run — it was dead code. Its activation logic
-// has been merged into the reachable handler above; nothing here was lost.
-
-// 6. Polling endpoint for Checkout UI
+// ==========================================
+// POLLING — reads status by invoiceRef
+// ==========================================
 app.get("/api/user/status", isLoggedIn, async (req, res) => {
-    const user = await User.findById(req.user._id);
-    res.json({ isPaid: !!user.licenseKey });
+    const { invoiceRef } = req.query;
+
+    // Back-compat: if no invoiceRef provided, fall back to legacy behaviour
+    if (!invoiceRef) {
+        try {
+            const user = await User.findById(req.user._id);
+            return res.json({ isPaid: !!user.licenseKey });
+        } catch (e) {
+            return res.json({ isPaid: false, error: 'server_error' });
+        }
+    }
+
+    const entry = pendingPayments[invoiceRef];
+
+    if (!entry) {
+        // Unknown ref — maybe server restarted, or it was already purged.
+        // Fall back to checking the user's license to be safe.
+        try {
+            const user = await User.findById(req.user._id);
+            if (user && user.licenseKey) {
+                return res.json({ status: 'paid', isPaid: true });
+            }
+        } catch (e) {}
+        return res.json({ status: 'unknown', isPaid: false, error: 'Payment reference not found.' });
+    }
+
+    // Only the owner of this payment can query it
+    if (entry.userId !== req.user._id.toString() && req.user.username !== 'admin') {
+        return res.status(403).json({ status: 'forbidden', isPaid: false, error: 'Not your payment.' });
+    }
+
+    if (entry.status === 'paid') {
+        return res.json({ status: 'paid', isPaid: true });
+    }
+
+    if (entry.status === 'failed' || entry.status === 'cancelled' || entry.status === 'init_failed') {
+        return res.json({
+            status: entry.status,
+            isPaid: false,
+            error: entry.error || (entry.status === 'cancelled' ? 'You cancelled the payment on your phone.' : 'Payment failed.')
+        });
+    }
+
+    // Still pending
+    const ageMs = Date.now() - entry.createdAt;
+    const timeoutMs = 3 * 60 * 1000; // 3 minutes
+
+    if (ageMs > timeoutMs) {
+        entry.status = 'failed';
+        entry.error = 'Timed out waiting for confirmation.';
+        entry.updatedAt = Date.now();
+        return res.json({ status: 'failed', isPaid: false, error: 'Timed out waiting for confirmation.' });
+    }
+
+    return res.json({
+        status: 'pending',
+        isPaid: false,
+        ageSeconds: Math.floor(ageMs / 1000)
+    });
 });
 
 // ==========================================
 // 2. WEB UI & AUTHENTICATION ROUTES
 // ==========================================
-
 app.get("/", (req, res) => {
-    res.render("index", { 
-        currentUser: req.user || null 
+    res.render("index", {
+        currentUser: req.user || null
     });
 });
-
 
 app.get("/register", (req, res) => {
     const referralCode = req.query.ref || '';
     const redirect = req.query.redirect || '';
     const selectedTier = req.query.tier || null;
-    res.render("register", { 
+    res.render("register", {
         selectedTier: selectedTier,
         referralCode: referralCode,
         redirect: redirect
     });
 });
-
-
 
 app.post("/register", async (req, res) => {
   let redirectUrl = "/register";
@@ -861,7 +876,6 @@ app.post("/register", async (req, res) => {
     const queryString = params.toString();
     if (queryString) redirectUrl += `?${queryString}`;
 
-    // 1. EXPLICIT EMAIL CHECK
     if (emailToCheck) {
         const existingEmail = await User.findOne({ email: new RegExp('^' + emailToCheck + '$', 'i') });
         if (existingEmail) {
@@ -869,12 +883,11 @@ app.post("/register", async (req, res) => {
             return req.session.save(() => res.redirect(redirectUrl));
         }
     }
-    
-    // Generate verification code
+
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    const newUser = new User({ 
-        username: req.body.username, 
+
+    const newUser = new User({
+        username: req.body.username,
         email: emailToCheck,
         whatsapp: req.body.whatsapp || "",
         country: req.body.country || "",
@@ -885,16 +898,13 @@ app.post("/register", async (req, res) => {
         accountLocked: false,
         isSuspended: false,
         referredBy: referralCode,
-        // NEW: Verification fields
         isVerified: false,
         verificationCode: verificationCode,
-        verificationCodeExpires: Date.now() + 30 * 60 * 1000 // 30 minutes
+        verificationCodeExpires: Date.now() + 30 * 60 * 1000
     });
 
-    // 2. PASSPORT REGISTRATION
     const registeredUser = await User.register(newUser, req.body.password);
-    
-    // 3. SEND VERIFICATION EMAIL - WAIT FOR IT TO COMPLETE
+
     let emailSent = false;
     try {
         await emailTransporter.sendMail({
@@ -921,11 +931,9 @@ app.post("/register", async (req, res) => {
         console.log(`[VERIFICATION] Code sent to ${registeredUser.email}: ${verificationCode}`);
     } catch (emailErr) {
         console.error("Verification email failed:", emailErr);
-        // Still log the code so user can be helped manually
         console.log(`[VERIFICATION] Code for ${registeredUser.email} (email failed): ${verificationCode}`);
     }
-    
-    // 4. AFFILIATE TRACKING LOGIC
+
     if (referralCode) {
         try {
             const Affiliate = require("./models/Affiliate.model");
@@ -943,26 +951,23 @@ app.post("/register", async (req, res) => {
             }
         } catch (trackErr) { console.error("Referral tracking error:", trackErr); }
     }
-    
-    // 5. AUTO LOGIN - After email is sent
+
     req.login(registeredUser, (err) => {
         if(err) {
             req.flash("error", "Account created, but auto-login failed. Please login manually.");
             return req.session.save(() => res.redirect("/login"));
         }
-        
+
         if (emailSent) {
             req.flash("success", "Account created! Please check your email for the verification code.");
         } else {
             req.flash("success", "Account created! Click 'Resend Code' if you don't receive the verification email within a few minutes.");
         }
-        
-        // Store pending tier in session for after verification
+
         if (req.body.selectedTier && req.body.selectedTier !== 'None') {
             req.session.pendingTier = req.body.selectedTier;
         }
-        
-        // Save session before redirect
+
         req.session.save(() => {
             res.redirect("/verify-email");
         });
@@ -970,19 +975,19 @@ app.post("/register", async (req, res) => {
 
   } catch (err) {
     console.error("Registration Error:", err);
-    
+
     let errorMessage = "Registration failed. Please check your details and try again.";
-    
+
     if (err.name === 'UserExistsError') {
         errorMessage = "That username is already taken. Please choose another one.";
-    } 
+    }
     else if (err.code === 11000) {
         if (err.message && err.message.includes('email')) {
             errorMessage = "An account with that email address already exists.";
         } else {
             errorMessage = "A duplicate record was found. Please check your details.";
         }
-    } 
+    }
     else if (err.name === 'ValidationError') {
         errorMessage = err.message;
     }
@@ -997,10 +1002,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-
-// --- VERIFICATION PAGE ---
 app.get("/verify-email", isLoggedIn, (req, res) => {
-    // If already verified, redirect to dashboard
     if (req.user.isVerified) {
         req.flash("success", "Your account is already verified.");
         return res.redirect("/dashboard");
@@ -1008,51 +1010,43 @@ app.get("/verify-email", isLoggedIn, (req, res) => {
     res.render("verify-email", { currentUser: req.user });
 });
 
-// --- VERIFY CODE ---
 app.post("/verify-email", isLoggedIn, async (req, res) => {
     const { code } = req.body;
-    
+
     try {
         const user = await User.findById(req.user._id);
-        
+
         if (!user) {
             req.flash("error", "User not found.");
             return res.redirect("/login");
         }
-        
         if (user.isVerified) {
             req.flash("success", "Account already verified.");
             return res.redirect("/dashboard");
         }
-        
-        // Check if code has expired
         if (user.verificationCodeExpires < Date.now()) {
             req.flash("error", "Verification code has expired. Please request a new one.");
             return res.redirect("/verify-email");
         }
-        
-        // Check code
         if (user.verificationCode !== code) {
             req.flash("error", "Invalid verification code. Please try again.");
             return res.redirect("/verify-email");
         }
-        
-        // Verify the user
+
         user.isVerified = true;
         user.verificationCode = undefined;
         user.verificationCodeExpires = undefined;
         await user.save();
-        
+
         req.flash("success", "Email verified successfully! Welcome to D.E.T System.");
-        
-        // Redirect to checkout if user was signing up for a tier
-        const redirectTo = req.session.pendingTier ? 
-            `/checkout?tier=${encodeURIComponent(req.session.pendingTier)}` : 
+
+        const redirectTo = req.session.pendingTier ?
+            `/checkout?tier=${encodeURIComponent(req.session.pendingTier)}` :
             "/dashboard";
-        
+
         delete req.session.pendingTier;
         res.redirect(redirectTo);
-        
+
     } catch (err) {
         console.error("Verification error:", err);
         req.flash("error", "Could not verify email. Please try again.");
@@ -1060,23 +1054,20 @@ app.post("/verify-email", isLoggedIn, async (req, res) => {
     }
 });
 
-// --- RESEND VERIFICATION CODE ---
 app.post("/verify-email/resend", isLoggedIn, async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        
+
         if (user.isVerified) {
             req.flash("success", "Account already verified.");
             return res.redirect("/dashboard");
         }
-        
-        // Generate new code
+
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         user.verificationCode = verificationCode;
         user.verificationCodeExpires = Date.now() + 30 * 60 * 1000;
         await user.save();
-        
-        // Send email
+
         try {
             await emailTransporter.sendMail({
                 from: '"D.E.T System" <nyctech002@gmail.com>',
@@ -1097,10 +1088,10 @@ app.post("/verify-email/resend", isLoggedIn, async (req, res) => {
         } catch (emailErr) {
             console.error("Resend verification email failed:", emailErr);
         }
-        
+
         req.flash("success", "New verification code sent to your email.");
         res.redirect("/verify-email");
-        
+
     } catch (err) {
         console.error("Resend verification error:", err);
         req.flash("error", "Could not resend code.");
@@ -1108,19 +1099,13 @@ app.post("/verify-email/resend", isLoggedIn, async (req, res) => {
     }
 });
 
-
-
-// --- HOW IT WORKS PAGE ---
 app.get("/how-it-works", (req, res) => {
     res.render("how-it-works");
 });
 
-
 // ==========================================
 // FORGOT PASSWORD ROUTES
 // ==========================================
-
-// Store reset tokens in memory (in production, use a proper store)
 const resetTokens = {};
 
 app.get("/login", (req, res) => {
@@ -1133,9 +1118,9 @@ app.get("/login", (req, res) => {
     const showReset = req.query.reset === 'true';
     const resetToken = req.query.token || '';
     const userId = req.query.uid || '';
-    
-    res.render("login", { 
-        pendingTier: pendingTier || null, 
+
+    res.render("login", {
+        pendingTier: pendingTier || null,
         referralCode: referralCode,
         redirect: redirect,
         course: course,
@@ -1147,11 +1132,9 @@ app.get("/login", (req, res) => {
     });
 });
 
-// Send reset code
-// Send reset code
 app.post("/forgot-password", async (req, res) => {
     const { identifier, resetMethod } = req.body;
-    
+
     try {
         const user = await User.findOne({
             $or: [
@@ -1159,29 +1142,26 @@ app.post("/forgot-password", async (req, res) => {
                 { username: identifier }
             ]
         });
-        
+
         if (!user) {
             req.flash("error", "No account found with that email or username.");
             return res.redirect("/login?forgot=true");
         }
-        
+
         if (!user.email || !user.email.includes('@')) {
             req.flash("error", "This account has no valid email address. Contact support.");
             return res.redirect("/login?forgot=true");
         }
-        
-        // Generate 6-digit code
+
         const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         const resetToken = crypto.randomBytes(32).toString('hex');
-        
-        // Store token (15 minute expiry)
+
         resetTokens[resetToken] = {
             userId: user._id.toString(),
             code: resetCode,
             expires: Date.now() + 15 * 60 * 1000
         };
-        
-        // Send via email
+
         if (resetMethod === 'email') {
             try {
                 await emailTransporter.sendMail({
@@ -1211,13 +1191,12 @@ app.post("/forgot-password", async (req, res) => {
                 return res.redirect("/login?forgot=true");
             }
         } else {
-            // WhatsApp method — logs code for now (integrate Twilio/WATI later)
             console.log(`[PASSWORD RESET] WhatsApp code for ${user.username}: ${resetCode}`);
             req.flash("success", "Reset code sent via WhatsApp. Check your phone.");
         }
-        
+
         res.redirect(`/login?reset=true&token=${resetToken}&uid=${user._id}`);
-        
+
     } catch (err) {
         console.error("Forgot password error:", err);
         req.flash("error", "Could not process request. Please try again.");
@@ -1225,49 +1204,43 @@ app.post("/forgot-password", async (req, res) => {
     }
 });
 
-
-// Reset password
 app.post("/reset-password", async (req, res) => {
     const { resetToken, userId, resetCode, newPassword, confirmPassword } = req.body;
-    
+
     try {
         const stored = resetTokens[resetToken];
-        
+
         if (!stored || stored.expires < Date.now()) {
             req.flash("error", "Reset code has expired. Please request a new one.");
             return res.redirect("/login?forgot=true");
         }
-        
         if (stored.code !== resetCode) {
             req.flash("error", "Invalid reset code. Please try again.");
             return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
         }
-        
         if (newPassword !== confirmPassword) {
             req.flash("error", "Passwords do not match.");
             return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
         }
-        
         if (newPassword.length < 8) {
             req.flash("error", "Password must be at least 8 characters.");
             return res.redirect(`/login?reset=true&token=${resetToken}&uid=${userId}`);
         }
-        
+
         const user = await User.findById(userId);
         if (!user) {
             req.flash("error", "User not found.");
             return res.redirect("/login");
         }
-        
+
         await user.setPassword(newPassword);
         await user.save();
-        
-        // Clean up token
+
         delete resetTokens[resetToken];
-        
+
         req.flash("success", "Password reset successfully! Please login with your new password.");
         res.redirect("/login");
-        
+
     } catch (err) {
         console.error("Reset password error:", err);
         req.flash("error", "Could not reset password.");
@@ -1275,13 +1248,11 @@ app.post("/reset-password", async (req, res) => {
     }
 });
 
-
-
 app.post("/login", (req, res, next) => {
     const loginField = req.body.username.trim();
-    
+
     User.findOne({ email: new RegExp('^' + loginField + '$', 'i') }).then(userByEmail => {
-        
+
         if (userByEmail) {
             req.body.username = userByEmail.username;
         }
@@ -1290,12 +1261,10 @@ app.post("/login", (req, res, next) => {
             if (err) return next(err);
             if (!user) {
                 req.flash("error", "Invalid username/email or password.");
-                return req.session.save(() => res.redirect("/login")); 
+                return req.session.save(() => res.redirect("/login"));
             }
-            
-            // NEW: Check if user is verified (admin account is exempt)
+
             if (!user.isVerified && user.username !== "admin") {
-                // Log them in but redirect to verification page
                 req.logIn(user, (err) => {
                     if (err) return next(err);
                     req.flash("error", "Please verify your email before accessing your account. If you didn't get the code, please press Resend");
@@ -1303,19 +1272,16 @@ app.post("/login", (req, res, next) => {
                 });
                 return;
             }
-            
+
             req.logIn(user, (err) => {
                 if (err) return next(err);
                 req.flash("success", `Welcome back, ${user.username}!`);
                 handleLoginRedirect(req, res);
             });
         })(req, res, next);
-        
+
     }).catch(err => next(err));
 });
-
-
-
 
 function handleLoginRedirect(req, res) {
     const pendingTier = req.body.pendingTier;
@@ -1351,7 +1317,6 @@ app.get("/dashboard", isLoggedIn, (req, res) => {
 // ==========================================
 // PROFILE MANAGEMENT ROUTES
 // ==========================================
-
 app.post("/profile/update", isLoggedIn, async (req, res) => {
     try {
         const { email, whatsapp, country } = req.body;
@@ -1374,7 +1339,7 @@ app.post("/profile/update", isLoggedIn, async (req, res) => {
 
 app.post("/profile/change-password", isLoggedIn, async (req, res) => {
     const { currentPassword, newPassword, confirmPassword } = req.body;
-    
+
     if (!currentPassword || !newPassword || !confirmPassword) {
         req.flash("error", "Please fill in all password fields.");
         return res.redirect("/dashboard");
@@ -1387,9 +1352,8 @@ app.post("/profile/change-password", isLoggedIn, async (req, res) => {
         req.flash("error", "New password and confirmation do not match.");
         return res.redirect("/dashboard");
     }
-    
+
     try {
-        // passport-local-mongoose changePassword handles verification internally
         await req.user.changePassword(currentPassword, newPassword);
         req.flash("success", "Password changed successfully.");
     } catch (err) {
@@ -1400,18 +1364,15 @@ app.post("/profile/change-password", isLoggedIn, async (req, res) => {
             console.error("Password change error:", err);
         }
     }
-    
+
     res.redirect("/dashboard");
 });
 
 // ==========================================
 // 3. ADMIN PANEL ROUTES
 // ==========================================
-
-// --- Simple visitor counter (in-memory, resets on server restart) ---
 let totalVisitorCount = 0;
 app.use((req, res, next) => {
-    // Only count page views, not API calls or static assets
     if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/checkout/') && !req.path.includes('.')) {
         totalVisitorCount++;
     }
@@ -1441,7 +1402,6 @@ app.get("/admin", isAdmin, async (req, res) => {
         const revenue = Number(client.prepaymentAmount) || 0;
         totalRevenue += revenue;
 
-        // Track affiliate payouts (commission from affiliateEngine)
         const commission = Number(client.affiliateCommission) || 0;
         totalAffiliatePayouts += commission;
 
@@ -1499,7 +1459,6 @@ app.get("/admin", isAdmin, async (req, res) => {
             targetBalance: Number(c.targetBalance) || 0
         }));
 
-    // Positive Logouts - accounts that hit 100% gain profitably
     const positiveLogouts = allUsers
         .filter(c => c.accountLocked && Number(c.startingBalance) > 0)
         .map(c => ({
@@ -1511,7 +1470,6 @@ app.get("/admin", isAdmin, async (req, res) => {
             profit: (Number(c.targetBalance) || 0) - (Number(c.startingBalance) || 0)
         }));
 
-    // Top Affiliates (if affiliateEngine exists and has data)
     let topAffiliates = [];
     try {
         const Affiliate = require("./models/Affiliate.model");
@@ -1523,13 +1481,8 @@ app.get("/admin", isAdmin, async (req, res) => {
                 commission: Number(a.totalEarnings) || 0
             }));
         }
-    } catch (e) {
-        // Affiliate model doesn't exist yet, leave empty
-    }
+    } catch (e) {}
 
-    // =========================================
-    // TOP EARNERS BY TIER (Top 50 per tier)
-    // =========================================
     const tierList = ["Amber", "Amethyst", "Topaz", "Tanzanite", "Sapphire", "Emerald", "Diamond", "Rhodium", "Platinum", "Uranium", "Atomic", "Nuclear", "Solomonic"];
 
     const topEarnersByTier = {};
@@ -1546,9 +1499,6 @@ app.get("/admin", isAdmin, async (req, res) => {
             }));
     });
 
-    // =========================================
-    // TOP AFFILIATES BY TIER (Top 50 per tier)
-    // =========================================
     const topAffiliatesByTier = {};
     try {
         const AffiliateModel = require("./models/Affiliate.model");
@@ -1556,7 +1506,6 @@ app.get("/admin", isAdmin, async (req, res) => {
 
         tierList.forEach(tierName => {
             const tierAffiliates = allAffiliates.map(aff => {
-                // Filter referrals for this specific tier
                 const tierReferrals = aff.referrals.filter(r => r.tier === tierName && r.status === 'confirmed');
                 const tierCommission = tierReferrals.reduce((sum, r) => sum + (r.commissionEarned || 0), 0);
                 return {
@@ -1576,9 +1525,6 @@ app.get("/admin", isAdmin, async (req, res) => {
         });
     }
 
-    // =========================================
-    // FLATTEN PENDING AFFILIATE PAYOUTS
-    // =========================================
     let pendingPayouts = [];
     try {
         const AffiliateModel = require("./models/Affiliate.model");
@@ -1601,7 +1547,6 @@ app.get("/admin", isAdmin, async (req, res) => {
                 }
             });
         });
-        // Newest first
         pendingPayouts.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
     } catch (e) {
         console.error("Pending payouts aggregation error:", e);
@@ -1634,9 +1579,6 @@ app.get("/admin", isAdmin, async (req, res) => {
     });
 });
 
-// ==========================================
-// NEGATIVE ACCOUNT OFFER SERVICE
-// ==========================================
 app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
@@ -1648,31 +1590,27 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
             req.flash("error", "This account is not currently locked.");
             return res.redirect("/admin");
         }
-        
-        // Unlock + grant 1-week free extension
+
         user.accountLocked = false;
         user.isSuspended   = false;
         user.lockReason    = null;
         user.lockedAtAggregateEquity = null;
         user.lockedAtStartingBalance = null;
-        
-        // Extend expiry by 1 week from NOW (or from current expiry, whichever is later)
-        const baseDate = user.licenseExpiry && user.licenseExpiry > new Date() 
-            ? new Date(user.licenseExpiry) 
+
+        const baseDate = user.licenseExpiry && user.licenseExpiry > new Date()
+            ? new Date(user.licenseExpiry)
             : new Date();
         user.licenseExpiry = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-        
-        // IMPORTANT: Do NOT reset startingBalance — it's the license-level reference.
-        // Reset per-account equity trackers so the aggregate starts fresh for this cycle.
+
         if (user.connectedBrokers) {
             user.connectedBrokers.forEach(b => {
                 b.lastEquity  = null;
                 b.lastBalance = null;
             });
         }
-        
+
         await user.save();
-        
+
         console.log(`[FREE WEEK] Unlocked ${user.username} (cycle resets on next EA sync)`);
         req.flash("success", `Granted 1-week free access to ${user.username}. Their account is now active.`);
         res.redirect("/admin");
@@ -1688,7 +1626,7 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
         const days = parseInt(req.body.durationDays) || 30;
         const tier = req.body.tierLevel || "Unknown";
         const amountPaid = parseFloat(req.body.amountPaid) || 0;
-        const creditAffiliate = req.body.creditAffiliate !== 'off'; // default ON
+        const creditAffiliate = req.body.creditAffiliate !== 'off';
 
         const user = await User.findById(req.params.id);
         if (!user) {
@@ -1696,19 +1634,16 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
             return res.redirect("/admin");
         }
 
-        // === GENERATE THE LICENSE ===
         user.licenseKey = crypto.randomBytes(6).toString('hex').toUpperCase();
         user.licenseExpiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
         user.currentTier = tier;
         user.isSuspended = false;
         user.accountLocked = false;
 
-        // Record the amount this license represents (used for revenue stats)
         if (amountPaid > 0) {
             user.prepaymentAmount = (Number(user.prepaymentAmount) || 0) + amountPaid;
         }
 
-        // === RESET LICENSE-SPECIFIC DATA ===
         user.startingBalance = 0;
         user.targetBalance = 0;
         user.monitoredSymbols = [];
@@ -1717,24 +1652,17 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
 
         await user.save();
 
-        // =========================================
-        // PROCESS AFFILIATE COMMISSION (20%)
-        // =========================================
         let commissionInfo = '';
         if (creditAffiliate && user.referredBy && amountPaid > 0) {
             try {
-                // Verify the affiliate exists and is active BEFORE crediting
                 const affiliate = await Affiliate.findOne({ referralCode: user.referredBy });
 
                 if (affiliate && affiliate.isActive) {
-                    // Check if this specific referral has already been confirmed
-                    // (prevents double-crediting the same user on regenerate)
                     const alreadyConfirmed = affiliate.referrals.find(
                         r => r.userId && r.userId.toString() === user._id.toString() && r.status === 'confirmed'
                     );
 
                     if (alreadyConfirmed) {
-                        // Renewal — create a NEW confirmed entry so it stacks
                         const commissionRate = affiliate.commissionRate / 100;
                         const commission = amountPaid * commissionRate;
 
@@ -1762,7 +1690,6 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
                         commissionInfo = ` · $${commission.toFixed(2)} renewal commission credited to ${affiliate.username}`;
                         console.log(`[ADMIN LICENSE + AFFILIATE] Renewal commission $${commission.toFixed(2)} → ${affiliate.username}`);
                     } else {
-                        // First-time confirmation — reuse existing pending entry if any
                         await processAffiliateCommissionOnPayment(user, amountPaid, tier);
                         const commissionRate = affiliate.commissionRate / 100;
                         const commission = amountPaid * commissionRate;
@@ -1771,7 +1698,6 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
                     }
                 }
             } catch (commErr) {
-                // Never let a commission failure undo the license grant
                 console.error("[ADMIN LICENSE] Affiliate commission error:", commErr);
                 commissionInfo = ' · (affiliate commission failed — check logs)';
             }
@@ -1794,10 +1720,10 @@ app.post("/admin/suspend-license/:id", isAdmin, async (req, res) => {
             req.flash("error", "User not found.");
             return res.redirect("/admin");
         }
-        
+
         user.isSuspended = !user.isSuspended;
         await user.save();
-        
+
         req.flash("success", `Participant ${user.isSuspended ? 'Suspended' : 'Restored'}.`);
         res.redirect("/admin");
     } catch (err) {
@@ -1813,7 +1739,7 @@ app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
             req.flash("error", "User not found.");
             return res.redirect("/admin");
         }
-        
+
         req.flash("success", "Participant permanently deleted from the network.");
         res.redirect("/admin");
     } catch (err) {
@@ -1822,28 +1748,23 @@ app.post("/admin/delete-user/:id", isAdmin, async (req, res) => {
     }
 });
 
-
 // ==========================================
 // AFFILIATE SYSTEM ROUTES
 // ==========================================
-
-
-// Generate unique referral code
 function generateReferralCode() {
     return 'REF' + crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
-// --- AFFILIATE PAGE ---
 app.get("/affiliate", async (req, res) => {
     let isAffiliate = false;
     let affiliateData = null;
-    
+
     if (req.user) {
         affiliateData = await Affiliate.findOne({ userId: req.user._id });
         isAffiliate = !!affiliateData;
     }
-    
-    res.render("affiliate", { 
+
+    res.render("affiliate", {
         currentUser: req.user || null,
         referralCode: req.query.ref || null,
         isAffiliate: isAffiliate,
@@ -1851,26 +1772,23 @@ app.get("/affiliate", async (req, res) => {
     });
 });
 
-// --- JOIN AFFILIATE PROGRAM ---
 app.post("/affiliate/join", isLoggedIn, async (req, res) => {
     try {
-        // Check if already an affiliate
         let existingAffiliate = await Affiliate.findOne({ userId: req.user._id });
         if (existingAffiliate) {
             req.flash("success", "You're already an affiliate! Here's your dashboard.");
             return res.redirect("/affiliate/dashboard");
         }
 
-        // Use the static method to create with auto-generated code
         const affiliate = await Affiliate.createWithCode({
             userId: req.user._id,
             username: req.user.username,
             email: req.user.email,
             commissionRate: 20
         });
-        
+
         console.log(`[AFFILIATE] New affiliate: ${affiliate.username} (${affiliate.referralCode})`);
-        
+
         req.flash("success", "Welcome to the D.E.T Affiliate Program! Share your link to earn 20% commissions.");
         res.redirect("/affiliate/dashboard");
     } catch (err) {
@@ -1880,22 +1798,19 @@ app.post("/affiliate/join", isLoggedIn, async (req, res) => {
     }
 });
 
-// --- AFFILIATE DASHBOARD ---
 app.get("/affiliate/dashboard", isLoggedIn, async (req, res) => {
     try {
         const affiliate = await Affiliate.findOne({ userId: req.user._id });
-        
+
         if (!affiliate) {
             req.flash("error", "Please join the affiliate program first.");
             return res.redirect("/affiliate");
         }
 
-        // Get recent referrals
         const recentReferrals = affiliate.referrals
             .sort((a, b) => b.referredAt - a.referredAt)
             .slice(0, 10);
 
-        // Get click stats for last 30 days
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const recentClicks = affiliate.clickHistory.filter(c => c.clickedAt > thirtyDaysAgo);
 
@@ -1912,9 +1827,6 @@ app.get("/affiliate/dashboard", isLoggedIn, async (req, res) => {
     }
 });
 
-// --- AFFILIATE REQUEST PAYOUT ---
-// --- AFFILIATE REQUEST PAYOUT ---
-// --- AFFILIATE REQUEST PAYOUT ---
 app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
     try {
         const affiliate = await Affiliate.findOne({ userId: req.user._id });
@@ -1994,15 +1906,11 @@ app.post("/affiliate/request-payout", isLoggedIn, async (req, res) => {
     }
 });
 
-
-
-// --- TRACK AFFILIATE CLICKS ---
 app.get("/affiliate/click/:refCode", async (req, res) => {
     try {
         const affiliate = await Affiliate.findOne({ referralCode: req.params.refCode });
-        
+
         if (affiliate && affiliate.isActive) {
-            // Track click
             affiliate.clickHistory.push({
                 ip: req.ip,
                 userAgent: req.get('User-Agent') || 'Unknown',
@@ -2014,7 +1922,6 @@ app.get("/affiliate/click/:refCode", async (req, res) => {
             console.log(`[AFFILIATE] Click tracked for ${affiliate.username} (${affiliate.referralCode})`);
         }
 
-        // Redirect to registration page with referral code
         res.redirect(`/register?ref=${req.params.refCode}`);
     } catch (err) {
         console.error("Affiliate click tracking error:", err);
@@ -2022,21 +1929,17 @@ app.get("/affiliate/click/:refCode", async (req, res) => {
     }
 });
 
-// --- PROCESS AFFILIATE COMMISSION (called after successful payment) ---
 async function processAffiliateCommission(newUserId, amountPaid, tierName) {
     try {
         const newUser = await User.findById(newUserId);
         if (!newUser || !newUser.referredBy) return;
 
-        // Find the affiliate by referral code
         const affiliate = await Affiliate.findOne({ referralCode: newUser.referredBy });
         if (!affiliate || !affiliate.isActive) return;
 
-        // Calculate commission
         const commissionRate = affiliate.commissionRate / 100;
         const commission = amountPaid * commissionRate;
 
-        // Update affiliate record
         affiliate.referrals.push({
             userId: newUser._id,
             username: newUser.username,
@@ -2052,7 +1955,6 @@ async function processAffiliateCommission(newUserId, amountPaid, tierName) {
         affiliate.totalEarnings += commission;
         affiliate.pendingEarnings += commission;
 
-        // Update user's affiliate commission
         const affiliateUser = await User.findById(affiliate.userId);
         if (affiliateUser) {
             affiliateUser.affiliateCommission = (affiliateUser.affiliateCommission || 0) + commission;
@@ -2066,15 +1968,14 @@ async function processAffiliateCommission(newUserId, amountPaid, tierName) {
     }
 }
 
-// --- ADMIN: AFFILIATE MANAGEMENT ---
 app.get("/admin/affiliates", isAdmin, async (req, res) => {
     try {
         const affiliates = await Affiliate.find({}).sort({ totalEarnings: -1 });
-        
+
         let totalCommissions = 0;
         let totalPending = 0;
         let totalPaid = 0;
-        
+
         affiliates.forEach(a => {
             totalCommissions += a.totalEarnings;
             totalPending += a.pendingEarnings;
@@ -2108,8 +2009,6 @@ app.post("/admin/affiliates/payout/:id", isAdmin, async (req, res) => {
             return res.redirect("/admin");
         }
 
-        // If a reference was passed, target that specific payout.
-        // Otherwise, process the OLDEST pending one (FIFO).
         const targetRef = req.body.reference || req.query.reference;
         let pendingRequest;
 
@@ -2118,7 +2017,6 @@ app.post("/admin/affiliates/payout/:id", isAdmin, async (req, res) => {
                 p => p.status === 'pending' && p.reference === targetRef
             );
         } else {
-            // Oldest pending first
             pendingRequest = affiliate.paymentHistory
                 .filter(p => p.status === 'pending')
                 .sort((a, b) => new Date(a.requestedAt) - new Date(b.requestedAt))[0];
@@ -2146,7 +2044,6 @@ app.post("/admin/affiliates/payout/:id", isAdmin, async (req, res) => {
     }
 });
 
-// --- ADMIN: TOGGLE AFFILIATE STATUS ---
 app.post("/admin/affiliates/toggle/:id", isAdmin, async (req, res) => {
     try {
         const affiliate = await Affiliate.findById(req.params.id);
@@ -2167,7 +2064,6 @@ app.post("/admin/affiliates/toggle/:id", isAdmin, async (req, res) => {
     }
 });
 
-// NEW: Process commission when payment is confirmed
 async function processAffiliateCommissionOnPayment(user, amountPaid, tierName) {
     try {
         const affiliate = await Affiliate.findOne({ referralCode: user.referredBy });
@@ -2176,19 +2072,16 @@ async function processAffiliateCommissionOnPayment(user, amountPaid, tierName) {
         const commissionRate = affiliate.commissionRate / 100;
         const commission = amountPaid * commissionRate;
 
-        // Find the pending referral for this user
         const pendingReferral = affiliate.referrals.find(
             r => r.userId && r.userId.toString() === user._id.toString() && r.status === 'pending'
         );
 
         if (pendingReferral) {
-            // Update the existing pending referral
             pendingReferral.tier = tierName;
             pendingReferral.amountPaid = amountPaid;
             pendingReferral.commissionEarned = commission;
             pendingReferral.status = 'confirmed';
         } else {
-            // Create new referral record
             affiliate.referrals.push({
                 userId: user._id,
                 username: user.username,
@@ -2204,7 +2097,6 @@ async function processAffiliateCommissionOnPayment(user, amountPaid, tierName) {
         affiliate.totalEarnings += commission;
         affiliate.pendingEarnings += commission;
 
-        // Update user's affiliate commission field
         const affiliateUser = await User.findById(affiliate.userId);
         if (affiliateUser) {
             affiliateUser.affiliateCommission = (affiliateUser.affiliateCommission || 0) + commission;
@@ -2221,7 +2113,6 @@ async function processAffiliateCommissionOnPayment(user, amountPaid, tierName) {
 // ==========================================
 // TRAINING SYSTEM ROUTES
 // ==========================================
-
 app.get("/api/training/status", async (req, res) => {
     try {
         res.json({
@@ -2241,10 +2132,10 @@ app.get("/api/training/status", async (req, res) => {
 app.get("/admin/training/alerts", isAdmin, async (req, res) => {
     res.json({
         alerts: [
-            { 
-                type: 'HIGH_FLAG', 
-                class: 'ECD', 
-                student: 'John Doe', 
+            {
+                type: 'HIGH_FLAG',
+                class: 'ECD',
+                student: 'John Doe',
                 timestamp: new Date(),
                 message: 'John Doe enrolled in ECD Training'
             }
@@ -2259,18 +2150,17 @@ app.get("/training/my-classes", isLoggedIn, async (req, res) => {
 // ==========================================
 // DEVELOPER TESTING BACKDOOR
 // ==========================================
-
 app.get("/dev/generate-key", async (req, res) => {
     try {
         await User.deleteOne({ username: "DevTester" });
         const testUser = new User({
             username: "DevTester",
             email: "dev@protrading.com",
-            licenseKey: "TEST-KEY-2026", 
-            licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
-            currentTier: "Topaz", 
+            licenseKey: "TEST-KEY-2026",
+            licenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            currentTier: "Topaz",
             isSuspended: false,
-            mt5AccountNumber: null, 
+            mt5AccountNumber: null,
             startingBalance: 0,
             targetBalance: 0,
             accountLocked: false
@@ -2282,14 +2172,11 @@ app.get("/dev/generate-key", async (req, res) => {
     }
 });
 
-
 // ==========================================
 // TRAINING ENROLLMENT ROUTES
 // ==========================================
-
 const Training = require("./models/Training.model");
 
-// Training course config
 const trainingCourses = {
     ECD: { name: "ECD Training", groupPrice: 300, oneOnOnePrice: 600, durationDays: 5, hoursPerDay: 3, minStudents: 5 },
     Beginner: { name: "Beginner Training", groupPrice: 500, oneOnOnePrice: 1000, durationDays: 5, hoursPerDay: 2, minStudents: 5 },
@@ -2297,7 +2184,6 @@ const trainingCourses = {
     Specialized: { name: "Specialized Training", groupPrice: 1000, oneOnOnePrice: 2000, durationDays: 14, hoursPerDay: 1, minStudents: 5 }
 };
 
-// Get training stats (for UI)
 app.get("/api/training/status", async (req, res) => {
     try {
         const stats = {};
@@ -2315,18 +2201,17 @@ app.get("/api/training/status", async (req, res) => {
     }
 });
 
-// Initiate training enrollment (called from training page)
 app.get("/training/enroll/:courseKey/:type", isLoggedIn, async (req, res) => {
     const { courseKey, type } = req.params;
     const config = trainingCourses[courseKey];
-    
+
     if (!config) {
         req.flash("error", "Invalid course selected.");
         return res.redirect("/training");
     }
-    
+
     const price = type === 'one-on-one' ? config.oneOnOnePrice : config.groupPrice;
-    
+
     res.render("training-checkout", {
         courseKey,
         courseName: config.name,
@@ -2336,12 +2221,10 @@ app.get("/training/enroll/:courseKey/:type", isLoggedIn, async (req, res) => {
     });
 });
 
-// Process training payment via Paynow
 app.post("/training/pay", isLoggedIn, async (req, res) => {
     const { courseKey, courseName, type, price } = req.body;
-    
+
     try {
-        // Create enrollment record
         const enrollment = new Training({
             courseKey,
             courseName,
@@ -2354,17 +2237,16 @@ app.post("/training/pay", isLoggedIn, async (req, res) => {
             price: parseFloat(price),
             status: 'pending_payment'
         });
-        
+
         const invoiceRef = `TRAIN-${req.user._id}-${courseKey}-${Date.now()}`;
         enrollment.paynowReference = invoiceRef;
         await enrollment.save();
-        
-        // Create Paynow payment
+
         let payment = paynow.createPayment(invoiceRef, req.user.email);
         payment.add(`${courseName} (${type})`, parseFloat(price));
-        
+
         const response = await paynow.send(payment);
-        
+
         if (response.success) {
             res.redirect(response.redirectUrl);
         } else {
@@ -2379,10 +2261,9 @@ app.post("/training/pay", isLoggedIn, async (req, res) => {
     }
 });
 
-// Training webhook (add to existing Paynow webhook or create new)
 app.post("/api/training/paynow-update", async (req, res) => {
     const { reference, status, amount } = req.body;
-    
+
     if (status === "Paid" || status === "Awaiting Delivery") {
         try {
             const enrollment = await Training.findOne({ paynowReference: reference });
@@ -2400,15 +2281,10 @@ app.post("/api/training/paynow-update", async (req, res) => {
     res.status(200).send("OK");
 });
 
-// Update the main Paynow webhook to also check training references
-// Add this inside the existing app.post("/api/paynow/update"...) after the user check:
-// (We'll handle it separately with a different resultUrl for training)
-
-// Admin: View training enrollments
 app.get("/admin/training", isAdmin, async (req, res) => {
     try {
         const enrollments = await Training.find({}).sort({ enrolledAt: -1 });
-        
+
         const stats = {};
         for (const [key, config] of Object.entries(trainingCourses)) {
             const paid = enrollments.filter(e => e.courseKey === key && ['paid', 'confirmed', 'completed'].includes(e.status));
@@ -2420,7 +2296,7 @@ app.get("/admin/training", isAdmin, async (req, res) => {
                 minRequired: config.minStudents
             };
         }
-        
+
         res.render("admin-training", {
             enrollments,
             courses: trainingCourses,
@@ -2434,7 +2310,6 @@ app.get("/admin/training", isAdmin, async (req, res) => {
     }
 });
 
-// Admin: Confirm/update enrollment status
 app.post("/admin/training/update/:id", isAdmin, async (req, res) => {
     const { status, notes } = req.body;
     try {
@@ -2454,7 +2329,6 @@ app.post("/admin/training/update/:id", isAdmin, async (req, res) => {
         res.redirect("/admin/training");
     }
 });
-
 
 // ==========================================
 // GLOBAL ERROR HANDLER

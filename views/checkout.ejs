@@ -633,6 +633,9 @@
         tierName: '<%= tier %>'
     };
 
+    let currentInvoiceRef = null;
+    let pollInterval = null;
+
     function formatNumber(num) {
         return num.toLocaleString('en-US');
     }
@@ -641,26 +644,26 @@
         const container = document.getElementById('presetButtons');
         const range = tierConfig.max - tierConfig.min;
         const presets = [];
-        
+
         presets.push(tierConfig.min);
-        
+
         if (range > 0) {
             const quarter = Math.round(tierConfig.min + (range * 0.25));
             const half = Math.round(tierConfig.min + (range * 0.5));
             const threeQuarter = Math.round(tierConfig.min + (range * 0.75));
-            
+
             if (quarter > tierConfig.min) presets.push(quarter);
             if (half > quarter) presets.push(half);
             if (threeQuarter > half) presets.push(threeQuarter);
         }
-        
+
         presets.push(tierConfig.max);
-        
+
         const uniquePresets = [...new Set(presets)].sort((a, b) => a - b);
-        
+
         container.innerHTML = uniquePresets.map((amount, index) => {
             const isFirst = index === 0;
-            return `<button type="button" class="preset-btn ${isFirst ? 'active' : ''}" 
+            return `<button type="button" class="preset-btn ${isFirst ? 'active' : ''}"
                     onclick="setPresetAmount(${amount}, this)" data-amount="${amount}">
                     $${formatNumber(amount)}
                     ${index === 0 ? '(Min)' : index === uniquePresets.length - 1 ? '(Max)' : ''}
@@ -672,7 +675,7 @@
         document.getElementById('customAmount').value = amount;
         document.getElementById('amountSlider').value = amount;
         updateCoverageEstimate(amount);
-        
+
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
@@ -681,17 +684,17 @@
         const input = document.getElementById('customAmount');
         const slider = document.getElementById('amountSlider');
         let val = parseInt(input.value.replace(/,/g, ''));
-        
+
         if (isNaN(val)) val = tierConfig.min;
         if (val > tierConfig.max) val = tierConfig.max;
         if (val < tierConfig.min) val = tierConfig.min;
-        
+
         input.value = val;
         slider.value = val;
         updateCoverageEstimate(val);
         updatePresetActive(val);
     }
-    
+
     function syncFromSlider() {
         const slider = document.getElementById('amountSlider');
         const input = document.getElementById('customAmount');
@@ -705,10 +708,10 @@
         const coverageEl = document.getElementById('coverageEstimate');
         const coverageLabel = document.getElementById('coverageLabel');
         const tierName = tierConfig.tierName;
-        
+
         if (tierName === 'Amber') {
             coverageLabel.textContent = 'Estimated Duration';
-            const days = amount; // $1 = 1 day
+            const days = amount;
             coverageEl.textContent = '$49 Float / ' + days + ' Day' + (days > 1 ? 's' : '');
         } else if (tierName === 'Amethyst') {
             coverageLabel.textContent = 'Estimated Float Coverage';
@@ -734,10 +737,10 @@
         document.getElementById('tab-ecocash').classList.remove('active');
         document.getElementById('tab-onemoney').classList.remove('active');
         document.getElementById(`tab-${method}`).classList.add('active');
-        
+
         document.getElementById('selectedMethod').value = method;
         document.getElementById('phoneLabel').innerText = `Enter ${method === 'ecocash' ? 'EcoCash' : 'OneMoney'} Number`;
-        
+
         const input = document.getElementById('mobileNumber');
         input.placeholder = method === 'ecocash' ? '077XXXXXXX' : '071XXXXXXX';
     }
@@ -749,54 +752,189 @@
         window.location.href = `/checkout/standard-gateway?tier=<%= tier %>&amount=${amount}`;
     }
 
+    // ==========================================
+    // UI state helpers
+    // ==========================================
+    function showErrorState(title, message, allowRetry) {
+        document.getElementById('spinner-container').style.display = 'none';
+        document.getElementById('success-container').style.display = 'none';
+
+        let errContainer = document.getElementById('error-container');
+        if (!errContainer) {
+            errContainer = document.createElement('div');
+            errContainer.id = 'error-container';
+            errContainer.style.textAlign = 'center';
+            document.getElementById('loader').appendChild(errContainer);
+        }
+
+        errContainer.innerHTML = `
+            <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(239,68,68,0.12); border: 2px solid #ef4444; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                <i class="bi bi-x-lg" style="color: #ef4444; font-size: 32px;"></i>
+            </div>
+            <h4 style="color: #ef4444; font-weight: 700; margin-bottom: 10px;">${title}</h4>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 22px; max-width: 380px; margin-left: auto; margin-right: auto;">${message}</p>
+            ${allowRetry ? `
+                <button onclick="resetPaymentUI()" style="background: var(--det-green); color: var(--det-dark); border: none; padding: 12px 28px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer;">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                </button>
+            ` : `
+                <a href="/pricing" style="background: transparent; color: #cbd5e1; border: 1px solid #64748b; padding: 10px 24px; border-radius: 6px; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block;">
+                    Back to Pricing
+                </a>
+            `}
+        `;
+        errContainer.style.display = 'block';
+    }
+
+    function resetPaymentUI() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+        currentInvoiceRef = null;
+
+        const errContainer = document.getElementById('error-container');
+        if (errContainer) errContainer.style.display = 'none';
+
+        document.getElementById('spinner-container').style.display = 'block';
+        document.getElementById('success-container').style.display = 'none';
+        document.getElementById('payment-ui').style.display = 'block';
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    // ==========================================
+    // MAIN PAYMENT FLOW
+    // ==========================================
     async function triggerMobilePush() {
         const phone = document.getElementById('mobileNumber').value;
         const method = document.getElementById('selectedMethod').value;
         const amount = document.getElementById('customAmount').value.replace(/,/g, '');
-        
+
         if(!phone || phone.length < 9) return alert("Please enter a valid mobile number.");
         if(!amount) return alert("Please specify an amount.");
 
         document.getElementById('payment-ui').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
-        
+
+        // Reset any previous error state
+        const errContainer = document.getElementById('error-container');
+        if (errContainer) errContainer.style.display = 'none';
+        document.getElementById('spinner-container').style.display = 'block';
+        document.getElementById('success-container').style.display = 'none';
+
         try {
             const response = await fetch('/api/checkout/mobile-push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    tier: '<%= tier %>', 
-                    phone: phone, 
-                    method: method, 
-                    customAmount: amount 
+                body: JSON.stringify({
+                    tier: '<%= tier %>',
+                    phone: phone,
+                    method: method,
+                    customAmount: amount
                 })
             });
             const data = await response.json();
-            
+
             if(!data.success) {
-                alert("Gateway Error: " + data.error);
-                window.location.reload();
+                // Immediate failure (insufficient balance, bad number, gateway reject)
+                showErrorState(
+                    'Payment Could Not Start',
+                    data.error || 'The gateway rejected this payment. Please check your number and balance.',
+                    true
+                );
                 return;
             }
 
-            const pollInterval = setInterval(async () => {
-                try {
-                    const statusRes = await fetch('/api/user/status');
-                    const statusData = await statusRes.json();
-                    
-                    if(statusData.isPaid) {
-                        clearInterval(pollInterval);
-                        document.getElementById('spinner-container').style.display = 'none';
-                        document.getElementById('success-container').style.display = 'block';
-                        setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
-                    }
-                } catch(e) { console.log("Waiting..."); }
-            }, 3000);
+            currentInvoiceRef = data.invoiceRef;
+            startPolling();
 
         } catch(error) {
-            alert("Connection failed. Please try again.");
-            window.location.reload();
+            console.error("Fetch error:", error);
+            showErrorState(
+                'Connection Failed',
+                'Could not reach the payment server. Please check your internet connection.',
+                true
+            );
         }
+    }
+
+    function startPolling() {
+        if (!currentInvoiceRef) return;
+
+        if (pollInterval) clearInterval(pollInterval);
+
+        let elapsedSeconds = 0;
+        const MAX_WAIT_SECONDS = 180; // 3 minutes
+
+        pollInterval = setInterval(async () => {
+            elapsedSeconds += 3;
+
+            // Update the "waiting" text
+            const pollText = document.getElementById('poll-text');
+            if (pollText && elapsedSeconds > 10) {
+                pollText.textContent = `Waiting for confirmation... (${elapsedSeconds}s) — do not close this page.`;
+            }
+
+            try {
+                const statusRes = await fetch(`/api/user/status?invoiceRef=${encodeURIComponent(currentInvoiceRef)}`);
+                const statusData = await statusRes.json();
+
+                if (statusData.status === 'paid') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('spinner-container').style.display = 'none';
+                    document.getElementById('success-container').style.display = 'block';
+                    setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
+                    return;
+                }
+
+                if (statusData.status === 'cancelled') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    showErrorState(
+                        'Payment Cancelled',
+                        'You cancelled the payment on your phone. No money was taken. You can try again whenever you\'re ready.',
+                        true
+                    );
+                    return;
+                }
+
+                if (statusData.status === 'failed' || statusData.status === 'init_failed') {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    showErrorState(
+                        'Payment Failed',
+                        statusData.error || 'The transaction did not complete. No money was taken. Please try again.',
+                        true
+                    );
+                    return;
+                }
+
+                if (statusData.status === 'unknown' && statusData.isPaid) {
+                    // Fallback: user already has a license
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                    document.getElementById('spinner-container').style.display = 'none';
+                    document.getElementById('success-container').style.display = 'block';
+                    setTimeout(() => { window.location.href = "/dashboard"; }, 2500);
+                    return;
+                }
+
+            } catch(e) {
+                console.log("Polling error (will retry):", e);
+            }
+
+            if (elapsedSeconds >= MAX_WAIT_SECONDS) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+                showErrorState(
+                    'Payment Timed Out',
+                    'We did not receive confirmation from the network within 3 minutes. If you were debited, your license will activate automatically once the webhook arrives. Otherwise please try again.',
+                    true
+                );
+            }
+
+        }, 3000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
