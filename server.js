@@ -128,11 +128,8 @@ async function sendTrainingConfirmationEmail(enrollment) {
 // ==========================================
 // PAYMENT TRACKING — IN-MEMORY PENDING STATE
 // ==========================================
-// Key: invoiceRef. Value: { status, userId, tier, amount, error, createdAt, updatedAt }
-// status values: 'pending' | 'paid' | 'failed' | 'cancelled' | 'init_failed'
 const pendingPayments = {};
 
-// Purge stale entries older than 30 minutes so memory doesn't grow forever.
 setInterval(() => {
     const now = Date.now();
     for (const ref of Object.keys(pendingPayments)) {
@@ -228,7 +225,6 @@ app.post("/api/paynow/update", async (req, res) => {
 
     console.log(`[WEBHOOK] ref=${reference} status=${status} amount=${amount}`);
 
-    // Normalise status: Paynow sends "Paid", "Awaiting Delivery", "Cancelled", "Failed", "Disputed"
     const isPaid = status === "Paid" || status === "Awaiting Delivery";
     const isFailed = status === "Cancelled" || status === "Failed" || status === "Disputed";
 
@@ -264,7 +260,6 @@ app.post("/api/paynow/update", async (req, res) => {
     }
 
     // --- HANDLE D.E.T ACTIVATION PAYMENTS ---
-    // Update pendingPayments map first so the polling endpoint reflects reality
     if (reference && pendingPayments[reference]) {
         if (isPaid) {
             pendingPayments[reference].status = 'paid';
@@ -615,6 +610,10 @@ const LIVE_DOMAIN = "https://bot-proj-2-1.onrender.com";
 paynow.resultUrl = `${LIVE_DOMAIN}/api/paynow/update`;
 paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 
+// CRITICAL FIX: The authemail for test mode MUST match the merchant account email.
+// Fallback to EMAIL_FROM_ADDRESS if PAYNOW_AUTH_EMAIL is not explicitly set.
+const PAYNOW_AUTH_EMAIL = process.env.PAYNOW_AUTH_EMAIL || EMAIL_FROM_ADDRESS;
+
 const tierConfig = {
     "Amber": { min: 1, max: 30, durationDays: 30 },
     "Amethyst": { min: 6, max: 24, durationDays: 30 },
@@ -685,7 +684,6 @@ app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
 
     const invoiceRef = `${req.user._id}-${tier}-${Date.now()}`;
 
-    // Register this payment as pending BEFORE we hit Paynow
     pendingPayments[invoiceRef] = {
         status: 'pending',
         userId: req.user._id.toString(),
@@ -696,7 +694,8 @@ app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
         updatedAt: Date.now()
     };
 
-    let payment = paynow.createPayment(invoiceRef, req.user.email);
+    // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
+    let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
@@ -710,7 +709,6 @@ app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
                 invoiceRef: invoiceRef
             });
         } else {
-            // Immediate initiation failure (e.g., insufficient balance, bad number)
             pendingPayments[invoiceRef].status = 'init_failed';
             pendingPayments[invoiceRef].error = response.error || 'Payment initiation failed';
             pendingPayments[invoiceRef].updatedAt = Date.now();
@@ -751,7 +749,8 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
         updatedAt: Date.now()
     };
 
-    let payment = paynow.createPayment(invoiceRef, req.user.email);
+    // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
+    let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
@@ -783,7 +782,6 @@ app.get("/checkout/return", isLoggedIn, (req, res) => {
 app.get("/api/user/status", isLoggedIn, async (req, res) => {
     const { invoiceRef } = req.query;
 
-    // Back-compat: if no invoiceRef provided, fall back to legacy behaviour
     if (!invoiceRef) {
         try {
             const user = await User.findById(req.user._id);
@@ -796,8 +794,6 @@ app.get("/api/user/status", isLoggedIn, async (req, res) => {
     const entry = pendingPayments[invoiceRef];
 
     if (!entry) {
-        // Unknown ref — maybe server restarted, or it was already purged.
-        // Fall back to checking the user's license to be safe.
         try {
             const user = await User.findById(req.user._id);
             if (user && user.licenseKey) {
@@ -807,7 +803,6 @@ app.get("/api/user/status", isLoggedIn, async (req, res) => {
         return res.json({ status: 'unknown', isPaid: false, error: 'Payment reference not found.' });
     }
 
-    // Only the owner of this payment can query it
     if (entry.userId !== req.user._id.toString() && req.user.username !== 'admin') {
         return res.status(403).json({ status: 'forbidden', isPaid: false, error: 'Not your payment.' });
     }
@@ -824,7 +819,6 @@ app.get("/api/user/status", isLoggedIn, async (req, res) => {
         });
     }
 
-    // Still pending
     const ageMs = Date.now() - entry.createdAt;
     const timeoutMs = 3 * 60 * 1000; // 3 minutes
 
@@ -2242,7 +2236,8 @@ app.post("/training/pay", isLoggedIn, async (req, res) => {
         enrollment.paynowReference = invoiceRef;
         await enrollment.save();
 
-        let payment = paynow.createPayment(invoiceRef, req.user.email);
+        // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
+        let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
         payment.add(`${courseName} (${type})`, parseFloat(price));
 
         const response = await paynow.send(payment);
