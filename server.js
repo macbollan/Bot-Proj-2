@@ -622,6 +622,7 @@ paynow.returnUrl = `${LIVE_DOMAIN}/checkout/return`;
 // Fallback to EMAIL_FROM_ADDRESS if PAYNOW_AUTH_EMAIL is not explicitly set.
 const PAYNOW_AUTH_EMAIL = process.env.PAYNOW_AUTH_EMAIL || EMAIL_FROM_ADDRESS;
 
+
 const tierConfig = {
     "Amber": { min: 1, max: 30, durationDays: 30 },
     "Amethyst": { min: 6, max: 24, durationDays: 30 },
@@ -703,7 +704,7 @@ app.post("/api/checkout/mobile-push", isLoggedIn, async (req, res) => {
     };
 
     // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
-    let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
+    let payment = paynow.createPayment(invoiceRef, req.user.email || PAYNOW_AUTH_EMAIL);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
@@ -758,7 +759,7 @@ app.get("/checkout/standard-gateway", isLoggedIn, async (req, res) => {
     };
 
     // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
-    let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
+    let payment = paynow.createPayment(invoiceRef, req.user.email || PAYNOW_AUTH_EMAIL);
     payment.add(`${tier} Grade D.E.T Activation`, amount);
 
     try {
@@ -2245,7 +2246,7 @@ app.post("/training/pay", isLoggedIn, async (req, res) => {
         await enrollment.save();
 
         // FIX: Use PAYNOW_AUTH_EMAIL instead of req.user.email
-        let payment = paynow.createPayment(invoiceRef, PAYNOW_AUTH_EMAIL);
+        let payment = paynow.createPayment(invoiceRef, req.user.email || PAYNOW_AUTH_EMAIL);
         payment.add(`${courseName} (${type})`, parseFloat(price));
 
         const response = await paynow.send(payment);
