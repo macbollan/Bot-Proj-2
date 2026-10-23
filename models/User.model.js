@@ -20,6 +20,19 @@ const UserSchema = new mongoose.Schema({
     prepaymentAmount: Number,
     termsAgreed: { type: Boolean, default: false },
 
+    openPositions: [{
+    ticket:   String,
+    symbol:   String,
+    type:     String,
+    volume:   Number,
+    openPrice: Number,
+    sl:       Number,
+    tp:       Number,
+    profit:   Number,
+    updatedAt: { type: Date, default: Date.now }
+}],
+equityHistory: [Number],
+
     // In models/User.model.js, add:
 referredBy: { type: String, default: null }, // Referral code of the affiliate who referred this user
 affiliateCommission: { type: Number, default: 0 },

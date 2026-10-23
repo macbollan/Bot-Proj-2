@@ -51,6 +51,14 @@ const emailTransporter = {
     }
 };
 
+function lastEquityFromAnyBroker(user) {
+    let eq = 0;
+    (user.connectedBrokers || []).forEach(b => {
+        if (b.lastEquity != null && b.lastEquity > 0) eq = Math.max(eq, Number(b.lastEquity));
+    });
+    return eq;
+}
+
 // ==========================================
 // PAYMENT CONFIRMATION EMAILS
 // ==========================================
@@ -417,6 +425,9 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
             daysRemaining: daysLeft,
             accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
+            openPositions: user.openPositions || [],
+            equityHistory: user.equityHistory || [],
+            liveFloat: (lastEquityFromAnyBroker(user) - Number(user.startingBalance || 0)),
             targetBalance: user.targetBalance || 0,
             connectedBrokers: user.connectedBrokers || []
         });
@@ -453,6 +464,19 @@ app.post("/api/client/sync", async (req, res) => {
     try {
         const user = await User.findOne({ licenseKey: licenseKey });
 
+        // NEW: prune stale broker entries (10 min heartbeat window).
+        // This prevents "ghost" brokers from a previous license/account lingering forever.
+        {
+            const STALE_MS = 10 * 60 * 1000;
+            const nowMs = Date.now();
+            if (Array.isArray(user.connectedBrokers)) {
+                user.connectedBrokers = user.connectedBrokers.filter(b => {
+                    if (!b.lastSeen) return false;              // never had a heartbeat
+                    return (nowMs - new Date(b.lastSeen).getTime()) < STALE_MS;
+                });
+            }
+        }
+
         if (!user) {
             return res.json({ action: "KILL", reason: "INVALID_LICENSE" });
         }
@@ -486,6 +510,31 @@ app.post("/api/client/sync", async (req, res) => {
                 });
                 console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber}`);
             }
+        }
+
+
+        // NEW: persist the client EA's own open positions for dashboard display.
+        // The EA sends `openPositions: [{ticket, symbol, type, volume, openPrice, sl, tp, profit}]`.
+        if (Array.isArray(req.body.openPositions)) {
+            user.openPositions = req.body.openPositions.map(p => ({
+                ticket:    String(p.ticket   || ''),
+                symbol:    String(p.symbol   || ''),
+                type:      String(p.type     || ''),
+                volume:    Number(p.volume   || 0),
+                openPrice: Number(p.openPrice|| 0),
+                sl:        Number(p.sl       || 0),
+                tp:        Number(p.tp       || 0),
+                profit:    Number(p.profit   || 0),
+                updatedAt: new Date()
+            }));
+        }
+
+        // NEW: append current equity to a rolling 100-point history for the growth chart.
+        if (!Array.isArray(user.equityHistory)) user.equityHistory = [];
+        const eqNow = Number(currentEquity) || 0;
+        if (eqNow > 0) {
+            user.equityHistory.push(eqNow);
+            if (user.equityHistory.length > 100) user.equityHistory.shift();
         }
 
         if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
@@ -569,6 +618,9 @@ app.post("/api/client/sync", async (req, res) => {
             unprofitableTotal:  aggLoss.toFixed(2),
             entryTip:       "Scalpa BULLish Entry",
             exitTip:        "DayTrader close trades",
+            openPositions: user.openPositions || [],
+            equityHistory: user.equityHistory || [],
+            liveFloat: (Number(currentEquity) - Number(user.startingBalance || 0)),
             levelBtnText:   "LEVEL 3 LONGTRADER",
             subLicenseMask: licMask,
             connectedBrokers: user.connectedBrokers || [],

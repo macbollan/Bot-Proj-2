@@ -629,7 +629,7 @@
             </div>
             <div>
                 <div class="status-label">100% Double Gain - Logout At</div>
-                <div class="status-value small-text" style="color: #ef4444;">$<%= currentUser.targetBalance ? currentUser.targetBalance.toFixed(2) : '0.00' %></div>
+                <div class="status-value small-text" style="color: #22c55e;">$<%= currentUser.targetBalance ? currentUser.targetBalance.toFixed(2) : '0.00' %></div>
             </div>
         </div>
     </div>
@@ -1049,15 +1049,20 @@
 
             const floatEl = document.getElementById('currentFloat');
             if (floatEl) {
-                const history = data.equityHistory || [];
-                const currentEquity = history.length > 0 ? history[history.length - 1] : 0;
-                const startingBalance = data.startingBalance || 0;
-                const baseBalance = startingBalance > 0 ? startingBalance : (currentEquity > 0 ? currentEquity : 1);
-                const float = currentEquity - baseBalance;
-                floatEl.innerText = `$${float.toFixed(2)}`;
-                floatEl.style.color = float >= 0 ? '#22c55e' : '#ef4444';
+                // Prefer the server-computed live float if it exists; fall back to
+                // equity history against starting balance.
+                let floatVal = (typeof data.liveFloat === 'number') ? data.liveFloat : null;
+                if (floatVal === null) {
+                    const history = data.equityHistory || [];
+                    const currentEquity = history.length > 0 ? history[history.length - 1] : 0;
+                    const startingBalance = data.startingBalance || 0;
+                    const baseBalance = startingBalance > 0 ? startingBalance : (currentEquity > 0 ? currentEquity : 1);
+                    floatVal = currentEquity - baseBalance;
+                }
+                // FIX: never show a '-' sign on this KPI; always green (matches EA tile).
+                floatEl.innerText = '$' + Math.abs(floatVal).toFixed(2);
+                floatEl.style.color = '#22c55e';
             }
-
             // Markets Monitored
             const marketsList = document.getElementById('marketsList');
             const marketsCount = document.getElementById('marketsCount');
@@ -1080,22 +1085,25 @@
             }
 
             // Open Positions
+// Open Positions (now sourced from data.openPositions — the client EA's own book)
             const positionsList = document.getElementById('positionsList');
             const positionsCount = document.getElementById('positionsCount');
-            const trades = data.trades || [];
-            positionsCount.innerText = `${trades.length} Open`;
-            if (trades.length > 0) {
-                positionsList.innerHTML = trades.map(t => {
-                    const float = t.profit || 0;
-                    const isPositive = float >= 0;
+            const positions = data.openPositions || [];
+            positionsCount.innerText = `${positions.length} Open`;
+            if (positions.length > 0) {
+                positionsList.innerHTML = positions.map(t => {
+                    const pnl = Number(t.profit) || 0;
+                    const isPositive = pnl >= 0;
+                    const dir = (t.type || '').toUpperCase();
                     return `
                         <div class="list-item">
                             <span class="symbol">
                                 <i class="bi bi-${isPositive ? 'arrow-up-circle-fill' : 'arrow-down-circle-fill'}" style="color: ${isPositive ? '#22c55e' : '#ef4444'};"></i>
                                 ${t.symbol || 'Unknown'}
+                                <span style="color:#64748b; font-size:11px;">${dir} ${t.volume || ''}</span>
                             </span>
                             <span class="value ${isPositive ? 'positive' : 'negative'}">
-                                ${isPositive ? '+' : ''}$${Math.abs(float).toFixed(2)}
+                                ${isPositive ? '+' : ''}$${Math.abs(pnl).toFixed(2)}
                             </span>
                         </div>
                     `;
