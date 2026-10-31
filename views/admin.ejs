@@ -668,6 +668,7 @@
 <div class="nav-section">Network Engines v2.0</div>
 <a href="#affiliates" class="nav-link"><i class="bi bi-diagram-3-fill"></i> Affiliate Network <span class="badge badge-beta">BETA</span></a>
 <a href="#payouts" class="nav-link"><i class="bi bi-cash-coin"></i> Payout Requests <span class="badge badge-beta">NEW</span></a>
+<a href="#payments" class="nav-link"><i class="bi bi-receipt-cutoff"></i> Payment Ledger <span class="badge badge-beta">NEW</span></a>
 <a href="#" class="nav-link"><i class="bi bi-globe2"></i> Geo-Block Config <span class="badge badge-locked">LOCKED</span></a>
 
             <div class="nav-section">Quick Navigate</div>
@@ -1225,6 +1226,201 @@
                 </div>
             </div>
 
+            <!-- =========================================
+     PAYMENT LEDGER  (PayNow + Admin)
+========================================= -->
+<div id="payments"></div>
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h5 class="fw-bold m-0 text-white" style="font-size: 18px;">
+                        <i class="bi bi-receipt-cutoff me-2" style="color: var(--det-green);"></i>
+                        Payment Ledger
+                    </h5>
+                    <small style="color: #64748b; font-size: 13px;">
+                        Every payment recorded — PayNow, admin-issued, and free grants
+                    </small>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="status-badge bg-det-green">
+                        <span class="status-dot" style="background: #10b981;"></span>
+                        <%= (typeof paymentStats !== 'undefined' ? paymentStats.totalCount : 0) %> Total
+                    </span>
+                </div>
+            </div>
+
+            <!-- SUMMARY KPI ROW -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div style="background: #0a0a0a; border: 1px solid rgba(56,189,248,0.2); border-radius: 10px; padding: 16px;">
+                        <small style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="bi bi-paypal me-1" style="color: #38bdf8;"></i> PayNow Revenue
+                        </small>
+                        <h4 class="fw-bold mt-1 mb-0" style="font-size: 22px; color: #38bdf8;">
+                            $<%= (typeof paymentStats !== 'undefined' ? paymentStats.paynowRevenue : 0).toLocaleString() %>
+                        </h4>
+                        <small style="color: #64748b; font-size: 11px;">
+                            <%= (typeof paymentStats !== 'undefined' ? paymentStats.paynowCount : 0) %> transactions
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div style="background: #0a0a0a; border: 1px solid rgba(176,191,150,0.2); border-radius: 10px; padding: 16px;">
+                        <small style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="bi bi-shield-lock me-1" style="color: var(--det-green);"></i> Admin-Assigned
+                        </small>
+                        <h4 class="fw-bold mt-1 mb-0" style="font-size: 22px; color: var(--det-green);">
+                            $<%= (typeof paymentStats !== 'undefined' ? paymentStats.adminRevenue : 0).toLocaleString() %>
+                        </h4>
+                        <small style="color: #64748b; font-size: 11px;">
+                            <%= (typeof paymentStats !== 'undefined' ? paymentStats.adminCount : 0) %> grants
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div style="background: #0a0a0a; border: 1px solid rgba(245,158,11,0.2); border-radius: 10px; padding: 16px;">
+                        <small style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="bi bi-gift me-1" style="color: #f59e0b;"></i> Free Grants
+                        </small>
+                        <h4 class="fw-bold mt-1 mb-0" style="font-size: 22px; color: #f59e0b;">
+                            <%= (typeof paymentStats !== 'undefined' ? paymentStats.freeCount : 0) %>
+                        </h4>
+                        <small style="color: #64748b; font-size: 11px;">no charge issued</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div style="background: #0a0a0a; border: 1px solid rgba(176,191,150,0.25); border-radius: 10px; padding: 16px;">
+                        <small style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+                            <i class="bi bi-cash-stack me-1" style="color: var(--det-green);"></i> Total Recorded
+                        </small>
+                        <h4 class="fw-bold mt-1 mb-0" style="font-size: 22px; color: #fff;">
+                            $<%= (typeof paymentStats !== 'undefined' ? paymentStats.totalRecordedRevenue : 0).toLocaleString() %>
+                        </h4>
+                        <small style="color: #64748b; font-size: 11px;">
+                            <%= (typeof paymentStats !== 'undefined' ? paymentStats.legacyCount : 0) %> legacy rows
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER + SEARCH BAR -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="page-btn payment-filter active" data-filter="all" style="width: auto; padding: 0 14px;">All</button>
+                    <button class="page-btn payment-filter" data-filter="paynow" style="width: auto; padding: 0 14px;">PayNow</button>
+                    <button class="page-btn payment-filter" data-filter="admin_manual" style="width: auto; padding: 0 14px;">Admin</button>
+                    <button class="page-btn payment-filter" data-filter="free" style="width: auto; padding: 0 14px;">Free</button>
+                    <button class="page-btn payment-filter" data-filter="legacy" style="width: auto; padding: 0 14px;">Legacy</button>
+                </div>
+                <div class="search-box" style="min-width: 260px;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="paymentSearch" class="search-input" placeholder="Search by username or email...">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" id="paymentLedgerTable">
+                        <thead>
+                            <tr>
+                                <th>Participant</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Source</th>
+                                <th>Reference</th>
+                                <th>Paid On</th>
+                                <th>License Expiry</th>
+                                <th class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentLedgerBody">
+                            <% if (typeof allPayments !== 'undefined' && allPayments && allPayments.length > 0) { %>
+                                <% allPayments.forEach(p => {
+                                    let statusClass = 'bg-det-green';
+                                    let statusText = 'ACTIVE';
+                                    if (p.accountLocked) { statusClass = 'bg-det-red'; statusText = 'LOCKED'; }
+                                    else if (p.isSuspended) { statusClass = 'bg-det-warn'; statusText = 'SUSPENDED'; }
+                                    else if (p.currentExpiry && new Date() > new Date(p.currentExpiry)) { statusClass = 'bg-det-slate'; statusText = 'EXPIRED'; }
+                                %>
+                                    <tr data-payment-search="<%= (p.username + ' ' + p.email).toLowerCase() %>" data-payment-method="<%= p.method %>">
+                                        <td>
+                                            <div class="fw-bold text-white" style="font-size: 15px;"><%= p.username %></div>
+                                            <small style="color: #64748b; font-size: 13px;"><%= p.email %></small>
+                                            <div style="color: #64748b; font-size: 11px;"><%= p.country %></div>
+                                        </td>
+                                        <td>
+                                            <span class="badge border text-white" style="background: #0a0a0a; border-color: var(--det-border) !important; padding: 6px 12px; font-size: 13px; font-weight: 500; border-radius: 8px;">
+                                                <%= p.tier %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold" style="color: <%= p.amount > 0 ? 'var(--det-green)' : '#64748b' %>; font-size: 16px;">
+                                                $<%= p.amount.toLocaleString() %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <% if (p.method === 'paynow') { %>
+                                                <span class="status-badge bg-det-blue"><i class="bi bi-credit-card me-1"></i> PayNow</span>
+                                            <% } else if (p.method === 'admin_manual') { %>
+                                                <span class="status-badge bg-det-green"><i class="bi bi-shield-lock me-1"></i> Admin</span>
+                                            <% } else if (p.method === 'free') { %>
+                                                <span class="status-badge bg-det-warn"><i class="bi bi-gift me-1"></i> Free</span>
+                                            <% } else { %>
+                                                <span class="status-badge bg-det-slate"><i class="bi bi-clock-history me-1"></i> Legacy</span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (p.reference) { %>
+                                                <span class="code-pill" style="font-size: 11px;"><%= p.reference.slice(0, 24) %><%= p.reference.length > 24 ? '…' : '' %></span>
+                                            <% } else { %>
+                                                <span style="color: #64748b; font-size: 12px;">—</span>
+                                            <% } %>
+                                            <% if (p.processedBy) { %>
+                                                <div style="color: #64748b; font-size: 11px; margin-top: 2px;">by <%= p.processedBy %></div>
+                                            <% } %>
+                                        </td>
+                                        <td style="font-size: 13px; color: #cbd5e1;">
+                                            <%= new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %>
+                                            <div style="color: #64748b; font-size: 11px;">
+                                                <%= new Date(p.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %>
+                                            </div>
+                                        </td>
+                                        <td style="font-size: 13px; color: #cbd5e1;">
+                                            <%= p.currentExpiry ? new Date(p.currentExpiry).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' %>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="status-badge <%= statusClass %>">
+                                                <span class="status-dot" style="background: currentColor;"></span><%= statusText %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="empty-state" style="padding: 32px;">
+                                            <i class="bi bi-receipt"></i>
+                                            <strong>No Payments Recorded Yet</strong>
+                                            <span>PayNow payments and admin-issued licenses will appear here automatically.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="paymentNoResults" class="empty-state" style="display: none;">
+                <i class="bi bi-search"></i>
+                <strong>No payments match your filter</strong>
+                <span>Try a different source filter or search term.</span>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- PARTICIPANT LEDGER WITH PAGINATION -->
             <div class="row" id="ledger">
@@ -2056,6 +2252,50 @@
         }
         setInterval(fetchAdminEAData, 2000);
         fetchAdminEAData();
+
+                // ==========================================
+        // PAYMENT LEDGER — FILTER + SEARCH
+        // ==========================================
+        (function() {
+            const tableBody   = document.getElementById('paymentLedgerBody');
+            const searchInput = document.getElementById('paymentSearch');
+            const noResults   = document.getElementById('paymentNoResults');
+            const filterBtns  = document.querySelectorAll('.payment-filter');
+
+            if (!tableBody) return;
+
+            const allRows = Array.from(tableBody.querySelectorAll('tr[data-payment-search]'));
+            let activeFilter = 'all';
+            let searchTerm   = '';
+
+            function applyFilters() {
+                let visible = 0;
+                allRows.forEach(row => {
+                    const matchesMethod = activeFilter === 'all' || row.dataset.paymentMethod === activeFilter;
+                    const matchesSearch = !searchTerm || row.dataset.paymentSearch.includes(searchTerm);
+                    const show = matchesMethod && matchesSearch;
+                    row.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+                if (noResults) noResults.style.display = (visible === 0 && allRows.length > 0) ? 'flex' : 'none';
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeFilter = btn.dataset.filter;
+                    applyFilters();
+                });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchTerm = this.value.trim().toLowerCase();
+                    applyFilters();
+                });
+            }
+        })();
 
         console.log('%c🛡️ D.E.T Master Node Console v2.5.0 %c| %cSecure Session Active',
             'color: #B0BF96; font-weight: bold; font-size: 15px;',

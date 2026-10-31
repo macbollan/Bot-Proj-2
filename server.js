@@ -310,10 +310,38 @@ app.post("/api/paynow/update", async (req, res) => {
 
                 user.startingBalance = 0;
                 user.targetBalance = 0;
+                user.profitTarget = getTierProfitTarget(tierName);   // <- NEW: tier-based profit goal
                 user.monitoredSymbols = [];
                 user.connectedBrokers = [];
 
                 await user.save();
+
+                // ✅ NEW: log the PayNow payment for the admin Payment Ledger
+                try {
+                    if (!Array.isArray(user.paymentHistory)) user.paymentHistory = [];
+                    const alreadyLogged = user.paymentHistory.find(p => p.reference === reference);
+                    if (!alreadyLogged) {
+                        user.paymentHistory.push({
+                            amount:       parseFloat(amount) || config.min,
+                            tier:         tierName,
+                            method:       'paynow',
+                            source:       'paynow_webhook',
+                            reference:    reference,
+                            durationDays: config.durationDays,
+                            date:         new Date()
+                        });
+                        user.paymentSource   = 'paynow';
+                        user.lastPaymentDate = new Date();
+                        await user.save();
+                        console.log(`[PAYMENT LOG] PayNow $${amount} → ${user.username} (${tierName})`);
+                    }
+                } catch (logErr) {
+                    console.error('[PAYMENT LOG] failed:', logErr);
+                }
+
+                if (user.referredBy) {
+                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
+                }
 
                 if (user.referredBy) {
                     await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
@@ -425,10 +453,18 @@ app.get("/api/user/ea-state", isLoggedIn, async (req, res) => {
             daysRemaining: daysLeft,
             accountStatus: user.accountLocked ? "LOCKED" : (user.isSuspended ? "SUSPENDED" : "ACTIVE"),
             startingBalance: user.startingBalance || 0,
+            profitTarget:    user.profitTarget || getTierProfitTarget(user.currentTier) || 0,   // <- NEW
+            tierFloatMin:    (getTierFloatRange(user.currentTier) || {}).floatMin || 0,         // <- NEW
+            tierFloatMax:    (getTierFloatRange(user.currentTier) || {}).floatMax || 0,         // <- NEW
             openPositions: user.openPositions || [],
             equityHistory: user.equityHistory || [],
             liveFloat: (lastEquityFromAnyBroker(user) - Number(user.startingBalance || 0)),
             targetBalance: user.targetBalance || 0,
+            connectedBrokers: user.connectedBrokers || [],
+            targetBalance: user.targetBalance || 0,
+            profitTarget:  user.profitTarget || getTierProfitTarget(user.currentTier) || 0,
+            tierFloatMin:  (getTierFloatRange(user.currentTier) || {}).floatMin || 0,
+            tierFloatMax:  (getTierFloatRange(user.currentTier) || {}).floatMax || 0,
             connectedBrokers: user.connectedBrokers || []
         });
     } catch (err) {
@@ -541,11 +577,44 @@ app.post("/api/client/sync", async (req, res) => {
             user.monitoredSymbols.push(clientSymbol);
         }
 
+        // -----------------------------------------------------------------
+        // FIRST-CYCLE BASELINE — target is now derived from the TIER,
+        // not from the user's prepayment.
+        // -----------------------------------------------------------------
         if (!user.startingBalance || user.startingBalance === 0) {
             user.startingBalance = currentBalance;
-            const gainAmount = user.prepaymentAmount || currentBalance;
-            user.targetBalance = currentBalance + gainAmount;
-            console.log(`[START] ${user.username} baseline: start=$${currentBalance} target=$${user.targetBalance}`);
+            const tierProfitTarget = getTierProfitTarget(user.currentTier);
+            if (tierProfitTarget > 0) {
+                user.profitTarget  = tierProfitTarget;
+                user.targetBalance = currentBalance + tierProfitTarget;
+            } else {
+                // No valid tier — fall back to the legacy doubling rule so we never divide by zero
+                const fallback = user.prepaymentAmount || currentBalance;
+                user.profitTarget  = fallback;
+                user.targetBalance = currentBalance + fallback;
+            }
+            console.log(`[START] ${user.username} tier=${user.currentTier || 'None'} ` +
+                        `start=$${currentBalance} profitTarget=$${user.profitTarget} ` +
+                        `targetBalance=$${user.targetBalance}`);
+        }
+
+        // -----------------------------------------------------------------
+        // MIGRATION — existing users whose targetBalance was computed with
+        // the OLD rule get a one-time recalculation on their next sync.
+        // -----------------------------------------------------------------
+        else if (
+            !user.accountLocked &&
+            (!user.profitTarget || user.profitTarget === 0) &&
+            user.currentTier &&
+            user.currentTier !== 'None'
+        ) {
+            const tierProfitTarget = getTierProfitTarget(user.currentTier);
+            if (tierProfitTarget > 0) {
+                user.profitTarget  = tierProfitTarget;
+                user.targetBalance = user.startingBalance + tierProfitTarget;
+                console.log(`[MIGRATE] ${user.username} (${user.currentTier}) → ` +
+                            `profitTarget=$${tierProfitTarget} targetBalance=$${user.targetBalance}`);
+            }
         }
 
         await user.save();
@@ -611,6 +680,9 @@ app.post("/api/client/sync", async (req, res) => {
             minutesRemaining: minsFrac,
             accountStatus:  "ACTIVE",
             startingBalance: user.startingBalance || 0,
+            profitTarget:    user.profitTarget || getTierProfitTarget(user.currentTier) || 0,   // <- NEW
+            tierFloatMin:    (getTierFloatRange(user.currentTier) || {}).floatMin || 0,         // <- NEW
+            tierFloatMax:    (getTierFloatRange(user.currentTier) || {}).floatMax || 0,         // <- NEW
             targetBalance:   user.targetBalance   || 0,
             aggregateEquity: aggregateEquity,
             totalProfit:       (aggProfit + aggLoss).toFixed(2),
@@ -690,6 +762,41 @@ const tierConfig = {
     "Nuclear": { min: 1000000000, max: 10000000000, durationDays: 1825 },
     "Solomonic": { min: 5000000000, max: 999999999999, durationDays: 2555 }
 };
+
+// ==========================================
+// TIER FLOAT RANGES — profit target is derived from these,
+// NOT from the user's actual deposit.
+// Rule: TargetProfit = 2 × floatMin  (Amber falls back to floatMax)
+// Rationale: keeps goal well below the tier's ceiling.
+// ==========================================
+const tierFloatConfig = {
+    "Amber":      { floatMin: 0,            floatMax: 49 },
+    "Amethyst":   { floatMin: 50,           floatMax: 199 },
+    "Topaz":      { floatMin: 200,          floatMax: 1000 },
+    "Tanzanite":  { floatMin: 1000,         floatMax: 10000 },
+    "Sapphire":   { floatMin: 10001,        floatMax: 100000 },
+    "Emerald":    { floatMin: 100000,       floatMax: 1000000 },
+    "Diamond":    { floatMin: 1000000,      floatMax: 10000000 },
+    "Rhodium":    { floatMin: 10000000,     floatMax: 100000000 },
+    "Platinum":   { floatMin: 100000000,    floatMax: 1000000000 },
+    "Uranium":    { floatMin: 1000000000,   floatMax: 10000000000 },
+    "Atomic":     { floatMin: 10000000000,  floatMax: 100000000000 },
+    "Nuclear":    { floatMin: 100000000000, floatMax: 1000000000000 },
+    "Solomonic":  { floatMin: 1000000000000, floatMax: Number.MAX_SAFE_INTEGER }
+};
+
+function getTierFloatRange(tierName) {
+    return tierFloatConfig[tierName] || null;
+}
+
+function getTierProfitTarget(tierName) {
+    const cfg = tierFloatConfig[tierName];
+    if (!cfg) return 0;
+    // Amber's floor is $0, so use the top of its range as the goal (~$49)
+    if (cfg.floatMin === 0) return cfg.floatMax;
+    // Every other tier: 2× the minimum float — stays well below the tier ceiling
+    return cfg.floatMin * 2;
+}
 
 app.post("/checkout/initialize", (req, res) => {
     const selectedTier = req.body.selectedTier;
@@ -1607,6 +1714,65 @@ app.get("/admin", isAdmin, async (req, res) => {
         console.error("Pending payouts aggregation error:", e);
     }
 
+        // ✅ NEW: build the Payment Ledger for the admin panel
+    const allPayments = [];
+    allUsers.forEach(client => {
+        const history = Array.isArray(client.paymentHistory) ? client.paymentHistory : [];
+
+        if (history.length > 0) {
+            history.forEach(p => {
+                allPayments.push({
+                    userId:        client._id.toString(),
+                    username:      client.username,
+                    email:         client.email || 'N/A',
+                    country:       (client.country && client.country.trim()) || 'Unknown',
+                    tier:          p.tier || client.currentTier || 'None',
+                    amount:        Number(p.amount) || 0,
+                    method:        p.method || 'legacy',
+                    source:        p.source || 'legacy',
+                    reference:     p.reference || '',
+                    processedBy:   p.processedBy || '',
+                    durationDays:  Number(p.durationDays) || 0,
+                    date:          p.date ? new Date(p.date) : client._id.getTimestamp(),
+                    currentExpiry: client.licenseExpiry,
+                    isSuspended:   !!client.isSuspended,
+                    accountLocked: !!client.accountLocked
+                });
+            });
+        } else if (client.licenseKey) {
+            // Legacy fallback: user has a license but predates paymentHistory
+            allPayments.push({
+                userId:        client._id.toString(),
+                username:      client.username,
+                email:         client.email || 'N/A',
+                country:       (client.country && client.country.trim()) || 'Unknown',
+                tier:          client.currentTier || 'None',
+                amount:        Number(client.prepaymentAmount) || 0,
+                method:        'legacy',
+                source:        'legacy',
+                reference:     'Pre-system / untracked',
+                processedBy:   '',
+                durationDays:  30,
+                date:          client._id.getTimestamp ? client._id.getTimestamp() : new Date(),
+                currentExpiry: client.licenseExpiry,
+                isSuspended:   !!client.isSuspended,
+                accountLocked: !!client.accountLocked
+            });
+        }
+    });
+    allPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const paymentStats = {
+        totalCount:          allPayments.length,
+        paynowCount:         allPayments.filter(p => p.method === 'paynow').length,
+        adminCount:          allPayments.filter(p => p.method === 'admin_manual').length,
+        freeCount:           allPayments.filter(p => p.method === 'free').length,
+        legacyCount:         allPayments.filter(p => p.method === 'legacy').length,
+        paynowRevenue:       allPayments.filter(p => p.method === 'paynow').reduce((s, p) => s + p.amount, 0),
+        adminRevenue:        allPayments.filter(p => p.method === 'admin_manual').reduce((s, p) => s + p.amount, 0),
+        totalRecordedRevenue: allPayments.reduce((s, p) => s + p.amount, 0)
+    };
+
     res.render("admin", {
         users: allUsers,
         stats: {
@@ -1706,6 +1872,28 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
         user.lockReason = null;
 
         await user.save();
+
+        // ✅ NEW: log admin-issued license for the Payment Ledger
+        try {
+            if (!Array.isArray(user.paymentHistory)) user.paymentHistory = [];
+            user.paymentHistory.push({
+                amount:       amountPaid,
+                tier:         tier,
+                method:       amountPaid > 0 ? 'admin_manual' : 'free',
+                source:       'admin_generate_license',
+                reference:    `ADMIN-${req.user.username}-${Date.now()}`,
+                processedBy:  req.user.username,
+                durationDays: days,
+                notes:        amountPaid > 0 ? 'Manual license issued by admin' : 'Free grant by admin',
+                date:         new Date()
+            });
+            user.paymentSource   = amountPaid > 0 ? 'admin_manual' : 'free';
+            user.lastPaymentDate = new Date();
+            await user.save();
+            console.log(`[PAYMENT LOG] Admin ${req.user.username} issued ${tier} to ${user.username} — $${amountPaid}`);
+        } catch (logErr) {
+            console.error('[PAYMENT LOG] failed:', logErr);
+        }
 
         let commissionInfo = '';
         if (creditAffiliate && user.referredBy && amountPaid > 0) {

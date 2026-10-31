@@ -556,6 +556,68 @@
         </div>
     </div>
 
+<% 
+    // Compute tier-based profit target on the fly (fallback if not persisted yet)
+    const TIER_FLOAT_RANGES = {
+        "Amber":      [0, 49],           "Amethyst":  [50, 199],
+        "Topaz":      [200, 1000],       "Tanzanite": [1000, 10000],
+        "Sapphire":   [10001, 100000],   "Emerald":   [100000, 1000000],
+        "Diamond":    [1000000, 10000000],"Rhodium":  [10000000, 100000000],
+        "Platinum":   [100000000, 1000000000],
+        "Uranium":    [1000000000, 10000000000],
+        "Atomic":     [10000000000, 100000000000],
+        "Nuclear":    [100000000000, 1000000000000],
+        "Solomonic":  [1000000000000, null]
+    };
+    function _tierProfitTarget(name){
+        const r = TIER_FLOAT_RANGES[name];
+        if(!r) return 0;
+        return r[0] === 0 ? r[1] : r[0] * 2;
+    }
+    const userTierRange   = TIER_FLOAT_RANGES[currentUser.currentTier] || null;
+    const userProfitTarget = currentUser.profitTarget || _tierProfitTarget(currentUser.currentTier) || 0;
+    const userFloat        = currentUser.startingBalance || 0;
+    const tierFits    = !userTierRange || userFloat === 0 ||
+                        (userFloat >= userTierRange[0] && (!userTierRange[1] || userFloat <= userTierRange[1]));
+    const tierTooSmall = userTierRange && userFloat > 0 && userFloat < userTierRange[0];
+    const tierTooBig   = userTierRange && userFloat > 0 && userTierRange[1] && userFloat > userTierRange[1];
+%>
+    <!-- TIER-FIT WARNING — urges user to buy a plan that matches their real equity -->
+    <% if(userTierRange && currentUser.currentTier !== 'None' && userFloat > 0) { %>
+        <% if (tierTooSmall) { %>
+            <div class="alert-custom" style="background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.35); color: #f59e0b;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Your deposit ($${userFloat.toLocaleString()}) is below your <%= currentUser.currentTier %> tier range.</strong><br>
+                    <%= currentUser.currentTier %> is designed for a float of <strong>$<%= userTierRange[0].toLocaleString() %> – $<%= userTierRange[1] ? userTierRange[1].toLocaleString() : '∞' %></strong>.
+                    You are paying more than you need to. Consider downgrading to a smaller tier on the
+                    <a href="/pricing" style="color: #f59e0b; text-decoration: underline;">Pricing page</a>
+                    so your subscription matches your capital.
+                </div>
+            </div>
+        <% } else if (tierTooBig) { %>
+            <div class="alert-custom" style="background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.35); color: #ef4444;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Your deposit ($${userFloat.toLocaleString()}) is above your <%= currentUser.currentTier %> tier range.</strong><br>
+                    <%= currentUser.currentTier %> is designed for a float of <strong>$<%= userTierRange[0].toLocaleString() %> – $<%= userTierRange[1] ? userTierRange[1].toLocaleString() : '∞' %></strong>.
+                    Please upgrade on the <a href="/pricing" style="color: #ef4444; text-decoration: underline;">Pricing page</a>
+                    so D.E.T can manage your full equity.
+                </div>
+            </div>
+        <% } else { %>
+            <div class="alert-custom" style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); color: #22c55e;">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>Your <%= currentUser.currentTier %> tier matches your equity.</strong><br>
+                    Trading with <strong>$<%= userFloat.toLocaleString() %></strong> in a tier range of
+                    <strong>$<%= userTierRange[0].toLocaleString() %> – $<%= userTierRange[1] ? userTierRange[1].toLocaleString() : '∞' %></strong>.
+                    D.E.T will auto-logout once your profit reaches <strong>+$<%= userProfitTarget.toLocaleString() %></strong>.
+                </div>
+            </div>
+        <% } %>
+    <% } %>
+
     <!-- STATUS CARDS -->
     <div class="status-grid">
         <div class="status-card">
@@ -623,15 +685,33 @@
                 <div class="status-value small-text" id="currentFloat" style="color: #22c55e;">$0.00</div>
             </div>
         </div>
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
-                <i class="bi bi-shield-exclamation"></i>
-            </div>
-            <div>
-                <div class="status-label">100% Double Gain - Logout At</div>
-                <div class="status-value small-text" style="color: #22c55e;">$<%= currentUser.targetBalance ? currentUser.targetBalance.toFixed(2) : '0.00' %></div>
-            </div>
+
+
+<!-- NEW: Tier Profit Target -->
+<div class="status-card">
+    <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
+        <i class="bi bi-bullseye"></i>
+    </div>
+    <div>
+        <div class="status-label">Tier Profit Target</div>
+        <div class="status-value small-text" style="color: #22c55e;">
+            +$<%= userProfitTarget.toLocaleString() %>
         </div>
+    </div>
+</div>
+
+<!-- NEW: Auto-Logout At -->
+<div class="status-card">
+    <div class="status-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+        <i class="bi bi-shield-exclamation"></i>
+    </div>
+    <div>
+        <div class="status-label">Auto-Logout At</div>
+        <div class="status-value small-text" style="color: #22c55e;">
+            $<%= ((currentUser.targetBalance || (userFloat + userProfitTarget)) || 0).toLocaleString() %>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- INTEGRATION ID CARD -->

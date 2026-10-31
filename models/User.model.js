@@ -33,6 +33,22 @@ const UserSchema = new mongoose.Schema({
 }],
 equityHistory: [Number],
 
+// ─── PAYMENT AUDIT TRAIL ────────────────────────────────────────────
+paymentHistory: [{
+    amount:       { type: Number, default: 0 },
+    tier:         { type: String, default: '' },
+    method:       { type: String, enum: ['paynow', 'admin_manual', 'free', 'legacy'], default: 'legacy' },
+    source:       { type: String, default: 'legacy' },
+    reference:    { type: String, default: '' },   // PayNow invoice ref OR admin username
+    processedBy:  { type: String, default: '' },   // Admin username if manual
+    durationDays: { type: Number, default: 0 },
+    notes:        { type: String, default: '' },
+    date:         { type: Date, default: Date.now }
+}],
+paymentSource:   { type: String, default: '' },   // Last payment method
+lastPaymentDate: { type: Date, default: null },
+// ────────────────────────────────────────────────────────────────────
+
     // In models/User.model.js, add:
 referredBy: { type: String, default: null }, // Referral code of the affiliate who referred this user
 affiliateCommission: { type: Number, default: 0 },
@@ -45,6 +61,8 @@ affiliateCommission: { type: Number, default: 0 },
     startingBalance: { type: Number, default: 0 },
     targetBalance: { type: Number, default: 0 },       
     accountLocked: { type: Boolean, default: false },
+
+profitTarget:    { type: Number, default: 0 },   // <-- NEW
 
     // --- TRAINING SYSTEM FIELDS (NEW) ---
     hasTraining: { type: Boolean, default: false },
