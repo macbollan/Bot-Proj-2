@@ -92,6 +92,7 @@ color  g_cClr[];
 
 double g_startBal          = 0;
 double g_targetBal         = 0;
+double g_profitTarget      = 0;   // <-- NEW
 double g_totalProfit       = 0;
 double g_counterProfits    = 0;
 double g_unprofitableTotal = 0;
@@ -452,8 +453,10 @@ string jsonPayload = StringFormat(
 
             string sb = ExtractJSONValue(responseText, "startingBalance");
             string tb = ExtractJSONValue(responseText, "targetBalance");
-            if(sb != "") g_startBal  = StringToDouble(sb);
-            if(tb != "") g_targetBal = StringToDouble(tb);
+            string pt = ExtractJSONValue(responseText, "profitTarget");
+            if(sb != "") g_startBal     = StringToDouble(sb);
+            if(tb != "") g_targetBal    = StringToDouble(tb);
+            if(pt != "") g_profitTarget = StringToDouble(pt);
             RefreshLiveUI();
 
             string tradesArrayJson = ExtractJSONBlock(responseText, "trades");
@@ -1027,8 +1030,9 @@ void RefreshLiveUI() {
     UpdateLabel(Prefix+"K_Unprofitable",
                 "-$" + FmtNum(MathAbs(losses)), CLR_RED);
 
-    UpdateLabel(Prefix+"StartVal", "$" + FmtNum(g_startBal),  CLR_GREEN);
-    UpdateLabel(Prefix+"F2",       "$" + FmtNum(g_targetBal), CLR_GREEN);
+   UpdateLabel(Prefix+"StartVal", "$" + FmtNum(g_startBal),  CLR_GREEN);
+   UpdateLabel(Prefix+"F2",       "$" + FmtNum(g_targetBal), CLR_GREEN);
+   UpdateLabel(Prefix+"ProfitTargetVal", "+$" + FmtNum(g_profitTarget), CLR_GREEN);
 
     double pct = 0;
     if(g_startBal > 0 && g_targetBal > g_startBal)
@@ -1215,14 +1219,20 @@ void DrawCornerStoreUI() {
                 IntegerToString(g_minsRem) + "min",
                 xRight+28, perfY+75, CLR_RED, 11, true);
 
-    CreateLabel(Prefix+"GainLbl", "100% Gain Logout:", xRight+10, perfY+112, clrWhite, 10, true);
-    g_gainValMaxW = wRight - 20 - TextW("100% Gain Logout:", 10, true) - 10;
-    CreateLabelFitRight(Prefix+"F2", "$0.00",
-                xRight+wRight-10, perfY+112, CLR_GREEN, 12, true, g_gainValMaxW);
-
-    CreateLabelFit(Prefix+"SubNote",
-                   "Automatic Logout at 100% Gain. Regardless of Subscription time remaining (Caveat Subscriptor T&C APPLY)",
-                   xRight+10, perfY+145, CLR_MUTED, 7, false, wRight-20);
+   // --- Tier-based auto-logout line -----------------------------------
+   CreateLabel(Prefix+"GainLbl", "Auto-Logout At (Tier Target):", xRight+10, perfY+112, clrWhite, 10, true);
+   g_gainValMaxW = wRight - 20 - TextW("Auto-Logout At (Tier Target):", 10, true) - 10;
+   CreateLabelFitRight(Prefix+"F2", "$0.00",
+               xRight+wRight-10, perfY+112, CLR_GREEN, 12, true, g_gainValMaxW);
+   
+   // Profit-target line (new) — small, below the logout balance
+   CreateLabel(Prefix+"ProfitTargetLbl", "Tier Profit Target:", xRight+10, perfY+130, CLR_GREEN, 9, true);
+   CreateLabelFitRight(Prefix+"ProfitTargetVal", "+$0.00",
+               xRight+wRight-10, perfY+130, CLR_GREEN, 11, true, wRight-20 - TextW("Tier Profit Target:", 9, true) - 10);
+   
+   CreateLabelFit(Prefix+"SubNote",
+                  "Auto-logout when tier profit target is reached. Target is based on your subscription tier, not your deposit (Caveat Subscriptor T&C APPLY)",
+                  xRight+10, perfY+150, CLR_MUTED, 7, false, wRight-20);
 
     y = perfY + perfH + 6;
 
