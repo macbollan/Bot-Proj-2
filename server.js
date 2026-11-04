@@ -498,74 +498,106 @@ app.post("/api/client/sync", async (req, res) => {
     } = req.body;
 
     try {
+        // ─────────────────────────────────────────────────────────────
+        // 1) GUARD: no key at all → kill immediately (EA not ready yet)
+        // ─────────────────────────────────────────────────────────────
+        if (!licenseKey) {
+            return res.json({ action: "KILL", reason: "MISSING_LICENSE" });
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 2) LOOKUP + NULL GUARD — before touching ANY user property
+        // ─────────────────────────────────────────────────────────────
         const user = await User.findOne({ licenseKey: licenseKey });
 
-        // NEW: prune stale broker entries (10 min heartbeat window).
-        // This prevents "ghost" brokers from a previous license/account lingering forever.
+        if (!user) {
+            // Mask the key in logs so a stale EA doesn't spam real keys
+            const masked = "***" + String(licenseKey).slice(-3);
+            console.warn(`[SYNC] Invalid license key rejected: "${masked}" from ${req.ip}`);
+            return res.json({ action: "KILL", reason: "INVALID_LICENSE" });
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 3) LICENSE + ACCOUNT STATE CHECKS
+        // ─────────────────────────────────────────────────────────────
+        if (new Date() > new Date(user.licenseExpiry)) {
+            return res.json({ action: "KILL", reason: "EXPIRED" });
+        }
+        if (user.isSuspended || user.accountLocked) {
+            // Map DB strings to EA-recognized reasons
+            let lockReason = "LOCKED";
+            if (user.lockReason === 'gain_target_reached') lockReason = "GAIN_TARGET";
+            else if (user.lockReason === 'loss_limit_reached') lockReason = "LOSS_LIMIT";
+            
+            return res.json({ action: "ZERO_HEDGE", reason: lockReason });
+        }
+
+
+        // ─────────────────────────────────────────────────────────────
+        // 4) SAFE NOW — user is guaranteed non-null.
+        //    Prune stale broker entries (10 min heartbeat window) so ghost
+        //    brokers from a previous license/account don't linger forever.
+        // ─────────────────────────────────────────────────────────────
         {
             const STALE_MS = 10 * 60 * 1000;
             const nowMs = Date.now();
             if (Array.isArray(user.connectedBrokers)) {
                 user.connectedBrokers = user.connectedBrokers.filter(b => {
-                    if (!b.lastSeen) return false;              // never had a heartbeat
-                    return (nowMs - new Date(b.lastSeen).getTime()) < STALE_MS;
+                    if (!b.lastSeen) return false;                                  // never had a heartbeat
+                    return (nowMs - new Date(b.lastSeen).getTime()) < STALE_MS;    // keep only fresh ones
                 });
             }
         }
 
-        if (!user) {
-            return res.json({ action: "KILL", reason: "INVALID_LICENSE" });
-        }
-        if (new Date() > new Date(user.licenseExpiry)) {
-            return res.json({ action: "KILL", reason: "EXPIRED" });
-        }
-        if (user.isSuspended || user.accountLocked) {
-            return res.json({ action: "ZERO_HEDGE", reason: user.lockReason || "LOCKED" });
-        }
-
+        // ─────────────────────────────────────────────────────────────
+        // 5) TRACK / REFRESH THIS BROKER CONNECTION
+        // ─────────────────────────────────────────────────────────────
         if (accountNumber && brokerName) {
             if (!user.connectedBrokers) user.connectedBrokers = [];
             const existingIdx = user.connectedBrokers.findIndex(
                 b => String(b.accountNumber) === String(accountNumber) && b.brokerName === brokerName
             );
             if (existingIdx >= 0) {
-                user.connectedBrokers[existingIdx].lastSeen = new Date();
-                user.connectedBrokers[existingIdx].server = brokerServer || '';
+                user.connectedBrokers[existingIdx].lastSeen    = new Date();
+                user.connectedBrokers[existingIdx].server      = brokerServer || '';
                 user.connectedBrokers[existingIdx].licenseUsed = licenseKey;
                 user.connectedBrokers[existingIdx].lastBalance = currentBalance;
-                user.connectedBrokers[existingIdx].lastEquity = currentEquity;
+                user.connectedBrokers[existingIdx].lastEquity  = currentEquity;
             } else {
                 user.connectedBrokers.push({
                     accountNumber: String(accountNumber),
-                    brokerName: brokerName,
-                    server: brokerServer || '',
-                    licenseUsed: licenseKey,
-                    lastSeen: new Date(),
-                    lastBalance: currentBalance,
-                    lastEquity: currentEquity
+                    brokerName:    brokerName,
+                    server:        brokerServer || '',
+                    licenseUsed:   licenseKey,
+                    lastSeen:      new Date(),
+                    lastBalance:   currentBalance,
+                    lastEquity:    currentEquity
                 });
                 console.log(`[BROKER] ${user.username} connected on ${brokerName} #${accountNumber}`);
             }
         }
 
-
-        // NEW: persist the client EA's own open positions for dashboard display.
-        // The EA sends `openPositions: [{ticket, symbol, type, volume, openPrice, sl, tp, profit}]`.
+        // ─────────────────────────────────────────────────────────────
+        // 6) PERSIST THE CLIENT EA'S OWN OPEN POSITIONS
+        //    EA sends: [{ticket, symbol, type, volume, openPrice, sl, tp, profit}]
+        // ─────────────────────────────────────────────────────────────
         if (Array.isArray(req.body.openPositions)) {
             user.openPositions = req.body.openPositions.map(p => ({
-                ticket:    String(p.ticket   || ''),
-                symbol:    String(p.symbol   || ''),
-                type:      String(p.type     || ''),
-                volume:    Number(p.volume   || 0),
-                openPrice: Number(p.openPrice|| 0),
-                sl:        Number(p.sl       || 0),
-                tp:        Number(p.tp       || 0),
-                profit:    Number(p.profit   || 0),
+                ticket:    String(p.ticket    || ''),
+                symbol:    String(p.symbol    || ''),
+                type:      String(p.type      || ''),
+                volume:    Number(p.volume    || 0),
+                openPrice: Number(p.openPrice || 0),
+                sl:        Number(p.sl        || 0),
+                tp:        Number(p.tp        || 0),
+                profit:    Number(p.profit    || 0),
                 updatedAt: new Date()
             }));
         }
 
-        // NEW: append current equity to a rolling 100-point history for the growth chart.
+        // ─────────────────────────────────────────────────────────────
+        // 7) ROLLING EQUITY HISTORY (max 100 points for the growth chart)
+        // ─────────────────────────────────────────────────────────────
         if (!Array.isArray(user.equityHistory)) user.equityHistory = [];
         const eqNow = Number(currentEquity) || 0;
         if (eqNow > 0) {
@@ -573,14 +605,17 @@ app.post("/api/client/sync", async (req, res) => {
             if (user.equityHistory.length > 100) user.equityHistory.shift();
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // 8) REGISTER THE SYMBOL BEING TRADED
+        // ─────────────────────────────────────────────────────────────
         if (clientSymbol && !user.monitoredSymbols.includes(clientSymbol)) {
             user.monitoredSymbols.push(clientSymbol);
         }
 
-        // -----------------------------------------------------------------
-        // FIRST-CYCLE BASELINE — target is now derived from the TIER,
-        // not from the user's prepayment.
-        // -----------------------------------------------------------------
+        // ─────────────────────────────────────────────────────────────
+        // 9) FIRST-CYCLE BASELINE — target derived from the TIER, not
+        //    from the user's prepayment.
+        // ─────────────────────────────────────────────────────────────
         if (!user.startingBalance || user.startingBalance === 0) {
             user.startingBalance = currentBalance;
             const tierProfitTarget = getTierProfitTarget(user.currentTier);
@@ -598,10 +633,10 @@ app.post("/api/client/sync", async (req, res) => {
                         `targetBalance=$${user.targetBalance}`);
         }
 
-        // -----------------------------------------------------------------
-        // MIGRATION — existing users whose targetBalance was computed with
-        // the OLD rule get a one-time recalculation on their next sync.
-        // -----------------------------------------------------------------
+        // ─────────────────────────────────────────────────────────────
+        // 10) MIGRATION — existing users whose targetBalance was computed
+        //     with the OLD rule get a one-time recalculation on their next sync.
+        // ─────────────────────────────────────────────────────────────
         else if (
             !user.accountLocked &&
             (!user.profitTarget || user.profitTarget === 0) &&
@@ -619,6 +654,9 @@ app.post("/api/client/sync", async (req, res) => {
 
         await user.save();
 
+        // ─────────────────────────────────────────────────────────────
+        // 11) AGGREGATE EQUITY ACROSS ALL BROKERS + ZERO-HEDGE CHECKS
+        // ─────────────────────────────────────────────────────────────
         let aggregateEquity = 0;
         let activeCount = 0;
         (user.connectedBrokers || []).forEach(b => {
@@ -629,6 +667,7 @@ app.post("/api/client/sync", async (req, res) => {
         });
         if (activeCount === 0) aggregateEquity = currentEquity;
 
+        // GAIN TARGET REACHED → lock
         if (user.targetBalance > 0 && aggregateEquity >= user.targetBalance) {
             user.accountLocked = true;
             user.isSuspended = true;
@@ -638,6 +677,7 @@ app.post("/api/client/sync", async (req, res) => {
             return res.json({ action: "ZERO_HEDGE", reason: "GAIN_TARGET" });
         }
 
+        // FULL BLOW-UP → lock
         if (user.startingBalance > 0 && aggregateEquity <= 0) {
             user.accountLocked = true;
             user.isSuspended = true;
@@ -647,6 +687,9 @@ app.post("/api/client/sync", async (req, res) => {
             return res.json({ action: "ZERO_HEDGE", reason: "LOSS_LIMIT" });
         }
 
+        // ─────────────────────────────────────────────────────────────
+        // 12) PROFIT / LOSS TOTALS PER BROKER
+        // ─────────────────────────────────────────────────────────────
         let aggProfit = 0, aggLoss = 0;
         (user.connectedBrokers || []).forEach(b => {
             if (b.lastBalance != null && b.lastEquity != null) {
@@ -655,6 +698,9 @@ app.post("/api/client/sync", async (req, res) => {
             }
         });
 
+        // ─────────────────────────────────────────────────────────────
+        // 13) TIME REMAINING ON THE LICENSE
+        // ─────────────────────────────────────────────────────────────
         const msRemaining = Math.max(0, new Date(user.licenseExpiry) - new Date());
         const daysLeft  = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
         const hoursFrac = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -668,6 +714,9 @@ app.post("/api/client/sync", async (req, res) => {
         const masterState = eaBrainStates[symbol] || eaBrainState;
         const trades = activeTradesBySymbol[symbol] || activeTradesList;
 
+        // ─────────────────────────────────────────────────────────────
+        // 14) RESPOND TO THE EA
+        // ─────────────────────────────────────────────────────────────
         res.json({
             action: "TRADE",
             masterState: masterState,
@@ -680,9 +729,9 @@ app.post("/api/client/sync", async (req, res) => {
             minutesRemaining: minsFrac,
             accountStatus:  "ACTIVE",
             startingBalance: user.startingBalance || 0,
-            profitTarget:    user.profitTarget || getTierProfitTarget(user.currentTier) || 0,   // <- NEW
-            tierFloatMin:    (getTierFloatRange(user.currentTier) || {}).floatMin || 0,         // <- NEW
-            tierFloatMax:    (getTierFloatRange(user.currentTier) || {}).floatMax || 0,         // <- NEW
+            profitTarget:    user.profitTarget || getTierProfitTarget(user.currentTier) || 0,
+            tierFloatMin:    (getTierFloatRange(user.currentTier) || {}).floatMin || 0,
+            tierFloatMax:    (getTierFloatRange(user.currentTier) || {}).floatMax || 0,
             targetBalance:   user.targetBalance   || 0,
             aggregateEquity: aggregateEquity,
             totalProfit:       (aggProfit + aggLoss).toFixed(2),
@@ -795,7 +844,7 @@ function getTierProfitTarget(tierName) {
     // Amber's floor is $0, so use the top of its range as the goal (~$49)
     if (cfg.floatMin === 0) return cfg.floatMax;
     // Every other tier: 2× the minimum float — stays well below the tier ceiling
-    return cfg.floatMin * 2;
+    return cfg.floatMin;
 }
 
 app.post("/checkout/initialize", (req, res) => {
@@ -1612,7 +1661,7 @@ app.get("/admin", isAdmin, async (req, res) => {
         }));
 
     const negativeLogouts = allUsers
-        .filter(c => c.accountLocked)
+        .filter(c => c.accountLocked && c.lockReason !== 'gain_target_reached')
         .map(c => ({
             username: c.username,
             email: c.email,
@@ -1622,7 +1671,7 @@ app.get("/admin", isAdmin, async (req, res) => {
         }));
 
     const positiveLogouts = allUsers
-        .filter(c => c.accountLocked && Number(c.startingBalance) > 0)
+        .filter(c => c.accountLocked && c.lockReason === 'gain_target_reached')
         .map(c => ({
             username: c.username,
             email: c.email,
@@ -1796,7 +1845,9 @@ app.get("/admin", isAdmin, async (req, res) => {
         topAffiliatesByTier,
         tierList,
         topAffiliates,
-        pendingPayouts
+        pendingPayouts,
+        allPayments,     // ✅ ADD THIS
+        paymentStats     // ✅ ADD THIS
     });
 });
 
@@ -1807,32 +1858,28 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
             req.flash("error", "Participant not found.");
             return res.redirect("/admin");
         }
-        if (!user.accountLocked && !user.isSuspended) {
-            req.flash("error", "This account is not currently locked.");
-            return res.redirect("/admin");
-        }
 
+        // Reset lock states
         user.accountLocked = false;
         user.isSuspended   = false;
         user.lockReason    = null;
         user.lockedAtAggregateEquity = null;
         user.lockedAtStartingBalance = null;
 
+        // RESET balances so the EA establishes a fresh baseline on the next sync
+        user.startingBalance = 0;
+        user.targetBalance   = 0;
+        user.connectedBrokers = []; // Clear ghost brokers
+
+        // Extend expiry by 7 days
         const baseDate = user.licenseExpiry && user.licenseExpiry > new Date()
             ? new Date(user.licenseExpiry)
             : new Date();
         user.licenseExpiry = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-        if (user.connectedBrokers) {
-            user.connectedBrokers.forEach(b => {
-                b.lastEquity  = null;
-                b.lastBalance = null;
-            });
-        }
-
         await user.save();
 
-        console.log(`[FREE WEEK] Unlocked ${user.username} (cycle resets on next EA sync)`);
+        console.log(`[FREE WEEK] Unlocked ${user.username} (cycle reset)`);
         req.flash("success", `Granted 1-week free access to ${user.username}. Their account is now active.`);
         res.redirect("/admin");
     } catch (err) {

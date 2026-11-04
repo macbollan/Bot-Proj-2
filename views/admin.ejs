@@ -1691,10 +1691,12 @@
                 <div class="modal-body">
                     <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Accounts locked by Zero-Hedge protocol. Grant 1-week free access to continue trading.</p>
                     
-                    <% 
-                    let blownAccounts = users.filter(c => c.accountLocked);
-                    if(blownAccounts.length > 0) { 
-                    %>
+                    
+                        <% 
+                        let blownAccounts = users.filter(c => c.accountLocked && c.lockReason !== 'gain_target_reached');
+                        if(blownAccounts.length > 0) { 
+                        %>
+ 
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead style="background: #0a0a0a;">
@@ -2183,6 +2185,8 @@
         }
 
         updatePagination();
+
+        
 
         // ==========================================
         // CSV EXPORT

@@ -395,17 +395,23 @@ string jsonPayload = StringFormat(
             g_lockWasActive = false;
         }
         //============= ACTION: ZERO_HEDGE =============
+        //============= ACTION: ZERO_HEDGE =============
         else if (action == "ZERO_HEDGE") {
             UpdateLabel(Prefix+"Status", "ACCOUNT LOCKED - " + reason, CLR_AMBER);
             AutoModeActive = false;
 
             UpdateButtonState(Prefix+"BtnAuto", "AUTO OFF", CLR_BTN_DISABLED, C'130, 130, 140');
 
+            // --- NEW: If gain target reached, close all trades immediately ---
+            if (reason == "GAIN_TARGET") {
+                CloseAllPositionsOnSymbol();
+            }
+
             if (!g_lockWasActive) {
                 g_lockWasActive = true;
                 string msg = "";
                 if (reason == "GAIN_TARGET") {
-                    msg = "CONGRATULATIONS!\n\nYou reached the 100% GAIN TARGET.\n\nAll positions will be managed by the D.E.T engine until close.\n\nYour account is now LOCKED — log into your D.E.T dashboard to unlock or upgrade.";
+                    msg = "CONGRATULATIONS!\n\nYou reached your TIER PROFIT TARGET.\n\nAll open positions have been closed immediately because the job is done.\n\nYour account is now LOCKED. Log into your D.E.T dashboard to unlock or upgrade.";
                 } else if (reason == "LOSS_LIMIT") {
                     msg = "LOSS LIMIT REACHED\n\nYour aggregate equity across all connected accounts reached zero.\n\nAUTO trade-copying is now disabled.\n\nYou can TOP UP within your active subscription to resume trading — same license, same subscription, no new payment required.";
                 } else {
@@ -1030,9 +1036,9 @@ void RefreshLiveUI() {
     UpdateLabel(Prefix+"K_Unprofitable",
                 "-$" + FmtNum(MathAbs(losses)), CLR_RED);
 
-   UpdateLabel(Prefix+"StartVal", "$" + FmtNum(g_startBal),  CLR_GREEN);
-   UpdateLabel(Prefix+"F2",       "$" + FmtNum(g_targetBal), CLR_GREEN);
-   UpdateLabel(Prefix+"ProfitTargetVal", "+$" + FmtNum(g_profitTarget), CLR_GREEN);
+UpdateLabel(Prefix+"StartVal", "$" + FmtNum(g_startBal),  CLR_GREEN);
+UpdateLabel(Prefix+"F2",       "$" + FmtNum(g_targetBal), CLR_GREEN);
+UpdateLabel(Prefix+"ProfitTargetVal", "+$" + FmtNum(g_profitTarget), CLR_GREEN);
 
     double pct = 0;
     if(g_startBal > 0 && g_targetBal > g_startBal)
@@ -1051,6 +1057,20 @@ void RefreshLiveUI() {
     UpdateLabel(Prefix+"I_Time",
                 "TIME: " + TimeToString(TimeLocal(), TIME_SECONDS),
                 clrWhite);
+}
+
+
+
+//+------------------------------------------------------------------+
+//| Force close EVERYTHING on the current chart symbol               |
+//+------------------------------------------------------------------+
+void CloseAllPositionsOnSymbol() {
+    for(int i = PositionsTotal() - 1; i >= 0; i--) {
+        ulong tk = PositionGetTicket(i);
+        if(tk == 0) continue;
+        if(PositionGetString(POSITION_SYMBOL) != _Symbol) continue;
+        SafeClosePosition(tk);
+    }
 }
 
 //+------------------------------------------------------------------+
