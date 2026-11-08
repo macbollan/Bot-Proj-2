@@ -31,7 +31,11 @@ const UserSchema = new mongoose.Schema({
     profit:   Number,
     updatedAt: { type: Date, default: Date.now }
 }],
-equityHistory: [Number],
+
+equityHistory: [Number]equityHistory: [{
+    time: { type: Date, default: Date.now },
+    equity: { type: Number }
+}],
 
 // ─── PAYMENT AUDIT TRAIL ────────────────────────────────────────────
 paymentHistory: [{
