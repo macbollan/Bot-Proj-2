@@ -1195,7 +1195,7 @@
 // Open Positions (now sourced from data.openPositions — the client EA's own book)
             const positionsList = document.getElementById('positionsList');
             const positionsCount = document.getElementById('positionsCount');
-            const positions = data.openPositions || [];
+
             positionsCount.innerText = `${positions.length} Open`;
             if (positions.length > 0) {
                 positionsList.innerHTML = positions.map(t => {
