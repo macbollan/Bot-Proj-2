@@ -990,6 +990,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let keyRevealed = false;
+    let rawEquityHistory = []; // ADD THIS
     function handleKeyClick() {
         const box = document.getElementById('licenseKeyBox');
         if (!box) return;
@@ -1064,10 +1065,10 @@
     const equityChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array(50).fill(''),
+            labels: [], // Changed from Array(50).fill('')
             datasets: [{
                 label: 'Master Equity',
-                data: [],
+                data: [], // Changed from []
                 borderColor: '#B0BF96',
                 backgroundColor: 'rgba(176, 191, 150, 0.08)',
                 borderWidth: 2,
@@ -1080,7 +1081,11 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { display: false },
+                x: { 
+                    display: true, // Show the X axis
+                    grid: { display: false },
+                    ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 6 }
+                },
                 y: {
                     display: true,
                     grid: { color: 'rgba(255,255,255,0.04)' },
@@ -1095,6 +1100,43 @@
     function setChartRange(range, btn) {
         document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
         btn.classList.add('active');
+        updateChartWithFilter();
+    }
+
+    function updateChartWithFilter() {
+        if (!window.equityChart || !rawEquityHistory || rawEquityHistory.length === 0) return;
+
+        const activeBtn = document.querySelector('.chart-tab.active');
+        const activeTab = activeBtn ? activeBtn.innerText : '1D';
+        
+        const now = new Date();
+        let cutoff = new Date();
+
+        if (activeTab === '1D') cutoff.setHours(now.getHours() - 24);
+        else if (activeTab === '7D') cutoff.setDate(now.getDate() - 7);
+        else if (activeTab === '30D') cutoff.setDate(now.getDate() - 30);
+
+        // Handle legacy format if needed
+        if (typeof rawEquityHistory[0] === 'number') {
+            equityChart.data.labels = rawEquityHistory.map((_, i) => '');
+            equityChart.data.datasets[0].data = rawEquityHistory;
+            equityChart.update();
+            return;
+        }
+
+        const filtered = rawEquityHistory.filter(e => new Date(e.time) >= cutoff);
+
+        const labels = filtered.map(e => {
+            const d = new Date(e.time);
+            if (activeTab === '1D') return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            else return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        });
+
+        const dataPoints = filtered.map(e => e.equity);
+
+        equityChart.data.labels = labels;
+        equityChart.data.datasets[0].data = dataPoints;
+        equityChart.update();
     }
 
     // =========================================
@@ -1108,7 +1150,9 @@
             document.getElementById('ea-symbol').innerText = data.activeSymbol || '--';
             document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : '0.00';
             document.getElementById('ea-trend').innerText = data.trend || '--';
-            document.getElementById('ea-trades').innerText = data.openTrades || '0';
+
+            const positions = data.openPositions || [];
+            document.getElementById('ea-trades').innerText = positions.length;
 
             const floatEl = document.getElementById('currentFloat');
             if (floatEl) {
@@ -1176,9 +1220,10 @@
             }
 
             // Chart
+            // Chart
             if (data.equityHistory?.length > 0) {
-                equityChart.data.datasets[0].data = data.equityHistory;
-                equityChart.update();
+                rawEquityHistory = data.equityHistory;
+                updateChartWithFilter();
             }
 
             // ============================================

@@ -287,71 +287,84 @@ app.post("/api/paynow/update", async (req, res) => {
         }
     }
 
-    if (isPaid) {
+    if (isPaid && reference) {
+        let userId, tierName, config;
         const parts = reference.split("-");
-        const userId = parts[0];
-        const tierName = parts[1];
-        const config = tierConfig[tierName];
+        
+        // Try to extract from the reference string first
+        if (parts.length >= 2) {
+            userId = parts[0];
+            tierName = parts[1];
+            config = tierConfig[tierName];
+        }
 
-        try {
-            const user = await User.findById(userId);
-            if (user) {
-                const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
+        // Fallback: If parsing failed, check the pendingPayments memory cache
+        if ((!userId || !config) && pendingPayments[reference]) {
+            userId = pendingPayments[reference].userId;
+            tierName = pendingPayments[reference].tier;
+            config = tierConfig[tierName];
+        }
 
-                user.licenseKey = generateDET_ID();
-                user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
-                user.currentTier = tierName;
-                user.prepaymentAmount = parseFloat(amount) || config.min;
-                user.termsAgreed = true;
-                user.isSuspended = false;
-                user.accountLocked = false;
-                user.mt5AccountNumber = null;
-                user.lockReason = null;
+        if (userId && config) {
+            try {
+                const user = await User.findById(userId);
+                if (user) {
+                    const generateDET_ID = () => Math.floor(100000000 + Math.random() * 900000000).toString();
 
-                user.startingBalance = 0;
-                user.targetBalance = 0;
-                user.profitTarget = getTierProfitTarget(tierName);   // <- NEW: tier-based profit goal
-                user.monitoredSymbols = [];
-                user.connectedBrokers = [];
+                    user.licenseKey = generateDET_ID();
+                    user.licenseExpiry = new Date(Date.now() + config.durationDays * 24 * 60 * 60 * 1000);
+                    user.currentTier = tierName;
+                    user.prepaymentAmount = parseFloat(amount) || config.min;
+                    user.termsAgreed = true;
+                    user.isSuspended = false;
+                    user.accountLocked = false;
+                    user.mt5AccountNumber = null;
+                    user.lockReason = null;
 
-                await user.save();
+                    user.startingBalance = 0;
+                    user.targetBalance = 0;
+                    user.profitTarget = getTierProfitTarget(tierName);
+                    user.monitoredSymbols = [];
+                    user.connectedBrokers = [];
 
-                // ✅ NEW: log the PayNow payment for the admin Payment Ledger
-                try {
-                    if (!Array.isArray(user.paymentHistory)) user.paymentHistory = [];
-                    const alreadyLogged = user.paymentHistory.find(p => p.reference === reference);
-                    if (!alreadyLogged) {
-                        user.paymentHistory.push({
-                            amount:       parseFloat(amount) || config.min,
-                            tier:         tierName,
-                            method:       'paynow',
-                            source:       'paynow_webhook',
-                            reference:    reference,
-                            durationDays: config.durationDays,
-                            date:         new Date()
-                        });
-                        user.paymentSource   = 'paynow';
-                        user.lastPaymentDate = new Date();
-                        await user.save();
-                        console.log(`[PAYMENT LOG] PayNow $${amount} → ${user.username} (${tierName})`);
+                    await user.save();
+
+                    // ✅ Log the PayNow payment
+                    try {
+                        if (!Array.isArray(user.paymentHistory)) user.paymentHistory = [];
+                        const alreadyLogged = user.paymentHistory.find(p => p.reference === reference);
+                        if (!alreadyLogged) {
+                            user.paymentHistory.push({
+                                amount:       parseFloat(amount) || config.min,
+                                tier:         tierName,
+                                method:       'paynow',
+                                source:       'paynow_webhook',
+                                reference:    reference,
+                                durationDays: config.durationDays,
+                                date:         new Date()
+                            });
+                            user.paymentSource   = 'paynow';
+                            user.lastPaymentDate = new Date();
+                            await user.save();
+                            console.log(`[PAYMENT LOG] PayNow $${amount} → ${user.username} (${tierName})`);
+                        }
+                    } catch (logErr) {
+                        console.error('[PAYMENT LOG] failed:', logErr);
                     }
-                } catch (logErr) {
-                    console.error('[PAYMENT LOG] failed:', logErr);
-                }
 
-                if (user.referredBy) {
-                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
-                }
+                    // Cleaned up duplicate affiliate calls
+                    if (user.referredBy) {
+                        await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
+                    }
 
-                if (user.referredBy) {
-                    await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
+                    console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
+                    await sendActivationEmail(user, tierName);
                 }
-
-                console.log(`[SUCCESS] Webhook Verified! 9-Digit ID generated for ${user.username} (${tierName}) - Paid: $${amount}`);
-                await sendActivationEmail(user, tierName);
+            } catch (err) {
+                console.error("Webhook database update failed:", err);
             }
-        } catch (err) {
-            console.error("Webhook database update failed:", err);
+        } else {
+            console.log(`[WEBHOOK] Could not parse reference or find config for ${reference}`);
         }
     } else if (isFailed) {
         console.log(`[WEBHOOK] Payment ${status} for ref ${reference} — no license generated.`);
@@ -598,11 +611,31 @@ app.post("/api/client/sync", async (req, res) => {
         // ─────────────────────────────────────────────────────────────
         // 7) ROLLING EQUITY HISTORY (max 100 points for the growth chart)
         // ─────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────
+        // 7) ROLLING EQUITY HISTORY (Store timestamps for accurate charts)
+        // ─────────────────────────────────────────────────────────────
         if (!Array.isArray(user.equityHistory)) user.equityHistory = [];
+        
+        // Migrate legacy array of numbers to array of objects
+        if (user.equityHistory.length > 0 && typeof user.equityHistory[0] === 'number') {
+            const now = new Date();
+            user.equityHistory = user.equityHistory.map((val, idx) => ({
+                time: new Date(now.getTime() - (user.equityHistory.length - idx) * 60000),
+                equity: val
+            }));
+        }
+
         const eqNow = Number(currentEquity) || 0;
         if (eqNow > 0) {
-            user.equityHistory.push(eqNow);
-            if (user.equityHistory.length > 100) user.equityHistory.shift();
+            user.equityHistory.push({
+                time: new Date(),
+                equity: eqNow
+            });
+            // Keep up to 2000 points (approx 1 hour of 2-second ticks) + 30 days cutoff
+            if (user.equityHistory.length > 2000) user.equityHistory.shift();
+            
+            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            user.equityHistory = user.equityHistory.filter(e => new Date(e.time) >= thirtyDaysAgo);
         }
 
         // ─────────────────────────────────────────────────────────────

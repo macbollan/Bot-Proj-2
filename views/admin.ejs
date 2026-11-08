@@ -1410,9 +1410,24 @@
                             <% } %>
                         </tbody>
                     </table>
+
+                                </div>
+            <!-- ADD PAGINATION CONTROLS HERE -->
+            <div class="pagination-container" id="paymentPaginationContainer" style="margin-top: 15px; border-radius: 10px; border: 1px solid var(--det-border);">
+                <div class="pagination-info">
+                    Showing <span id="paymentShowingStart">0</span>-<span id="paymentShowingEnd">0</span> of <span id="paymentTotalRecords">0</span> payments
+                </div>
+                <div class="pagination-controls">
+                    <select class="page-size-select" id="paymentPageSizeSelect">
+                        <option value="10">10 per page</option>
+                        <option value="25">25 per page</option>
+                        <option value="50">50 per page</option>
+                        <option value="100">100 per page</option>
+                    </select>
+                    <div class="pagination" id="paymentPagination"></div>
                 </div>
             </div>
-
+            
             <div id="paymentNoResults" class="empty-state" style="display: none;">
                 <i class="bi bi-search"></i>
                 <strong>No payments match your filter</strong>
@@ -1421,6 +1436,7 @@
         </div>
     </div>
 </div>
+
 
             <!-- PARTICIPANT LEDGER WITH PAGINATION -->
             <div class="row" id="ledger">
@@ -2260,28 +2276,125 @@
                 // ==========================================
         // PAYMENT LEDGER — FILTER + SEARCH
         // ==========================================
+                // ==========================================
+        // PAYMENT LEDGER — FILTER, SEARCH, PAGINATION
+        // ==========================================
         (function() {
-            const tableBody   = document.getElementById('paymentLedgerBody');
-            const searchInput = document.getElementById('paymentSearch');
-            const noResults   = document.getElementById('paymentNoResults');
-            const filterBtns  = document.querySelectorAll('.payment-filter');
+            const tableBody      = document.getElementById('paymentLedgerBody');
+            const searchInput    = document.getElementById('paymentSearch');
+            const noResults      = document.getElementById('paymentNoResults');
+            const filterBtns     = document.querySelectorAll('.payment-filter');
+            const pageSizeSelect = document.getElementById('paymentPageSizeSelect');
+            const paginationDiv  = document.getElementById('paymentPagination');
+            const showingStart   = document.getElementById('paymentShowingStart');
+            const showingEnd     = document.getElementById('paymentShowingEnd');
+            const totalRecords   = document.getElementById('paymentTotalRecords');
 
             if (!tableBody) return;
 
-            const allRows = Array.from(tableBody.querySelectorAll('tr[data-payment-search]'));
+            let allRows = Array.from(tableBody.querySelectorAll('tr[data-payment-search]'));
+            let filteredRows = [...allRows];
             let activeFilter = 'all';
-            let searchTerm   = '';
+            let searchTerm = '';
+            let currentPage = 1;
+            let pageSize = 10;
 
             function applyFilters() {
-                let visible = 0;
-                allRows.forEach(row => {
+                filteredRows = allRows.filter(row => {
                     const matchesMethod = activeFilter === 'all' || row.dataset.paymentMethod === activeFilter;
                     const matchesSearch = !searchTerm || row.dataset.paymentSearch.includes(searchTerm);
-                    const show = matchesMethod && matchesSearch;
-                    row.style.display = show ? '' : 'none';
-                    if (show) visible++;
+                    return matchesMethod && matchesSearch;
                 });
-                if (noResults) noResults.style.display = (visible === 0 && allRows.length > 0) ? 'flex' : 'none';
+                currentPage = 1;
+                updatePagination();
+            }
+
+            function updatePagination() {
+                const total = filteredRows.length;
+                const totalPages = Math.ceil(total / pageSize);
+                const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+                const end = Math.min(currentPage * pageSize, total);
+
+                if (showingStart) showingStart.textContent = start;
+                if (showingEnd) showingEnd.textContent = end;
+                if (totalRecords) totalRecords.textContent = total;
+
+                // Hide all first
+                allRows.forEach(row => row.style.display = 'none');
+                
+                // Show only the current page
+                filteredRows.forEach((row, i) => {
+                    if (i >= (currentPage - 1) * pageSize && i < currentPage * pageSize) {
+                        row.style.display = '';
+                    }
+                });
+
+                if (paginationDiv) {
+                    paginationDiv.innerHTML = '';
+                    
+                    const prevBtn = document.createElement('button');
+                    prevBtn.className = 'page-btn';
+                    prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+                    prevBtn.disabled = currentPage === 1;
+                    prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; updatePagination(); } });
+                    paginationDiv.appendChild(prevBtn);
+
+                    const maxVisible = 5;
+                    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                    if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+
+                    if (startPage > 1) {
+                        const firstBtn = document.createElement('button');
+                        firstBtn.className = 'page-btn';
+                        firstBtn.textContent = '1';
+                        firstBtn.addEventListener('click', () => { currentPage = 1; updatePagination(); });
+                        paginationDiv.appendChild(firstBtn);
+                        if (startPage > 2) {
+                            const dots = document.createElement('span');
+                            dots.className = 'page-btn';
+                            dots.textContent = '...';
+                            dots.style.cursor = 'default';
+                            dots.style.pointerEvents = 'none';
+                            paginationDiv.appendChild(dots);
+                        }
+                    }
+
+                    for (let i = startPage; i <= endPage; i++) {
+                        const pageBtn = document.createElement('button');
+                        pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                        pageBtn.textContent = i;
+                        pageBtn.addEventListener('click', () => { currentPage = i; updatePagination(); });
+                        paginationDiv.appendChild(pageBtn);
+                    }
+
+                    if (endPage < totalPages) {
+                        if (endPage < totalPages - 1) {
+                            const dots = document.createElement('span');
+                            dots.className = 'page-btn';
+                            dots.textContent = '...';
+                            dots.style.cursor = 'default';
+                            dots.style.pointerEvents = 'none';
+                            paginationDiv.appendChild(dots);
+                        }
+                        const lastBtn = document.createElement('button');
+                        lastBtn.className = 'page-btn';
+                        lastBtn.textContent = totalPages;
+                        lastBtn.addEventListener('click', () => { currentPage = totalPages; updatePagination(); });
+                        paginationDiv.appendChild(lastBtn);
+                    }
+
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'page-btn';
+                    nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+                    nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+                    nextBtn.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; updatePagination(); } });
+                    paginationDiv.appendChild(nextBtn);
+                }
+
+                if (noResults) {
+                    noResults.style.display = (filteredRows.length === 0 && (searchTerm || activeFilter !== 'all')) ? 'flex' : 'none';
+                }
             }
 
             filterBtns.forEach(btn => {
@@ -2299,6 +2412,17 @@
                     applyFilters();
                 });
             }
+
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', function() {
+                    pageSize = parseInt(this.value);
+                    currentPage = 1;
+                    updatePagination();
+                });
+            }
+
+            // Initial load
+            applyFilters();
         })();
 
         console.log('%c🛡️ D.E.T Master Node Console v2.5.0 %c| %cSecure Session Active',
