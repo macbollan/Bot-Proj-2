@@ -327,6 +327,10 @@ app.post("/api/paynow/update", async (req, res) => {
                     user.monitoredSymbols = [];
                     user.connectedBrokers = [];
 
+                            // ✅ ADD THESE TWO LINES:
+        user.equityHistory = []; 
+        user.openPositions = [];
+
                     await user.save();
 
                     // ✅ Log the PayNow payment
@@ -352,7 +356,7 @@ app.post("/api/paynow/update", async (req, res) => {
                         console.error('[PAYMENT LOG] failed:', logErr);
                     }
 
-                    // Cleaned up duplicate affiliate calls
+                    // Cleaned up duplicate affiliate calls.
                     if (user.referredBy) {
                         await processAffiliateCommissionOnPayment(user, parseFloat(amount) || config.min, tierName);
                     }
@@ -685,6 +689,9 @@ app.post("/api/client/sync", async (req, res) => {
             }
         }
 
+
+                // Before saving broker telemetry and equity history:
+        user.__v = undefined;
         await user.save();
 
         // ─────────────────────────────────────────────────────────────
@@ -1904,6 +1911,10 @@ app.post("/admin/offer-free-week/:id", isAdmin, async (req, res) => {
         user.targetBalance   = 0;
         user.connectedBrokers = []; // Clear ghost brokers
 
+                // ✅ ADD THESE TWO LINES:
+        user.equityHistory = []; 
+        user.openPositions = [];
+
         // Extend expiry by 7 days
         const baseDate = user.licenseExpiry && user.licenseExpiry > new Date()
             ? new Date(user.licenseExpiry)
@@ -1950,6 +1961,10 @@ app.post("/admin/generate-license/:id", isAdmin, async (req, res) => {
         user.monitoredSymbols = [];
         user.connectedBrokers = [];
         user.lockReason = null;
+
+                // ✅ ADD THESE TWO LINES:
+        user.equityHistory = []; 
+        user.openPositions = []; 
 
         await user.save();
 

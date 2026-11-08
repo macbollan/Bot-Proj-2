@@ -9,10 +9,17 @@
         --det-card: #1E1B1B;
     }
 
+    /* Global Overflow Fix */
+    body, html {
+        overflow-x: hidden;
+        width: 100%;
+    }
+
     .dashboard-container {
         max-width: 1400px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 15px;
+        width: 100%;
     }
 
     /* Quick Nav */
@@ -72,6 +79,7 @@
         position: relative;
         overflow: hidden;
         box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        width: 100%;
     }
     .welcome-hero::before {
         content: '';
@@ -83,7 +91,7 @@
         background: radial-gradient(circle, rgba(176,191,150,0.08) 0%, transparent 70%);
         border-radius: 50%;
     }
-    .welcome-content { position: relative; z-index: 1; }
+    .welcome-content { position: relative; z-index: 1; width: 100%; }
     .welcome-hero h1 {
         font-size: 24px;
         font-weight: 700;
@@ -97,13 +105,7 @@
         margin-bottom: 0;
     }
 
-    /* Status Grid */
-    .status-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
-    }
+    /* Status Cards */
     .status-card {
         background: var(--det-card);
         border: 1px solid var(--det-border);
@@ -114,19 +116,22 @@
         gap: 12px;
         transition: all 0.2s;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: 100%;
+        width: 100%;
     }
     .status-card:hover {
         transform: translateY(-2px);
         border-color: rgba(176, 191, 150, 0.3);
+        background: #232020;
     }
     .status-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         flex-shrink: 0;
     }
     .status-label {
@@ -134,19 +139,17 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #94a3b8;
-        font-weight: 600;
-        margin-bottom: 2px;
+        font-weight: 700;
+        margin-bottom: 4px;
     }
     .status-value {
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 15px;
+        font-weight: 800;
         color: #fff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        word-break: break-word;
+        line-height: 1.2;
     }
-    .status-value.small-text { font-size: 12px; }
+    .status-value.small-text { font-size: 14px; }
 
     /* Integration Card */
     .integration-card {
@@ -156,6 +159,7 @@
         padding: 20px;
         margin-bottom: 20px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        width: 100%;
     }
     .key-display {
         background: var(--det-dark);
@@ -169,6 +173,8 @@
         cursor: pointer;
         transition: all 0.3s;
         text-align: center;
+        word-break: break-all;
+        width: 100%;
     }
     .key-display.blurred {
         filter: blur(6px);
@@ -189,6 +195,9 @@
         align-items: center;
         transition: all 0.2s;
         height: 100%;
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 100%;
     }
     .broker-account-card:hover {
         border-color: rgba(176,191,150,0.3);
@@ -201,6 +210,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        word-break: break-word;
     }
     .broker-meta {
         font-size: 11px;
@@ -227,6 +237,8 @@
         padding: 20px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         transition: all 0.3s ease;
+        height: 100%;
+        width: 100%;
     }
     .panel-card:hover {
         border-color: rgba(176, 191, 150, 0.25);
@@ -237,59 +249,16 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
     .panel-title {
-        font-size: 11px;
+        font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #94a3b8;
+        color: #fff;
         font-weight: 700;
     }
-    .panel-badge {
-        background: rgba(176, 191, 150, 0.1);
-        color: var(--det-green);
-        border: 1px solid rgba(176, 191, 150, 0.2);
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 10px;
-        font-weight: 600;
-    }
-
-    .scroll-list {
-        max-height: 180px;
-        overflow-y: auto;
-        padding-right: 6px;
-    }
-    .scroll-list::-webkit-scrollbar { width: 4px; }
-    .scroll-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 4px; }
-    .scroll-list::-webkit-scrollbar-thumb { background: rgba(176,191,150,0.3); border-radius: 4px; }
-
-    .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
-        transition: background 0.2s;
-    }
-    .list-item:last-child { border-bottom: none; }
-    .list-item:hover { background: rgba(255,255,255,0.02); border-radius: 6px; padding-left: 6px; padding-right: 6px; margin: 0 -6px; }
-    .list-item .symbol {
-        color: #cbd5e1;
-        font-weight: 500;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .list-item .value {
-        font-weight: 600;
-        font-size: 13px;
-        font-family: 'Courier New', monospace;
-    }
-    .value.positive { color: #22c55e; }
-    .value.negative { color: #ef4444; }
-    .value.neutral { color: #94a3b8; }
 
     /* Chart Tabs */
     .chart-tabs {
@@ -329,6 +298,7 @@
         background: rgba(176,191,150,0.02);
         border: 1px solid rgba(176,191,150,0.08);
         border-radius: 12px;
+        width: 100%;
     }
     .status-ok-circle {
         width: 80px;
@@ -341,6 +311,7 @@
         position: relative;
         margin-bottom: 15px;
         animation: pulseGlow 3s infinite;
+        flex-shrink: 0;
     }
     .status-ok-circle::before {
         content: '';
@@ -367,7 +338,7 @@
     }
     .transparency-list li {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 10px;
         border-bottom: 1px solid rgba(255,255,255,0.03);
         padding-bottom: 6px;
@@ -383,6 +354,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        margin-top: 4px;
+        flex-shrink: 0;
     }
     .transparency-note {
         color: #64748b;
@@ -393,25 +366,8 @@
         padding: 10px;
         background: rgba(176,191,150,0.02);
         border-radius: 0 8px 8px 0;
+        word-break: break-word;
     }
-
-    .metric-mini {
-        background: var(--det-dark);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-    }
-    .metric-mini .label {
-        font-size: 9px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #94a3b8;
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-    .metric-mini .value { font-size: 16px; font-weight: 700; color: #fff; }
-    .metric-mini .value.accent { color: var(--det-green); }
 
     .btn-det {
         background: var(--det-green);
@@ -447,14 +403,17 @@
     }
 
     .alert-custom {
-        border-radius: 8px;
-        padding: 14px 18px;
-        font-weight: 600;
+        border-radius: 12px;
+        padding: 20px;
+        font-weight: 500;
         font-size: 14px;
         margin-bottom: 20px;
         display: flex;
-        align-items: center;
-        gap: 10px;
+        align-items: flex-start;
+        gap: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 100%;
+        word-break: break-word;
     }
 
     /* Modals */
@@ -498,12 +457,17 @@
     .password-requirements .req-item.met { color: #22c55e; }
     .password-requirements .req-item i { font-size: 14px; width: 16px; }
 
-    @media (max-width: 768px) {
-        .dashboard-container { padding: 0 12px; }
+    /* Mobile Specific Adjustments */
+    @media (max-width: 576px) {
+        .dashboard-container { padding: 0 10px; }
         .welcome-hero { padding: 20px 15px; }
-        .quick-nav { gap: 4px; padding: 10px 12px; }
+        .quick-nav { padding: 10px; }
         .quick-nav a { padding: 5px 10px; font-size: 11px; }
-        .status-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+        .welcome-hero h1 { font-size: 20px; }
+        .alert-custom { flex-direction: column; gap: 10px; padding: 15px; }
+        .status-card { flex-direction: column; text-align: center; align-items: center; padding: 15px 10px; }
+        .status-icon { margin-bottom: 5px; }
+        .status-value { font-size: 14px; }
     }
 </style>
 
@@ -512,18 +476,20 @@
     <!-- FLASH MESSAGES -->
     <% if(success && success.length > 0) { %>
         <div class="alert-custom" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #22c55e;">
-            <i class="bi bi-check-circle-fill"></i> <%= success %>
+            <i class="bi bi-check-circle-fill flex-shrink-0" style="font-size: 20px;"></i> 
+            <div class="flex-grow-1"><%= success %></div>
         </div>
     <% } %>
     <% if(error && error.length > 0) { %>
         <div class="alert-custom" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444;">
-            <i class="bi bi-exclamation-triangle-fill"></i> <%= error %>
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0" style="font-size: 20px;"></i> 
+            <div class="flex-grow-1"><%= error %></div>
         </div>
     <% } %>
 
     <!-- QUICK NAV -->
     <div class="quick-nav">
-        <span class="quick-nav-label">Navigate:</span>
+        <span class="quick-nav-label d-none d-sm-inline">Navigate:</span>
         <a href="/"><i class="bi bi-house"></i> Home</a>
         <a href="/dashboard" class="active-page"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <a href="/pricing"><i class="bi bi-tags"></i> Pricing Plans</a>
@@ -536,10 +502,10 @@
     <div class="welcome-hero">
         <div class="welcome-content">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-                <div>
+                <div class="flex-grow-1" style="min-width: 0;">
                     <h1>Welcome, <%= currentUser.username %></h1>
                     <p class="subtitle">Your D.E.T trading environment is ready. Monitor your license and live market data below.</p>
-                    <div class="d-flex gap-2 mt-3">
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
                         <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                             <i class="bi bi-person-badge"></i> Edit Profile
                         </button>
@@ -548,7 +514,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2" style="background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 6px 16px; border-radius: 30px;">
+                <div class="d-flex align-items-center gap-2 flex-shrink-0" style="background: rgba(176,191,150,0.1); border: 1px solid rgba(176,191,150,0.2); padding: 6px 16px; border-radius: 30px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
                     <span style="color: var(--det-green); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Node Online</span>
                 </div>
@@ -582,16 +548,16 @@
     const tierTooSmall = userTierRange && userFloat > 0 && userFloat < userTierRange[0];
     const tierTooBig   = userTierRange && userFloat > 0 && userTierRange[1] && userFloat > userTierRange[1];
 %>
-    <!-- TIER-FIT WARNING — Dynamic & Professional -->
+
+    <!-- TIER-FIT / PREPAYMENT ALERT -->
     <% if(userTierRange && currentUser.currentTier !== 'None' && userFloat > 0) { %>
-        <div class="alert-custom" style="background: <%= tierFits ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.10)' %>; border: 1px solid <%= tierFits ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.35)' %>; color: <%= tierFits ? '#22c55e' : '#f59e0b' %>;">
-            <i class="bi <%= tierFits ? 'bi-check-circle-fill' : 'bi-info-circle-fill' %>" style="font-size: 20px;"></i>
-            <div>
-                <strong>Your deposit of $<%= userFloat.toLocaleString() %> has been received for the <%= currentUser.currentTier %> Tier.</strong><br>
-                Your account will now be configured for this tier, which is designed to manage trading floats ranging from 
-                <strong>$<%= userTierRange[0].toLocaleString() %> to $<%= userTierRange[1] ? userTierRange[1].toLocaleString() : '∞' %></strong>.
-                D.E.T will manage your account in accordance with the <%= currentUser.currentTier %> tier limits.
-                
+        <div class="alert-custom" style="background: <%= tierFits ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.10)' %>; border: 1px solid <%= tierFits ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.35)' %>; color: #fff;">
+            <i class="bi <%= tierFits ? 'bi-check-circle-fill' : 'bi-info-circle-fill' %> flex-shrink-0" style="font-size: 24px; color: <%= tierFits ? '#22c55e' : '#f59e0b' %>;"></i>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <h5 style="color: #fff; font-weight: 700; margin-bottom: 8px; font-size: 16px; word-break: break-word;">Your prepayment of $<%= userFloat.toLocaleString() %> has been received for the <%= currentUser.currentTier %> Tier.</h5>
+                <p style="color: #cbd5e1; margin: 0; font-size: 14px; line-height: 1.6; word-break: break-word;">
+                    Your account will now be configured in accordance with the <%= currentUser.currentTier %> tier limits. which is designed to manage trading floats ranging from <strong>$<%= userTierRange[0].toLocaleString() %></strong> to <strong>$<%= userTierRange[1] ? userTierRange[1].toLocaleString() : '∞' %></strong>.
+                </p>
                 <% if(tierTooSmall) { %>
                     <br><span style="font-size: 12px; opacity: 0.9; display: inline-block; margin-top: 6px;">Note: Your current deposit is below the optimal range. Consider <a href="/pricing" style="color: inherit; text-decoration: underline;">upgrading your tier</a> for maximum coverage.</span>
                 <% } else if(tierTooBig) { %>
@@ -601,112 +567,127 @@
         </div>
     <% } %>
 
-    <!-- STATUS CARDS -->
-    <div class="status-grid">
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
-                <i class="bi bi-award"></i>
-            </div>
-            <div>
-                <div class="status-label">D.E.T Plan</div>
-                <div class="status-value"><%= currentUser.currentTier || 'None' %></div>
-            </div>
-        </div>
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
-                <i class="bi bi-calendar-check"></i>
-            </div>
-            <div>
-                <div class="status-label">Days Remaining</div>
-                <div class="status-value small-text">
-                    <% 
-                        let daysLeft = 0;
-                        if(currentUser.licenseExpiry) {
-                            daysLeft = Math.ceil((new Date(currentUser.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
-                            if(daysLeft < 0) daysLeft = 0;
-                            if(daysLeft > 3650) daysLeft = 3650;
-                        }
-                    %>
-                    <%= daysLeft %> Days
+    <!-- STATUS CARDS (Bootstrap Grid) -->
+    <div class="row g-3 mb-4">
+        <!-- D.E.T Plan -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
+                    <i class="bi bi-award"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">D.E.T Plan</div>
+                    <div class="status-value"><%= currentUser.currentTier || 'None' %></div>
                 </div>
             </div>
         </div>
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                <i class="bi bi-shield-check"></i>
-            </div>
-            <div>
-                <div class="status-label">Account Status</div>
-                <div class="status-value">
-                    <% if(currentUser.accountLocked) { %>
-                        <span style="color: #ef4444;">Locked</span>
-                    <% } else if(currentUser.isSuspended) { %>
-                        <span style="color: #f59e0b;">Suspended</span>
-                    <% } else if(currentUser.licenseKey && daysLeft > 0) { %>
-                        <span style="color: #22c55e;">Active</span>
-                    <% } else { %>
-                        <span style="color: #94a3b8;">Inactive</span>
-                    <% } %>
+
+        <!-- Days Remaining -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Days Remaining</div>
+                    <div class="status-value small-text">
+                        <% 
+                            let daysLeft = 0;
+                            if(currentUser.licenseExpiry) {
+                                daysLeft = Math.ceil((new Date(currentUser.licenseExpiry) - new Date()) / (1000 * 60 * 60 * 24));
+                                if(daysLeft < 0) daysLeft = 0;
+                                if(daysLeft > 3650) daysLeft = 3650;
+                            }
+                        %>
+                        <%= daysLeft %> Days
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
-                <i class="bi bi-wallet2"></i>
-            </div>
-            <div>
-                <div class="status-label">Starting Capital</div>
-                <div class="status-value small-text">$<%= currentUser.startingBalance ? currentUser.startingBalance.toFixed(2) : '0.00' %></div>
-            </div>
-        </div>
-        <div class="status-card">
-            <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
-                <i class="bi bi-graph-up"></i>
-            </div>
-            <div>
-                <div class="status-label">Current Float</div>
-                <div class="status-value small-text" id="currentFloat" style="color: #22c55e;">$0.00</div>
+
+        <!-- Prepayment Amount -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Prepayment Amount</div>
+                    <div class="status-value small-text" style="color: #22c55e;">$<%= currentUser.startingBalance ? currentUser.startingBalance.toLocaleString() : '0' %></div>
+                    <div style="font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 2px; word-break: break-word;">
+                        For D.E.T to manage $<%= userTierRange && userTierRange[1] ? userTierRange[1].toLocaleString() : (currentUser.startingBalance || 0) %>
+                    </div>
+                </div>
             </div>
         </div>
 
-
-<!-- NEW: Tier Profit Target -->
-<div class="status-card">
-    <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
-        <i class="bi bi-bullseye"></i>
-    </div>
-    <div>
-        <div class="status-label">Tier Profit Target</div>
-        <div class="status-value small-text" style="color: #22c55e;">
-            +$<%= userProfitTarget.toLocaleString() %>
+        <!-- Float in Trading Account -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Float in Trading Account</div>
+                    <div class="status-value small-text" id="currentFloat" style="color: #22c55e;">$0.00</div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- NEW: Auto-Logout At -->
-<div class="status-card">
-    <div class="status-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
-        <i class="bi bi-shield-exclamation"></i>
-    </div>
-    <div>
-        <div class="status-label">Auto-Logout At</div>
-        <div class="status-value small-text" style="color: #22c55e;">
-            $<%= ((currentUser.targetBalance || (userFloat + userProfitTarget)) || 0).toLocaleString() %>
+        <!-- Total Profit Towards 100% Gain -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(176,191,150,0.12); color: var(--det-green);">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Total Profit Towards 100% Gain</div>
+                    <div class="status-value small-text" id="totalProfit" style="color: #22c55e;">$0.00</div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+
+        <!-- Tier Profit Target -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(34,197,94,0.12); color: #22c55e;">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Tier Profit Target</div>
+                    <div class="status-value small-text" style="color: #22c55e;">
+                        +$<%= userProfitTarget.toLocaleString() %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Logout At -->
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="status-card">
+                <div class="status-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="status-label">Auto-Logout At</div>
+                    <div class="status-value small-text" style="color: #22c55e;">
+                        $<%= ((currentUser.targetBalance || (userFloat + userProfitTarget)) || 0).toLocaleString() %>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- INTEGRATION ID CARD -->
     <div class="integration-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-            <div>
+            <div class="flex-grow-1" style="min-width: 0;">
                 <h6 class="fw-bold mb-1" style="color: #fff; font-size: 15px;">
                     <i class="bi bi-key" style="color: var(--det-green); margin-right: 8px;"></i>Integration ID
                 </h6>
                 <p style="color: #94a3b8; font-size: 12px; margin: 0;">Your unique 9‑digit key for the CornerStore EA.</p>
             </div>
-            <div>
+            <div class="flex-shrink-0">
                 <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
                     <span style="background: rgba(176,191,150,0.12); color: var(--det-green); border: 1px solid rgba(176,191,150,0.25); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">
                         <i class="bi bi-check-circle-fill me-1"></i> Active Key
@@ -721,7 +702,7 @@
 
         <% if(currentUser.licenseKey && !currentUser.isSuspended && daysLeft > 0) { %>
             <div class="row align-items-center g-3">
-                <div class="col-lg-7">
+                <div class="col-12 col-lg-7">
                     <div class="key-display blurred" id="licenseKeyBox" onclick="handleKeyClick()">
                         <%= currentUser.licenseKey %>
                     </div>
@@ -729,7 +710,7 @@
                         <i class="bi bi-info-circle me-1"></i> Click to reveal · Click again to copy
                     </small>
                 </div>
-                <div class="col-lg-5">
+                <div class="col-12 col-lg-5">
                     <div class="d-grid gap-2">
                         <a href="/DET.rar" class="btn btn-det" style="text-decoration: none; display: block; text-align: center; font-size: 13px;">
                             <i class="bi bi-download me-2"></i> Download D.E.T
@@ -742,14 +723,14 @@
             </div>
         <% } else { %>
             <div style="background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-lock-fill" style="font-size: 24px; color: #f59e0b;"></i>
-                    <div>
+                <div class="d-flex align-items-center gap-3 flex-grow-1" style="min-width: 0;">
+                    <i class="bi bi-lock-fill flex-shrink-0" style="font-size: 24px; color: #f59e0b;"></i>
+                    <div style="min-width: 0;">
                         <p style="color: #f59e0b; font-weight: 600; margin-bottom: 2px; font-size: 14px;">No active license key found.</p>
                         <p style="color: #94a3b8; font-size: 12px; margin: 0;">Subscribe to a D.E.T plan to receive your unique Integration ID.</p>
                     </div>
                 </div>
-                <a href="/pricing" class="btn btn-det" style="text-decoration: none; font-size: 13px;">
+                <a href="/pricing" class="btn btn-det flex-shrink-0" style="text-decoration: none; font-size: 13px;">
                     <i class="bi bi-tags me-2"></i> View Plans
                 </a>
             </div>
@@ -761,7 +742,7 @@
     ========================================= -->
     <div class="integration-card" id="brokerSection" style="<%= (currentUser.connectedBrokers && currentUser.connectedBrokers.length > 0) ? '' : 'display: none;' %>">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-            <div>
+            <div class="flex-grow-1" style="min-width: 0;">
                 <h6 class="fw-bold mb-1" style="color: #fff; font-size: 15px;">
                     <i class="bi bi-broadcast" style="color: var(--det-green); margin-right: 8px;"></i>Connected Broker Accounts
                 </h6>
@@ -770,25 +751,25 @@
                     <strong style="color: var(--det-green);" id="brokerCount"><%= (currentUser.connectedBrokers || []).length %> broker(s) connected</strong>
                 </p>
             </div>
-            <span style="background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;" id="brokerBadge">
+            <span class="flex-shrink-0" style="background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;" id="brokerBadge">
                 <i class="bi bi-broadcast-pin"></i> <span id="brokerBadgeCount"><%= (currentUser.connectedBrokers || []).length %></span> Live
             </span>
         </div>
         <div class="row g-2" id="brokerList">
             <% (currentUser.connectedBrokers || []).forEach(function(broker) { %>
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <div class="broker-account-card">
-                        <div>
+                        <div style="min-width: 0;">
                             <div class="broker-name">
-                                <i class="bi bi-briefcase-fill" style="color: var(--det-green);"></i>
-                                <%= broker.brokerName || 'Unknown Broker' %>
+                                <i class="bi bi-briefcase-fill flex-shrink-0" style="color: var(--det-green);"></i>
+                                <span><%= broker.brokerName || 'Unknown Broker' %></span>
                             </div>
                             <div class="broker-meta">
                                 Account #<%= broker.accountNumber %>
                                 <% if(broker.server) { %> · <%= broker.server %><% } %>
                             </div>
                         </div>
-                        <div class="broker-license">
+                        <div class="broker-license flex-shrink-0">
                             ***<%= (broker.licenseUsed || currentUser.licenseKey || '').slice(-3) %>
                         </div>
                     </div>
@@ -800,79 +781,29 @@
     <!-- =========================================
          MAIN DASHBOARD AREA
     ========================================= -->
-    <div class="row g-4 align-items-start">
-        <!-- LEFT COLUMN -->
-        <div class="col-lg-8">
-            <div class="panel-card">
-                <div class="panel-header">
+    <div class="row g-4 align-items-stretch">
+        <!-- LEFT COLUMN - Account Growth Chart -->
+        <div class="col-12 col-lg-8">
+            <div class="panel-card d-flex flex-column h-100">
+                <div class="panel-header mb-4">
                     <div>
-                        <span class="panel-title"><i class="bi bi-activity" style="color: var(--det-green); margin-right: 6px;"></i>CornerStore Live Feed</span>
-                        <p style="color: #64748b; font-size: 11px; margin: 2px 0 0 0;">Real‑time data from the master trading node.</p>
+                        <span class="panel-title"><i class="bi bi-graph-up" style="color: var(--det-green); margin-right: 6px;"></i>Account Growth</span>
+                        <p style="color: #64748b; font-size: 11px; margin: 2px 0 0 0;">Historical equity performance.</p>
                     </div>
-                    <span class="panel-badge"><span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px;"></span> LIVE</span>
-                </div>
-
-                <div class="row g-2 mb-4">
-                    <div class="col-3">
-                        <div class="metric-mini">
-                            <div class="label">Active Asset</div>
-                            <div class="value" id="ea-symbol">--</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="metric-mini">
-                            <div class="label">Live Price</div>
-                            <div class="value accent" id="ea-price">0.00</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="metric-mini">
-                            <div class="label">A.I. Trend</div>
-                            <div class="value" id="ea-trend" style="color: #fff;">--</div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="metric-mini">
-                            <div class="label">Open Trades</div>
-                            <div class="value" id="ea-trades" style="color: #fff;">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-header mb-2">
-                    <span class="panel-title" style="font-size: 10px;">Markets Being Monitored</span>
-                    <span class="panel-badge" id="marketsCount">0 Markets</span>
-                </div>
-                <div class="scroll-list mb-4" id="marketsList" style="max-height: 140px;">
-                    <div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">Loading...</div>
-                </div>
-
-                <div class="panel-header mb-2">
-                    <span class="panel-title" style="font-size: 10px;">Open Positions</span>
-                    <span class="panel-badge" id="positionsCount">0 Open</span>
-                </div>
-                <div class="scroll-list" id="positionsList" style="max-height: 140px;">
-                    <div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div class="col-lg-4 d-flex flex-column gap-4">
-            <div class="panel-card">
-                <div class="panel-header mb-3">
-                    <span class="panel-title" style="font-size: 10px;">Account Growth</span>
                     <div class="chart-tabs">
                         <button class="chart-tab active" onclick="setChartRange('today', this)">1D</button>
                         <button class="chart-tab" onclick="setChartRange('7days', this)">7D</button>
                         <button class="chart-tab" onclick="setChartRange('30days', this)">30D</button>
                     </div>
                 </div>
-                <div style="background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px;">
-                    <canvas id="equityChart" style="max-height: 180px; width: 100%;"></canvas>
+                <div style="background: var(--det-dark); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; width: 100%;">
+                    <canvas id="equityChart" style="max-height: 350px; width: 100%;"></canvas>
                 </div>
             </div>
+        </div>
 
+        <!-- RIGHT COLUMN - Status & Transparency -->
+        <div class="col-12 col-lg-4 d-flex flex-column gap-4">
             <div class="panel-card">
                 <div class="status-ok-container">
                     <div class="status-ok-circle">
@@ -892,18 +823,18 @@
                 </div>
             </div>
 
-            <div class="panel-card">
-                <div class="panel-header mb-2">
+            <div class="panel-card flex-grow-1">
+                <div class="panel-header mb-3">
                     <span class="panel-title" style="font-size: 10px;">Transparency Matters</span>
                 </div>
                 <ul class="transparency-list">
-                    <li><i class="bi bi-check2"></i> No hidden charges.</li>
-                    <li><i class="bi bi-check2"></i> No profit sharing.</li>
-                    <li><i class="bi bi-check2"></i> No access to your trading account.</li>
-                    <li><i class="bi bi-check2"></i> No access to your money.</li>
-                    <li><i class="bi bi-check2"></i> No access to your login credentials.</li>
+                    <li><i class="bi bi-check2"></i> <span>No hidden charges.</span></li>
+                    <li><i class="bi bi-check2"></i> <span>No profit sharing.</span></li>
+                    <li><i class="bi bi-check2"></i> <span>No access to your trading account.</span></li>
+                    <li><i class="bi bi-check2"></i> <span>No access to your money.</span></li>
+                    <li><i class="bi bi-check2"></i> <span>No access to your login credentials.</span></li>
                 </ul>
-                <div class="transparency-note">
+                <div class="transparency-note mt-4">
                     Your trading capital always remains under your custody. You remain in complete control throughout your trading journey.
                 </div>
             </div>
@@ -990,7 +921,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     let keyRevealed = false;
-    let rawEquityHistory = []; // ADD THIS
+    let rawEquityHistory = []; 
+    
     function handleKeyClick() {
         const box = document.getElementById('licenseKeyBox');
         if (!box) return;
@@ -1065,10 +997,10 @@
     const equityChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [], // Changed from Array(50).fill('')
+            labels: [], 
             datasets: [{
                 label: 'Master Equity',
-                data: [], // Changed from []
+                data: [], 
                 borderColor: '#B0BF96',
                 backgroundColor: 'rgba(176, 191, 150, 0.08)',
                 borderWidth: 2,
@@ -1082,7 +1014,7 @@
             maintainAspectRatio: false,
             scales: {
                 x: { 
-                    display: true, // Show the X axis
+                    display: true, 
                     grid: { display: false },
                     ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 6 }
                 },
@@ -1147,79 +1079,32 @@
             const res = await fetch('/api/user/ea-state');
             const data = await res.json();
 
-            document.getElementById('ea-symbol').innerText = data.activeSymbol || '--';
-            document.getElementById('ea-price').innerText = data.price ? parseFloat(data.price).toFixed(4) : '0.00';
-            document.getElementById('ea-trend').innerText = data.trend || '--';
-
-            const positions = data.openPositions || [];
-            document.getElementById('ea-trades').innerText = positions.length;
-
             const floatEl = document.getElementById('currentFloat');
+            const totalProfitEl = document.getElementById('totalProfit');
+
             if (floatEl) {
                 // Prefer the server-computed live float if it exists; fall back to
                 // equity history against starting balance.
                 let floatVal = (typeof data.liveFloat === 'number') ? data.liveFloat : null;
                 if (floatVal === null) {
                     const history = data.equityHistory || [];
-                    const currentEquity = history.length > 0 ? history[history.length - 1] : 0;
+                    const currentEquity = history.length > 0 ? history[history.length - 1].equity : 0;
                     const startingBalance = data.startingBalance || 0;
                     const baseBalance = startingBalance > 0 ? startingBalance : (currentEquity > 0 ? currentEquity : 1);
                     floatVal = currentEquity - baseBalance;
                 }
-                // FIX: never show a '-' sign on this KPI; always green (matches EA tile).
+                
+                // Update Float card (never show negative sign)
                 floatEl.innerText = '$' + Math.abs(floatVal).toFixed(2);
                 floatEl.style.color = '#22c55e';
-            }
-            // Markets Monitored
-            const marketsList = document.getElementById('marketsList');
-            const marketsCount = document.getElementById('marketsCount');
-            const symbols = data.monitoredSymbols || [];
-            marketsCount.innerText = `${symbols.length} Markets`;
-            if (symbols.length > 0) {
-                marketsList.innerHTML = symbols.map(sym => `
-                    <div class="list-item d-flex justify-content-between align-items-center">
-                        <span class="symbol">
-                            <i class="bi bi-circle-fill" style="color: var(--det-green); font-size: 8px;"></i>
-                            ${sym}
-                        </span>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size: 10px; line-height: 1;" onclick="removeSymbol('${sym}')" title="Remove ${sym}">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-                `).join('');
-            } else {
-                marketsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No markets attached. Please attach the EA to a chart.</div>`;
+
+                // Update Total Profit card dynamically
+                if (totalProfitEl) {
+                    totalProfitEl.innerText = '$' + Math.abs(floatVal).toFixed(2);
+                    totalProfitEl.style.color = '#22c55e';
+                }
             }
 
-            // Open Positions
-// Open Positions (now sourced from data.openPositions — the client EA's own book)
-            const positionsList = document.getElementById('positionsList');
-            const positionsCount = document.getElementById('positionsCount');
-
-            positionsCount.innerText = `${positions.length} Open`;
-            if (positions.length > 0) {
-                positionsList.innerHTML = positions.map(t => {
-                    const pnl = Number(t.profit) || 0;
-                    const isPositive = pnl >= 0;
-                    const dir = (t.type || '').toUpperCase();
-                    return `
-                        <div class="list-item">
-                            <span class="symbol">
-                                <i class="bi bi-${isPositive ? 'arrow-up-circle-fill' : 'arrow-down-circle-fill'}" style="color: ${isPositive ? '#22c55e' : '#ef4444'};"></i>
-                                ${t.symbol || 'Unknown'}
-                                <span style="color:#64748b; font-size:11px;">${dir} ${t.volume || ''}</span>
-                            </span>
-                            <span class="value ${isPositive ? 'positive' : 'negative'}">
-                                ${isPositive ? '+' : ''}$${Math.abs(pnl).toFixed(2)}
-                            </span>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                positionsList.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px; font-size: 12px;">No open positions currently.</div>`;
-            }
-
-            // Chart
             // Chart
             if (data.equityHistory?.length > 0) {
                 rawEquityHistory = data.equityHistory;
@@ -1241,18 +1126,18 @@
                 brokerBadgeCount.innerText = brokers.length;
 
                 brokerList.innerHTML = brokers.map(b => `
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <div class="broker-account-card">
-                            <div>
+                            <div style="min-width: 0;">
                                 <div class="broker-name">
-                                    <i class="bi bi-briefcase-fill" style="color: var(--det-green);"></i>
-                                    ${b.brokerName || 'Unknown Broker'}
+                                    <i class="bi bi-briefcase-fill flex-shrink-0" style="color: var(--det-green);"></i>
+                                    <span>${b.brokerName || 'Unknown Broker'}</span>
                                 </div>
                                 <div class="broker-meta">
                                     Account #${b.accountNumber}${b.server ? ' · ' + b.server : ''}
                                 </div>
                             </div>
-                            <div class="broker-license">
+                            <div class="broker-license flex-shrink-0">
                                 ***${(b.licenseUsed || '').slice(-3)}
                             </div>
                         </div>
@@ -1264,23 +1149,6 @@
 
         } catch (e) {
             console.error('Live feed error:', e);
-        }
-    }
-
-    async function removeSymbol(symbol) {
-        if (!confirm(`Remove ${symbol} from your monitored list?`)) return;
-        try {
-            const res = await fetch('/api/user/remove-symbol', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ symbol: symbol })
-            });
-            const data = await res.json();
-            if (data.success) fetchLiveData();
-            else alert('Failed to remove symbol.');
-        } catch (err) {
-            console.error('Error removing symbol:', err);
-            alert('Network error. Please try again.');
         }
     }
 
