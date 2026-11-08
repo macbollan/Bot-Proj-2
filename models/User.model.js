@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 }],
 
-equityHistory: [Number]equityHistory: [{
+equityHistory: [{
     time: { type: Date, default: Date.now },
     equity: { type: Number }
 }],
