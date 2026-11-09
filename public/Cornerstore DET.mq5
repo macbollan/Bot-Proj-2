@@ -107,6 +107,9 @@ string g_levelBtnText  = "LEVEL 3 LONGTRADER";
 string g_subLicMask    = "NOT SET";
 string g_brokerShort   = "Deriv";
 
+// --- NEW: Track Master Trend for Button Locking ---
+string g_masterTrend   = "Unknown"; 
+
 int  g_daysRem           = 0;
 int  g_hoursRem          = 0;
 int  g_minsRem           = 0;
@@ -292,36 +295,36 @@ void OnTimer() {
     int dashPos = StringFind(brokerName, "-");
     g_brokerShort = (dashPos > 0) ? StringSubstr(brokerName, 0, dashPos) : brokerName;
 
- // Build the open-positions array for this terminal/symbol
-string posArray = "[";
-int posCount = 0;
-for(int i = PositionsTotal() - 1; i >= 0; i--) {
-    ulong tk = PositionGetTicket(i);
-    if(tk == 0) continue;
-    string sym = PositionGetString(POSITION_SYMBOL);
-    if(sym != _Symbol) continue;
-    long   ptype = PositionGetInteger(POSITION_TYPE);
-    string typeStr = (ptype == POSITION_TYPE_BUY) ? "BUY" : "SELL";
-    double vol    = PositionGetDouble(POSITION_VOLUME);
-    double openP  = PositionGetDouble(POSITION_PRICE_OPEN);
-    double slp    = PositionGetDouble(POSITION_SL);
-    double tpp    = PositionGetDouble(POSITION_TP);
-    double prof   = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
-    string cmt    = PositionGetString(POSITION_COMMENT);
-    if(posCount > 0) posArray += ",";
-    posArray += StringFormat(
-        "{\"ticket\":\"%I64u\",\"symbol\":\"%s\",\"type\":\"%s\",\"volume\":%f,"
-        "\"openPrice\":%f,\"sl\":%f,\"tp\":%f,\"profit\":%f,\"comment\":\"%s\"}",
-        tk, sym, typeStr, vol, openP, slp, tpp, prof, cmt);
-    posCount++;
-}
-posArray += "]";
+    // Build the open-positions array for this terminal/symbol
+    string posArray = "[";
+    int posCount = 0;
+    for(int i = PositionsTotal() - 1; i >= 0; i--) {
+        ulong tk = PositionGetTicket(i);
+        if(tk == 0) continue;
+        string sym = PositionGetString(POSITION_SYMBOL);
+        if(sym != _Symbol) continue;
+        long   ptype = PositionGetInteger(POSITION_TYPE);
+        string typeStr = (ptype == POSITION_TYPE_BUY) ? "BUY" : "SELL";
+        double vol    = PositionGetDouble(POSITION_VOLUME);
+        double openP  = PositionGetDouble(POSITION_PRICE_OPEN);
+        double slp    = PositionGetDouble(POSITION_SL);
+        double tpp    = PositionGetDouble(POSITION_TP);
+        double prof   = PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+        string cmt    = PositionGetString(POSITION_COMMENT);
+        if(posCount > 0) posArray += ",";
+        posArray += StringFormat(
+            "{\"ticket\":\"%I64u\",\"symbol\":\"%s\",\"type\":\"%s\",\"volume\":%f,"
+            "\"openPrice\":%f,\"sl\":%f,\"tp\":%f,\"profit\":%f,\"comment\":\"%s\"}",
+            tk, sym, typeStr, vol, openP, slp, tpp, prof, cmt);
+        posCount++;
+    }
+    posArray += "]";
 
-string jsonPayload = StringFormat(
-    "{\"licenseKey\":\"%s\",\"currentBalance\":%f,\"currentEquity\":%f,\"clientSymbol\":\"%s\",\"accountNumber\":\"%d\",\"brokerName\":\"%s\",\"brokerServer\":\"%s\",\"openPositions\":%s}",
-    LicenseKey, currentBalance, currentEquity, _Symbol, accNum, brokerName, brokerServer, posArray);
-    
-    
+    string jsonPayload = StringFormat(
+        "{\"licenseKey\":\"%s\",\"currentBalance\":%f,\"currentEquity\":%f,\"clientSymbol\":\"%s\",\"accountNumber\":\"%d\",\"brokerName\":\"%s\",\"brokerServer\":\"%s\",\"openPositions\":%s}",
+        LicenseKey, currentBalance, currentEquity, _Symbol, accNum, brokerName, brokerServer, posArray);
+        
+        
     char data[], result[];
     string headers = "Content-Type: application/json\r\n";
     StringToCharArray(jsonPayload, data, 0, WHOLE_ARRAY, CP_UTF8);
@@ -395,7 +398,6 @@ string jsonPayload = StringFormat(
             g_lockWasActive = false;
         }
         //============= ACTION: ZERO_HEDGE =============
-        //============= ACTION: ZERO_HEDGE =============
         else if (action == "ZERO_HEDGE") {
             UpdateLabel(Prefix+"Status", "ACCOUNT LOCKED - " + reason, CLR_AMBER);
             AutoModeActive = false;
@@ -440,18 +442,31 @@ string jsonPayload = StringFormat(
             UpdateLabel(Prefix+"Status", "Custodial: $" + DoubleToString(currentBalance, 2), CLR_GREEN);
 
             string masterState  = ExtractJSONBlock(responseText, "masterState");
-            string analyticsObj = ExtractJSONBlock(masterState, "analytics");
 
+            // --- NEW: Extract overall trend for button locking ---
+            string overallTrend = ExtractJSONValue(masterState, "trend");
+            if(overallTrend != "") g_masterTrend = overallTrend;
+
+            // --- NEW: Parse TRENDS panel ---
+            string trendsObj = ExtractJSONBlock(masterState, "trends");
+            if(trendsObj != "") {
+                string tKeys[]   = {"V_Long", "V_Swing", "V_Day", "V_Intra", "V_Scalpa", "V_Real"};
+                string tFields[] = {"long", "swing", "day", "intra", "scalpa", "real"};
+                for(int i = 0; i < 6; i++) {
+                    string v = ExtractJSONValue(trendsObj, tFields[i]);
+                    if(v != "") UpdateLabel(Prefix+tKeys[i], v, CLR_LIGHT_BLUE);
+                }
+            }
+
+            // --- NEW: Parse ANALYTICS panel ---
+            string analyticsObj = ExtractJSONBlock(masterState, "analytics");
             if(analyticsObj != "") {
                 string anaKeys[]   = {"A_Scalpa","A_Intra","A_Day","A_Swing","A_Long"};
                 string anaFields[] = {"scalpa","intra","day","swing","long"};
                 for(int i = 0; i < 5; i++) {
                     string v = ExtractJSONValue(analyticsObj, anaFields[i]);
                     if(v != "" && v != "Awaiting Data...") {
-                        // NEW: prefix with colon + ensure a "$" is present
-                        string amt = v;
-                        if(StringFind(amt, "$") < 0) amt = "$" + amt;
-                        g_analyticsPrices[i] = ": Unlocked at " + amt;
+                        g_analyticsPrices[i] = v; 
                     }
                     UpdateLabel(Prefix+anaKeys[i], g_analyticsPrices[i], CLR_LIGHT_BLUE);
                 }
@@ -557,12 +572,23 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
             ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
         }
         else if(sparam == Prefix+"BtnBuy") {
-            // NEW: read the live lot field first (in case edit event was missed)
+            // --- NEW: BLOCK BUY IF MASTER IS BEARISH ---
+            if(StringFind(g_masterTrend, "Bear") >= 0 || StringFind(g_masterTrend, "Sell") >= 0 || StringFind(g_masterTrend, "Down") >= 0) {
+                MessageBox("TRADE BLOCKED\n\nThe D.E.T Master Trend is currently BEARISH.\n\nBUY orders are locked to protect your capital.", "D.E.T Protection", MB_ICONWARNING);
+                ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+                return;
+            }
             CommitLotEdit();
             SafeBuy(g_lotSize, "Manual Buy");
             ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
         }
         else if(sparam == Prefix+"BtnSell") {
+            // --- NEW: BLOCK SELL IF MASTER IS BULLISH ---
+            if(StringFind(g_masterTrend, "Bull") >= 0 || StringFind(g_masterTrend, "Buy") >= 0 || StringFind(g_masterTrend, "Up") >= 0) {
+                MessageBox("TRADE BLOCKED\n\nThe D.E.T Master Trend is currently BULLISH.\n\nSELL orders are locked to protect your capital.", "D.E.T Protection", MB_ICONWARNING);
+                ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
+                return;
+            }
             CommitLotEdit();
             SafeSell(g_lotSize, "Manual Sell");
             ObjectSetInteger(0, sparam, OBJPROP_STATE, false);
@@ -611,15 +637,6 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
 }
 
 //+------------------------------------------------------------------+
-//| Sync trades — now only manages positions on THIS chart's symbol  |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//| HARDENED copy-sync:                                          |
-//|  * Never closes manual trades (comment must be ALL DIGITS).  |
-//|  * Never mass-closes when master payload is empty.            |
-//|  * Only closes a copy whose master ticket was previously seen |
-//|    and has now disappeared from the master feed.              |
-//+------------------------------------------------------------------+
 bool IsAllDigits(string s) {
     if(StringLen(s) == 0) return false;
     for(int i = 0; i < StringLen(s); i++) {
@@ -647,10 +664,7 @@ void SyncTrades(string tradesJson) {
 
     if(isEmpty) {
         g_consecutiveEmptyPolls++;
-        // Transient empty (1-2 polls) — could be a server hiccup.
-        // Don't touch anything yet.
         if(g_consecutiveEmptyPolls < SAFE_EMPTY_THRESHOLD) return;
-        // Sustained empty (3+ polls) → master really has 0 trades → proceed.
     } else {
         g_consecutiveEmptyPolls = 0;
     }
@@ -658,7 +672,6 @@ void SyncTrades(string tradesJson) {
     ulong masterTickets[];
     ArrayResize(masterTickets, 0);
 
-    // ── Parse & process master trades (only when non-empty) ──────────
     if(!isEmpty) {
         string tempJson = tradesJson;
         int objStart = StringFind(tempJson, "{");
@@ -709,10 +722,6 @@ void SyncTrades(string tradesJson) {
         }
     }
 
-    // ── Close copies whose master ticket is gone ─────────────────────
-    //   * Manual trades: NEVER touched (comment must be pure digits)
-    //   * Only tickets we've previously seen can be closed
-    //   * Runs even on empty payload (after grace period)
     if(!AutoModeActive) return;
     for(int i = PositionsTotal() - 1; i >= 0; i--) {
         ulong localTicket = PositionGetTicket(i);
@@ -1058,8 +1067,6 @@ UpdateLabel(Prefix+"ProfitTargetVal", "+$" + FmtNum(g_profitTarget), CLR_GREEN);
                 "TIME: " + TimeToString(TimeLocal(), TIME_SECONDS),
                 clrWhite);
 }
-
-
 
 //+------------------------------------------------------------------+
 //| Force close EVERYTHING on the current chart symbol               |

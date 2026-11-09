@@ -691,7 +691,7 @@ app.post("/api/client/sync", async (req, res) => {
 
 
                 // Before saving broker telemetry and equity history:
-        user.__v = undefined;
+        //user.__v = undefined;
         await user.save();
 
         // ─────────────────────────────────────────────────────────────
